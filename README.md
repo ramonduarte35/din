@@ -159,3 +159,4 @@ Para desenvolvedores e testes sem necessidade de escanear QR Code imediatamente,
 
 ## 🛡️ 8. Licença e Autoria
 Desenvolvido para o ecossistema **Din — Inteligência Financeira**.
+# din
