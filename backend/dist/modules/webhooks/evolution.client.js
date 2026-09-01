@@ -77,9 +77,28 @@ class EvolutionClient {
     async createInstance(instanceName) {
         try {
             const url = `${this.baseUrl}/instance/create`;
+            const webhookUrl = 'http://api:3000/api/v1/webhooks/evolution';
             const response = await axios_1.default.post(url, {
                 instanceName,
+                token: instanceName,
                 qrcode: true,
+                integration: 'WHATSAPP-BAILEYS',
+                reject_call: false,
+                groupsIgnore: false,
+                alwaysOnline: true,
+                readMessages: false,
+                readStatus: false,
+                webhook: {
+                    enabled: true,
+                    url: webhookUrl,
+                    byEvents: false,
+                    base64: true,
+                    events: [
+                        'QRCODE_UPDATED',
+                        'CONNECTION_UPDATE',
+                        'MESSAGES_UPSERT',
+                    ],
+                },
             }, {
                 headers: this.getHeaders(),
                 timeout: 10000,
@@ -87,13 +106,16 @@ class EvolutionClient {
             return response.data;
         }
         catch (error) {
+            if (error?.response?.status === 403 || error?.response?.data?.message?.includes('already in use')) {
+                return { status: 'EXISTS' };
+            }
             console.error(`❌ [Evolution] Erro ao criar instância "${instanceName}":`, error?.response?.data || error?.message);
             throw error;
         }
     }
     async connectInstance(instanceName) {
         try {
-            const url = `${this.baseUrl}/instance/connect/${instanceName}`;
+            const url = `${this.baseUrl}/instance/connect/${encodeURIComponent(instanceName)}`;
             const response = await axios_1.default.get(url, {
                 headers: this.getHeaders(),
                 timeout: 10000,
@@ -101,8 +123,18 @@ class EvolutionClient {
             return response.data;
         }
         catch (error) {
-            console.error(`❌ [Evolution] Erro ao conectar instância "${instanceName}":`, error?.response?.data || error?.message);
-            throw error;
+            try {
+                const qrUrl = `${this.baseUrl}/instance/qr?name=${encodeURIComponent(instanceName)}`;
+                const qrRes = await axios_1.default.get(qrUrl, {
+                    headers: this.getHeaders(),
+                    timeout: 10000,
+                });
+                return qrRes.data;
+            }
+            catch {
+                console.error(`❌ [Evolution] Erro ao conectar instância "${instanceName}":`, error?.response?.data || error?.message);
+                throw error;
+            }
         }
     }
     async getConnectionState(instanceName) {

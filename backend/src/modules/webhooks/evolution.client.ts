@@ -98,11 +98,30 @@ export class EvolutionClient {
   async createInstance(instanceName: string) {
     try {
       const url = `${this.baseUrl}/instance/create`;
+      const webhookUrl = 'http://api:3000/api/v1/webhooks/evolution';
       const response = await axios.post(
         url,
         {
           instanceName,
+          token: instanceName,
           qrcode: true,
+          integration: 'WHATSAPP-BAILEYS',
+          reject_call: false,
+          groupsIgnore: false,
+          alwaysOnline: true,
+          readMessages: false,
+          readStatus: false,
+          webhook: {
+            enabled: true,
+            url: webhookUrl,
+            byEvents: false,
+            base64: true,
+            events: [
+              'QRCODE_UPDATED',
+              'CONNECTION_UPDATE',
+              'MESSAGES_UPSERT',
+            ],
+          },
         },
         {
           headers: this.getHeaders(),
@@ -111,6 +130,9 @@ export class EvolutionClient {
       );
       return response.data;
     } catch (error: any) {
+      if (error?.response?.status === 403 || error?.response?.data?.message?.includes('already in use')) {
+        return { status: 'EXISTS' };
+      }
       console.error(`❌ [Evolution] Erro ao criar instância "${instanceName}":`, error?.response?.data || error?.message);
       throw error;
     }
@@ -118,15 +140,24 @@ export class EvolutionClient {
 
   async connectInstance(instanceName: string) {
     try {
-      const url = `${this.baseUrl}/instance/connect/${instanceName}`;
+      const url = `${this.baseUrl}/instance/connect/${encodeURIComponent(instanceName)}`;
       const response = await axios.get(url, {
         headers: this.getHeaders(),
         timeout: 10000,
       });
       return response.data;
     } catch (error: any) {
-      console.error(`❌ [Evolution] Erro ao conectar instância "${instanceName}":`, error?.response?.data || error?.message);
-      throw error;
+      try {
+        const qrUrl = `${this.baseUrl}/instance/qr?name=${encodeURIComponent(instanceName)}`;
+        const qrRes = await axios.get(qrUrl, {
+          headers: this.getHeaders(),
+          timeout: 10000,
+        });
+        return qrRes.data;
+      } catch {
+        console.error(`❌ [Evolution] Erro ao conectar instância "${instanceName}":`, error?.response?.data || error?.message);
+        throw error;
+      }
     }
   }
 
