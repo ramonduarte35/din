@@ -124,7 +124,17 @@ export class AdminWhatsAppService {
       };
     } catch (error: any) {
       console.error(`[Admin] Erro ao obter QR Code para "${instance.instance_name}":`, error?.message);
-      throw { statusCode: 502, message: 'Não foi possível gerar o QR Code no gateway Evolution API.' };
+      if (
+        error?.response?.data?.code === 'LICENSE_REQUIRED' ||
+        error?.response?.data?.error === 'service not activated'
+      ) {
+        throw {
+          statusCode: 402,
+          message:
+            'A licença do Evolution Go ainda não foi ativada. Acesse http://<ip-do-servidor>:4000/manager para ativar a licença gratuita em 1 clique.',
+        };
+      }
+      throw { statusCode: 502, message: 'Não foi possível gerar o QR Code no gateway Evolution Go.' };
     }
   }
 

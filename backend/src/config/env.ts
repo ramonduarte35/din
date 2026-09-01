@@ -11,7 +11,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(8, 'JWT_SECRET deve ter no mínimo 8 caracteres'),
   OPENAI_API_KEY: z.string().optional().default(''),
   OPENAI_MODEL: z.string().default('gpt-4o-mini'),
-  EVOLUTION_API_URL: z.string().default('http://evolution-go:8080'),
+  EVOLUTION_API_URL: z.string().default('http://evolution-go:4000'),
   EVOLUTION_GLOBAL_API_KEY: z.string().default('din_evolution_global_key_2026'),
   EVOLUTION_WEBHOOK_SECRET: z.string().default('din_webhook_secret_2026'),
 });

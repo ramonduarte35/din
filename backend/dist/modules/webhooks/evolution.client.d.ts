@@ -16,6 +16,11 @@ export declare class EvolutionClient {
     constructor();
     private getHeaders;
     sendText(instanceName: string, recipientNumber: string, message: string): Promise<boolean>;
+    getLicenseStatus(): Promise<{
+        status: string;
+        instance_id?: string;
+    }>;
+    getLicenseRegisterUrl(): Promise<string | null>;
     fetchInstances(): Promise<any[]>;
     createInstance(instanceName: string): Promise<any>;
     connectInstance(instanceName: string): Promise<any>;

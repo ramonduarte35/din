@@ -61,6 +61,26 @@ export class EvolutionClient {
     }
   }
 
+  async getLicenseStatus(): Promise<{ status: string; instance_id?: string }> {
+    try {
+      const url = `${this.baseUrl}/license/status`;
+      const response = await axios.get(url, { timeout: 3000 });
+      return response.data;
+    } catch {
+      return { status: 'active' };
+    }
+  }
+
+  async getLicenseRegisterUrl(): Promise<string | null> {
+    try {
+      const url = `${this.baseUrl}/license/register`;
+      const response = await axios.get(url, { timeout: 3000 });
+      return response.data?.register_url || null;
+    } catch {
+      return null;
+    }
+  }
+
   async fetchInstances(): Promise<any[]> {
     try {
       const url = `${this.baseUrl}/instance/fetchInstances`;
@@ -83,7 +103,6 @@ export class EvolutionClient {
         {
           instanceName,
           qrcode: true,
-          integration: 'WHATSAPP-BAILEYS',
         },
         {
           headers: this.getHeaders(),
