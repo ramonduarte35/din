@@ -1,0 +1,111 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: din-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-din}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d din"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - din-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: din-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - din-network
+
+  evolution-go:
+    image: evoapicloud/evolution-go:latest
+    container_name: din-evolution-go
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      SERVER_PORT: 4000
+      CLIENT_NAME: "din_finance"
+      GLOBAL_API_KEY: ${EVOLUTION_GLOBAL_API_KEY:-din_evolution_global_key_2026}
+      POSTGRES_AUTH_DB: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/evogo_auth?sslmode=disable"
+      POSTGRES_USERS_DB: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/evogo_users?sslmode=disable"
+      DATABASE_SAVE_MESSAGES: "false"
+      WADEBUG: "INFO"
+      LOGTYPE: "console"
+      WEBHOOK_GLOBAL_ENABLED: "true"
+      WEBHOOK_GLOBAL_URL: "http://api:3000/api/v1/webhooks/evolution"
+    volumes:
+      - ./data/evolution:/app/dbdata
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - din-network
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: din-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-din}?schema=public"
+      REDIS_URL: "redis://redis:6379"
+      JWT_SECRET: ${JWT_SECRET:-din_jwt_secret_key_change_me_in_production_2026}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-your_openai_api_key_here}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      EVOLUTION_API_URL: "http://evolution-go:4000"
+      EVOLUTION_GLOBAL_API_KEY: ${EVOLUTION_GLOBAL_API_KEY:-din_evolution_global_key_2026}
+      EVOLUTION_WEBHOOK_SECRET: ${EVOLUTION_WEBHOOK_SECRET:-din_webhook_secret_2026}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - din-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: din-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - din-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  evolution_data:
+
+networks:
+  din-network:
+    driver: bridge
