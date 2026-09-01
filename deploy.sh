@@ -58,7 +58,12 @@ fi
 mkdir -p data/postgres data/redis data/evolution
 chmod +x docker/init-db.sh 2>/dev/null || true
 
-# 6. Build e Inicialização dos Containers (Multi-stage Docker)
+# 6. Build e Inicialização dos Containers
+echo -e "\n${CYAN}📦 Preparando dependências do backend...${NC}"
+if command -v npm &> /dev/null; then
+    (cd backend && npm install --omit=dev --no-audit --no-fund)
+fi
+
 echo -e "\n${CYAN}🔨 Construindo imagens Docker nativas para ${ARCH} e iniciando containers...${NC}"
 docker compose up --build -d --remove-orphans
 
