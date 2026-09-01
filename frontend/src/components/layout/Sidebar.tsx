@@ -8,6 +8,7 @@ import {
   LogOut,
   Sparkles,
   Zap,
+  Shield,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '../../lib/utils';
