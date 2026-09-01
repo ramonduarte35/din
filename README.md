@@ -37,33 +37,21 @@ O projeto é 100% orquestrado via `docker-compose.yml`:
 ### Pré-requisitos
 - [Docker](https://docs.docker.com/get-docker/) e [Docker Compose](https://docs.docker.com/compose/) instalados na sua máquina.
 
-### Passo a Passo de Inicialização
+### 3. Como Executar o Sistema
 
-1. **Clone o repositório e acesse a pasta do projeto:**
-   ```bash
-   cd ContasZap
-   ```
+Você pode executar o sistema de forma 100% automatizada utilizando os scripts prontos:
 
-2. **Configure as Variáveis de Ambiente:**
-   Copie o arquivo `.env.example` para `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-   > 💡 *Adicione sua `OPENAI_API_KEY` no `.env` para habilitar a extração com GPT-4o-mini. Se não informar uma chave no momento, o sistema utilizará automaticamente o inteligente **Parser Semântico Local com suporte a gírias brasileiras**.*
+#### A. Execução Local Rápida (Desenvolvimento / Testes):
+```bash
+./run-docker.sh
+```
+> O script cuidará de tudo: verificação de dependências, criação de diretórios, subida dos containers com Docker Compose, espera pela saúde do PostgreSQL, execução automática das migrações do Prisma e Seed com usuário Demo.
 
-3. **Suba os containers com Docker Compose:**
-   ```bash
-   docker compose up --build -d
-   ```
-
-4. **Execute as migrações do banco e o Seed inicial:**
-   ```bash
-   # Executar as migrações do Prisma
-   docker compose exec api npx prisma migrate deploy
-
-   # Executar o seed de categorias padrão e usuário demo
-   docker compose exec api npx prisma db seed
-   ```
+#### B. Deploy em Produção (Raspberry Pi 4/5 ARM64, VPS ou Servidor Cloud):
+```bash
+./deploy.sh
+```
+> O script detecta a arquitetura do hardware (ARM64/x86), atualiza o repositório (`git pull`), constrói imagens otimizadas, aplica migrações, limpa imagens antigas (`prune`) para economizar espaço em disco e exibe os IPs de acesso na sua rede local ou domínio.
 
 5. **Acesse as aplicações:**
    - 🌐 **Painel Web (Frontend):** [http://localhost](http://localhost) (ou porta `80`)
