@@ -60,7 +60,7 @@ class EvolutionClient {
             const response = await axios_1.default.post(url, {
                 instanceName,
                 qrcode: true,
-                integration: 'WHATSAPP_BAILEYS',
+                integration: 'WHATSAPP-BAILEYS',
             }, {
                 headers: this.getHeaders(),
                 timeout: 10000,

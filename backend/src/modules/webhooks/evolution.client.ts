@@ -83,7 +83,7 @@ export class EvolutionClient {
         {
           instanceName,
           qrcode: true,
-          integration: 'WHATSAPP_BAILEYS',
+          integration: 'WHATSAPP-BAILEYS',
         },
         {
           headers: this.getHeaders(),

@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.adminWhatsAppService = exports.AdminWhatsAppService = void 0;
 const prisma_js_1 = require("../../lib/prisma.js");
+const redis_js_1 = require("../../lib/redis.js");
 const evolution_client_js_1 = require("../webhooks/evolution.client.js");
 const phone_js_1 = require("../../utils/phone.js");
 class AdminWhatsAppService {
@@ -71,11 +72,36 @@ class AdminWhatsAppService {
             throw { statusCode: 404, message: 'Instância não encontrada.' };
         }
         try {
-            const connectData = await evolution_client_js_1.evolutionClient.connectInstance(instance.instance_name);
-            // Evolution Go costuma retornar { base64: "data:image/png;base64,...", code: "..." } ou { qrcode: { base64: ... } }
-            const base64 = connectData?.base64 || connectData?.qrcode?.base64 || connectData?.code;
+            let connectData = null;
+            try {
+                connectData = await evolution_client_js_1.evolutionClient.connectInstance(instance.instance_name);
+            }
+            catch (connErr) {
+                // Se a instância não existe ainda no gateway, cria agora
+                const createRes = await evolution_client_js_1.evolutionClient.createInstance(instance.instance_name);
+                connectData = createRes?.qrcode || createRes;
+            }
+            if (!connectData || (!connectData.base64 && !connectData.code && !connectData.qrcode)) {
+                try {
+                    const createRes = await evolution_client_js_1.evolutionClient.createInstance(instance.instance_name);
+                    connectData = createRes?.qrcode || createRes;
+                }
+                catch (createErr) {
+                    // pode já existir
+                }
+            }
+            let base64 = connectData?.base64 || connectData?.qrcode?.base64 || connectData?.code;
             const pairingCode = connectData?.pairingCode || connectData?.pairing_code;
             const count = connectData?.count;
+            // Se não veio no retorno imediato, verifica no Redis se o webhook recebeu o evento qrcode.updated
+            if (!base64) {
+                base64 = await redis_js_1.redis.get(`qrcode:${instance.instance_name}`);
+            }
+            // Se ainda não, aguarda 1 segundo e tenta no Redis novamente
+            if (!base64) {
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                base64 = await redis_js_1.redis.get(`qrcode:${instance.instance_name}`);
+            }
             return {
                 instance_name: instance.instance_name,
                 base64: base64 || null,
@@ -86,7 +112,7 @@ class AdminWhatsAppService {
         }
         catch (error) {
             console.error(`[Admin] Erro ao obter QR Code para "${instance.instance_name}":`, error?.message);
-            throw { statusCode: 502, message: 'Não foi possível gerar o QR Code no gateway Evolution Go.' };
+            throw { statusCode: 502, message: 'Não foi possível gerar o QR Code no gateway Evolution API.' };
         }
     }
     async getInstanceStatus(id) {

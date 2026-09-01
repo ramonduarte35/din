@@ -1,4 +1,5 @@
 import { prisma } from '../../lib/prisma.js';
+import { redis } from '../../lib/redis.js';
 import { evolutionClient } from '../webhooks/evolution.client.js';
 import { normalizePhoneNumber } from '../../utils/phone.js';
 import { CreateInstanceInput, UpdateInstanceInput, LogsQueryInput } from './admin.whatsapp.schemas.js';
@@ -81,12 +82,38 @@ export class AdminWhatsAppService {
     }
 
     try {
-      const connectData = await evolutionClient.connectInstance(instance.instance_name);
-      
-      // Evolution Go costuma retornar { base64: "data:image/png;base64,...", code: "..." } ou { qrcode: { base64: ... } }
-      const base64 = connectData?.base64 || connectData?.qrcode?.base64 || connectData?.code;
+      let connectData: any = null;
+      try {
+        connectData = await evolutionClient.connectInstance(instance.instance_name);
+      } catch (connErr: any) {
+        // Se a instância não existe ainda no gateway, cria agora
+        const createRes = await evolutionClient.createInstance(instance.instance_name);
+        connectData = createRes?.qrcode || createRes;
+      }
+
+      if (!connectData || (!connectData.base64 && !connectData.code && !connectData.qrcode)) {
+        try {
+          const createRes = await evolutionClient.createInstance(instance.instance_name);
+          connectData = createRes?.qrcode || createRes;
+        } catch (createErr) {
+          // pode já existir
+        }
+      }
+
+      let base64 = connectData?.base64 || connectData?.qrcode?.base64 || connectData?.code;
       const pairingCode = connectData?.pairingCode || connectData?.pairing_code;
       const count = connectData?.count;
+
+      // Se não veio no retorno imediato, verifica no Redis se o webhook recebeu o evento qrcode.updated
+      if (!base64) {
+        base64 = await redis.get(`qrcode:${instance.instance_name}`);
+      }
+
+      // Se ainda não, aguarda 1 segundo e tenta no Redis novamente
+      if (!base64) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        base64 = await redis.get(`qrcode:${instance.instance_name}`);
+      }
 
       return {
         instance_name: instance.instance_name,
@@ -97,7 +124,7 @@ export class AdminWhatsAppService {
       };
     } catch (error: any) {
       console.error(`[Admin] Erro ao obter QR Code para "${instance.instance_name}":`, error?.message);
-      throw { statusCode: 502, message: 'Não foi possível gerar o QR Code no gateway Evolution Go.' };
+      throw { statusCode: 502, message: 'Não foi possível gerar o QR Code no gateway Evolution API.' };
     }
   }
 

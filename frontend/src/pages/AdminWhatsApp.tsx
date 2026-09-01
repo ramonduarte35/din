@@ -129,6 +129,14 @@ export function AdminWhatsApp() {
 
     qrPollingRef.current = setInterval(async () => {
       try {
+        // Se o QR Code ainda não foi gerado, tenta buscar novamente
+        getAdminInstanceQrCode(instanceId).then((res) => {
+          if (res.base64) {
+            setQrCodeData(res);
+          }
+        }).catch(() => {});
+
+        // Verifica se o usuário escaneou e conectou o WhatsApp
         const status = await getAdminInstanceStatus(instanceId);
         if (status.is_connected) {
           if (qrPollingRef.current) clearInterval(qrPollingRef.current);
@@ -139,7 +147,7 @@ export function AdminWhatsApp() {
       } catch (err) {
         // ignore polling error
       }
-    }, 3000);
+    }, 2000);
   };
 
   const handleCloseQrModal = () => {
@@ -678,17 +686,12 @@ export function AdminWhatsApp() {
                   </p>
                 </div>
               ) : (
-                <div className="p-6 bg-slate-900 rounded-2xl border border-slate-800">
-                  <p className="text-xs text-slate-400">
-                    O gateway não retornou uma imagem de QR Code. A instância pode já estar conectada.
+                <div className="w-64 h-64 p-6 bg-slate-900/90 rounded-2xl border border-slate-800 flex flex-col items-center justify-center text-center">
+                  <div className="w-10 h-10 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin" />
+                  <p className="text-xs font-bold text-white mt-4">Iniciando sessão do WhatsApp...</p>
+                  <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                    O gateway Evolution API está estabelecendo o socket Baileys. O QR Code surgirá aqui em instantes.
                   </p>
-                  <Button
-                    size="sm"
-                    onClick={() => selectedInstance && handleOpenQrCode(selectedInstance)}
-                    className="mt-3 bg-emerald-500 text-slate-950 font-bold"
-                  >
-                    Tentar Novamente
-                  </Button>
                 </div>
               )}
 

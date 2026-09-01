@@ -20,10 +20,24 @@ export class WebhooksService {
   async processEvolutionMessage(payload: any) {
     console.log('📥 [Webhook] Recebido evento do Evolution:', JSON.stringify(payload, null, 2));
 
-    // Extrair dados do payload da Evolution Go (compatível com vários formatos)
+    // Extrair dados do payload da Evolution Go / Evolution API
     const event = payload?.event || payload?.type || '';
     const instance = payload?.instance || payload?.instanceName || 'din-finance-01';
     const data = payload?.data || payload;
+
+    // Tratar eventos de QR Code
+    if (event === 'qrcode.updated' || event === 'qrcode_updated') {
+      const qrcodeBase64 = data?.qrcode?.base64 || data?.base64 || data?.code;
+      if (qrcodeBase64) {
+        console.log(`📱 [Webhook] Recebido e cacheado QR Code para a instância "${instance}"`);
+        try {
+          await redis.set(`qrcode:${instance}`, qrcodeBase64, 'EX', 120);
+        } catch (e) {
+          // ignore redis error
+        }
+      }
+      return { status: 'qrcode_saved' };
+    }
 
     const key = data?.key || {};
     const messageId = key?.id || `msg_${Date.now()}_${Math.random()}`;
