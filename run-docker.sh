@@ -45,7 +45,12 @@ fi
 mkdir -p data/postgres data/redis data/evolution
 chmod +x docker/init-db.sh 2>/dev/null || true
 
-# 4. Parar containers anteriores e reconstruir
+# 4. Compilar artefatos e inicializar containers
+echo -e "\n${CYAN}🔨 Compilando aplicação TypeScript (backend e frontend)...${NC}"
+export PATH=$PATH:/home/ramon/.nvm/versions/node/v24.15.0/bin
+(cd backend && npm run build)
+(cd frontend && npm run build)
+
 echo -e "\n${CYAN}📦 Construindo e inicializando containers...${NC}"
 docker compose down --remove-orphans
 docker compose up --build -d
@@ -58,20 +63,24 @@ until docker compose exec -T db pg_isready -U postgres -d din &> /dev/null; do
 done
 echo -e "\n${GREEN}✓ PostgreSQL pronto e saudável!${NC}"
 
-# 6. Executar migrações do Prisma e Seed
-echo -e "\n${CYAN}🔄 Aplicando migrações do banco de dados (Prisma)...${NC}"
-docker compose exec -T api npx prisma migrate deploy
+# 6. Executar sincronização do banco de dados (Prisma) e Seed
+echo -e "\n${CYAN}🔄 Sincronizando schema do banco de dados (Prisma db push)...${NC}"
+docker compose exec -T api npx prisma db push --accept-data-loss
 
 echo -e "\n${CYAN}🌱 Executando seed com dados iniciais e usuário demo...${NC}"
-docker compose exec -T api npx prisma db seed
+docker compose exec -T api npx tsx prisma/seed.ts
 
 # 7. Resumo de Acesso
+WEB_PORT=$(grep '^PORT_FRONTEND=' .env 2>/dev/null | cut -d '=' -f2 || echo "8000")
+API_PORT=$(grep '^PORT_API=' .env 2>/dev/null | cut -d '=' -f2 || echo "3001")
+EVO_PORT=$(grep '^PORT_EVOLUTION=' .env 2>/dev/null | cut -d '=' -f2 || echo "4000")
+
 echo -e "\n${GREEN}${BOLD}══════════════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}${BOLD}🎉 SISTEMA DIN INICIALIZADO COM SUCESSO!${NC}"
 echo -e "${GREEN}${BOLD}══════════════════════════════════════════════════════════════════${NC}"
-echo -e "🌐 ${BOLD}Painel Web (Dashboard):${NC}    http://localhost"
-echo -e "⚡ ${BOLD}Backend API Fastify:${NC}       http://localhost:3000/health"
-echo -e "📱 ${BOLD}Evolution Go Gateway:${NC}      http://localhost:4000"
+echo -e "🌐 ${BOLD}Painel Web (Dashboard):${NC}    http://localhost:${WEB_PORT}"
+echo -e "⚡ ${BOLD}Backend API Fastify:${NC}       http://localhost:${API_PORT}/health"
+echo -e "📱 ${BOLD}Evolution Go Gateway:${NC}      http://localhost:${EVO_PORT}"
 echo -e "\n👤 ${BOLD}Credenciais da Conta Demo PRO:${NC}"
 echo -e "   E-mail:   ${CYAN}demo@din.app${NC}"
 echo -e "   Senha:    ${CYAN}123456${NC}"

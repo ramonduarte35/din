@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-din}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5434}:5432"
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
       - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
@@ -25,7 +25,7 @@ services:
     container_name: din-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6381}:6379"
     volumes:
       - ./data/redis:/data
     healthcheck:
@@ -41,7 +41,7 @@ services:
     container_name: din-evolution-go
     restart: unless-stopped
     ports:
-      - "4000:4000"
+      - "${PORT_EVOLUTION:-4000}:4000"
     environment:
       SERVER_PORT: 4000
       CLIENT_NAME: "din_finance"
@@ -68,7 +68,7 @@ services:
     container_name: din-api
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${PORT_API:-3001}:3000"
     environment:
       PORT: 3000
       NODE_ENV: production
@@ -95,7 +95,7 @@ services:
     container_name: din-frontend
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "${PORT_FRONTEND:-8000}:80"
     depends_on:
       - api
     networks:

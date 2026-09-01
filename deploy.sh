@@ -53,6 +53,12 @@ mkdir -p data/postgres data/redis data/evolution
 chmod +x docker/init-db.sh 2>/dev/null || true
 
 # 6. Build e Inicialização dos Containers
+echo -e "\n${CYAN}🔨 Compilando aplicação TypeScript (backend e frontend)...${NC}"
+if command -v npm &> /dev/null; then
+    (cd backend && npm run build)
+    (cd frontend && npm run build)
+fi
+
 echo -e "\n${CYAN}🔨 Construindo imagens otimizadas para ${ARCH} e iniciando containers...${NC}"
 docker compose up --build -d --remove-orphans
 
@@ -72,13 +78,13 @@ fi
 
 echo -e "\n${GREEN}✓ PostgreSQL está online e pronto para receber conexões!${NC}"
 
-# 8. Executar migrações do banco de dados
-echo -e "\n${CYAN}🔄 Aplicando migrações do Prisma...${NC}"
-docker compose exec -T api npx prisma migrate deploy
+# 8. Executar sincronização do banco de dados (Prisma db push)
+echo -e "\n${CYAN}🔄 Sincronizando schema do banco de dados (Prisma db push)...${NC}"
+docker compose exec -T api npx prisma db push --accept-data-loss
 
-# 9. Executar seed inicial caso ainda não haja categorias
+# 9. Executar seed inicial de categorias e números de WhatsApp
 echo -e "\n${CYAN}🌱 Sincronizando categorias e números de WhatsApp oficiais...${NC}"
-docker compose exec -T api npx prisma db seed
+docker compose exec -T api npx tsx prisma/seed.ts
 
 # 10. Limpeza de imagens antigas não utilizadas (vital para economizar espaço no Raspberry Pi)
 echo -e "\n${CYAN}🧹 Limpando camadas de build e imagens antigas...${NC}"
@@ -89,12 +95,16 @@ echo -e "\n${CYAN}📊 Status dos Containers Din:${NC}"
 docker compose ps
 
 # 12. Finalização e URLs de Acesso
+WEB_PORT=$(grep '^PORT_FRONTEND=' .env 2>/dev/null | cut -d '=' -f2 || echo "8000")
+API_PORT=$(grep '^PORT_API=' .env 2>/dev/null | cut -d '=' -f2 || echo "3001")
+EVO_PORT=$(grep '^PORT_EVOLUTION=' .env 2>/dev/null | cut -d '=' -f2 || echo "4000")
+
 echo -e "\n${GREEN}${BOLD}══════════════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}${BOLD}🎉 DEPLOY CONCLUÍDO COM SUCESSO!${NC}"
 echo -e "${GREEN}${BOLD}══════════════════════════════════════════════════════════════════${NC}"
-echo -e "🌐 ${BOLD}Painel Web:${NC}              http://${HOST_IP}  (ou http://localhost)"
-echo -e "⚡ ${BOLD}API Backend:${NC}             http://${HOST_IP}:3000/health"
-echo -e "📱 ${BOLD}Evolution Go Gateway:${NC}    http://${HOST_IP}:4000"
+echo -e "🌐 ${BOLD}Painel Web:${NC}              http://${HOST_IP}:${WEB_PORT}  (ou http://localhost:${WEB_PORT})"
+echo -e "⚡ ${BOLD}API Backend:${NC}             http://${HOST_IP}:${API_PORT}/health"
+echo -e "📱 ${BOLD}Evolution Go Gateway:${NC}    http://${HOST_IP}:${EVO_PORT}"
 echo -e "\n💡 ${BOLD}Comandos Úteis em Produção:${NC}"
 echo -e "   - Ver logs em tempo real:   ${YELLOW}docker compose logs -f${NC}"
 echo -e "   - Reiniciar aplicação:      ${YELLOW}docker compose restart${NC}"
