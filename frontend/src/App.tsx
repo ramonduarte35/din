@@ -8,6 +8,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Transactions } from './pages/Transactions';
 import { Profile } from './pages/Profile';
 import { Simulator } from './pages/Simulator';
+import { AdminWhatsApp } from './pages/AdminWhatsApp';
 import { NotFound } from './pages/NotFound';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -82,6 +83,7 @@ export function App() {
             <Route path="transactions" element={<Transactions />} />
             <Route path="simulator" element={<Simulator />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="admin/whatsapp" element={<AdminWhatsApp />} />
           </Route>
 
           {/* 404 Fallback */}

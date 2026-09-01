@@ -91,6 +91,7 @@ async function main() {
         password_hash,
         phone_number: '5586999998888',
         subscription_tier: SubscriptionTier.PRO,
+        role: 'ADMIN',
       },
     });
 
@@ -172,6 +173,12 @@ async function main() {
       });
     }
     console.log(`✅ Usuário demo criado (${demoEmail} / 123456) com 6 transações de exemplo.`);
+  } else {
+    await prisma.user.update({
+      where: { email: demoEmail },
+      data: { role: 'ADMIN' },
+    });
+    console.log(`✅ Usuário demo atualizado com permissão ADMIN.`);
   }
 
   console.log('🎉 Seed finalizado com sucesso!');

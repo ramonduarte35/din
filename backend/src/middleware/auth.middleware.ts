@@ -15,6 +15,7 @@ declare module 'fastify' {
       email: string;
       phone_number: string | null;
       subscription_tier: 'FREE' | 'PRO';
+      role: 'USER' | 'ADMIN';
     };
   }
 }
@@ -32,6 +33,7 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
         email: true,
         phone_number: true,
         subscription_tier: true,
+        role: true,
       },
     });
 
@@ -49,6 +51,20 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
       statusCode: 401,
       error: 'Unauthorized',
       message: 'Token de autenticação inválido ou ausente.',
+    });
+  }
+}
+
+export async function requireAdmin(request: FastifyRequest, reply: FastifyReply) {
+  // First ensure user is authenticated
+  await authenticate(request, reply);
+  if (reply.sent) return;
+
+  if (request.currentUser?.role !== 'ADMIN') {
+    return reply.status(403).send({
+      statusCode: 403,
+      error: 'Forbidden',
+      message: 'Acesso restrito para administradores do sistema.',
     });
   }
 }

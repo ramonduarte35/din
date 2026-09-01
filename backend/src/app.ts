@@ -10,6 +10,7 @@ import { categoriesRoutes } from './modules/categories/categories.routes.js';
 import { systemNumbersRoutes } from './modules/system-numbers/system-numbers.routes.js';
 import { transactionsRoutes } from './modules/transactions/transactions.routes.js';
 import { webhooksRoutes } from './modules/webhooks/webhooks.routes.js';
+import { adminWhatsAppRoutes } from './modules/admin/admin.whatsapp.routes.js';
 
 export function buildApp() {
   const app = Fastify({
@@ -54,6 +55,7 @@ export function buildApp() {
       v1.register(systemNumbersRoutes, { prefix: '/system-numbers' });
       v1.register(transactionsRoutes, { prefix: '/transactions' });
       v1.register(webhooksRoutes, { prefix: '/webhooks' });
+      v1.register(adminWhatsAppRoutes, { prefix: '/admin/whatsapp' });
     },
     { prefix: '/api/v1' }
   );

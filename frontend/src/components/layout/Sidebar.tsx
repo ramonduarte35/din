@@ -104,6 +104,44 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
             )}
           </NavLink>
         ))}
+
+        {/* Admin Navigation Section */}
+        {user?.role === 'ADMIN' && (
+          <div className="pt-3 mt-3 border-t border-slate-800/80">
+            <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+              Administração
+            </p>
+            <NavLink
+              to="/admin/whatsapp"
+              onClick={onCloseMobile}
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group',
+                  isActive
+                    ? 'bg-gradient-to-r from-emerald-500/15 to-indigo-500/10 text-emerald-400 border border-emerald-500/30 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <div className="flex items-center gap-3">
+                    <Shield
+                      className={cn(
+                        'w-4 h-4 transition-colors',
+                        isActive ? 'text-emerald-400' : 'text-slate-400 group-hover:text-slate-200'
+                      )}
+                    />
+                    <span>Gestão WhatsApp</span>
+                  </div>
+                  <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    ADMIN
+                  </span>
+                </>
+              )}
+            </NavLink>
+          </div>
+        )}
       </nav>
 
       {/* PRO Upgrade / Banner Widget */}

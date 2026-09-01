@@ -12,6 +12,7 @@ export class UsersService {
         email: true,
         phone_number: true,
         subscription_tier: true,
+        role: true,
         created_at: true,
         updated_at: true,
         _count: {
@@ -65,6 +66,7 @@ export class UsersService {
         email: true,
         phone_number: true,
         subscription_tier: true,
+        role: true,
         updated_at: true,
       },
     });

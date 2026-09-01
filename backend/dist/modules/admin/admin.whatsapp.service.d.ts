@@ -1,0 +1,69 @@
+import { CreateInstanceInput, UpdateInstanceInput, LogsQueryInput } from './admin.whatsapp.schemas.js';
+export declare class AdminWhatsAppService {
+    listInstances(): Promise<{
+        connection_status: string;
+        is_connected: boolean;
+        id: string;
+        phone_number: string;
+        created_at: Date;
+        instance_name: string;
+        label: string;
+        is_active: boolean;
+    }[]>;
+    createInstance(data: CreateInstanceInput): Promise<{
+        id: string;
+        phone_number: string;
+        created_at: Date;
+        instance_name: string;
+        label: string;
+        is_active: boolean;
+    }>;
+    getQrCode(id: string): Promise<{
+        instance_name: string;
+        base64: any;
+        code: any;
+        pairingCode: any;
+        count: any;
+    }>;
+    getInstanceStatus(id: string): Promise<{
+        id: string;
+        instance_name: string;
+        connection_status: string;
+        is_connected: boolean;
+    }>;
+    restartInstance(id: string): Promise<{
+        message: string;
+    }>;
+    logoutInstance(id: string): Promise<{
+        message: string;
+    }>;
+    updateInstance(id: string, data: UpdateInstanceInput): Promise<{
+        id: string;
+        phone_number: string;
+        created_at: Date;
+        instance_name: string;
+        label: string;
+        is_active: boolean;
+    }>;
+    deleteInstance(id: string): Promise<{
+        message: string;
+    }>;
+    getLogs(query: LogsQueryInput): Promise<{
+        data: {
+            status: import("@prisma/client").$Enums.WhatsAppLogStatus;
+            id: string;
+            created_at: Date;
+            sender_number: string;
+            target_instance: string;
+            message_body: string;
+            openai_response_payload: import("@prisma/client/runtime/library").JsonValue | null;
+        }[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        };
+    }>;
+}
+export declare const adminWhatsAppService: AdminWhatsAppService;

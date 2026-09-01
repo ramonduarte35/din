@@ -1,6 +1,19 @@
 import axios from 'axios';
 import { env } from '../../config/env.js';
 
+export interface EvolutionInstanceInfo {
+  instanceName: string;
+  owner?: string;
+  profileName?: string;
+  profilePictureUrl?: string;
+  status: 'open' | 'close' | 'connecting' | 'qrcode' | string;
+  qrcode?: {
+    code?: string;
+    base64?: string;
+    pairingCode?: string;
+  };
+}
+
 export class EvolutionClient {
   private baseUrl: string;
   private apiKey: string;
@@ -8,6 +21,13 @@ export class EvolutionClient {
   constructor() {
     this.baseUrl = env.EVOLUTION_API_URL.replace(/\/$/, '');
     this.apiKey = env.EVOLUTION_GLOBAL_API_KEY;
+  }
+
+  private getHeaders() {
+    return {
+      apikey: this.apiKey,
+      'Content-Type': 'application/json',
+    };
   }
 
   async sendText(instanceName: string, recipientNumber: string, message: string): Promise<boolean> {
@@ -25,10 +45,7 @@ export class EvolutionClient {
           delay: 1000,
         },
         {
-          headers: {
-            apikey: this.apiKey,
-            'Content-Type': 'application/json',
-          },
+          headers: this.getHeaders(),
           timeout: 10000,
         }
       );
@@ -44,6 +61,20 @@ export class EvolutionClient {
     }
   }
 
+  async fetchInstances(): Promise<any[]> {
+    try {
+      const url = `${this.baseUrl}/instance/fetchInstances`;
+      const response = await axios.get(url, {
+        headers: this.getHeaders(),
+        timeout: 8000,
+      });
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error: any) {
+      console.error(`❌ [Evolution] Erro ao buscar instâncias:`, error?.response?.data || error?.message);
+      return [];
+    }
+  }
+
   async createInstance(instanceName: string) {
     try {
       const url = `${this.baseUrl}/instance/create`;
@@ -52,17 +83,86 @@ export class EvolutionClient {
         {
           instanceName,
           qrcode: true,
+          integration: 'WHATSAPP_BAILEYS',
         },
         {
-          headers: {
-            apikey: this.apiKey,
-            'Content-Type': 'application/json',
-          },
+          headers: this.getHeaders(),
+          timeout: 10000,
         }
       );
       return response.data;
     } catch (error: any) {
       console.error(`❌ [Evolution] Erro ao criar instância "${instanceName}":`, error?.response?.data || error?.message);
+      throw error;
+    }
+  }
+
+  async connectInstance(instanceName: string) {
+    try {
+      const url = `${this.baseUrl}/instance/connect/${instanceName}`;
+      const response = await axios.get(url, {
+        headers: this.getHeaders(),
+        timeout: 10000,
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error(`❌ [Evolution] Erro ao conectar instância "${instanceName}":`, error?.response?.data || error?.message);
+      throw error;
+    }
+  }
+
+  async getConnectionState(instanceName: string): Promise<{ state: string }> {
+    try {
+      const url = `${this.baseUrl}/instance/connectionState/${instanceName}`;
+      const response = await axios.get(url, {
+        headers: this.getHeaders(),
+        timeout: 6000,
+      });
+      const state = response.data?.instance?.state || response.data?.state || 'close';
+      return { state };
+    } catch (error: any) {
+      return { state: 'close' };
+    }
+  }
+
+  async restartInstance(instanceName: string) {
+    try {
+      const url = `${this.baseUrl}/instance/restart/${instanceName}`;
+      const response = await axios.post(url, {}, {
+        headers: this.getHeaders(),
+        timeout: 10000,
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error(`❌ [Evolution] Erro ao reiniciar instância "${instanceName}":`, error?.response?.data || error?.message);
+      throw error;
+    }
+  }
+
+  async logoutInstance(instanceName: string) {
+    try {
+      const url = `${this.baseUrl}/instance/logout/${instanceName}`;
+      const response = await axios.delete(url, {
+        headers: this.getHeaders(),
+        timeout: 10000,
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error(`❌ [Evolution] Erro ao deslogar instância "${instanceName}":`, error?.response?.data || error?.message);
+      throw error;
+    }
+  }
+
+  async deleteInstance(instanceName: string) {
+    try {
+      const url = `${this.baseUrl}/instance/delete/${instanceName}`;
+      const response = await axios.delete(url, {
+        headers: this.getHeaders(),
+        timeout: 10000,
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error(`❌ [Evolution] Erro ao deletar instância "${instanceName}":`, error?.response?.data || error?.message);
       throw error;
     }
   }
@@ -78,10 +178,8 @@ export class EvolutionClient {
           events: ['MESSAGES_UPSERT', 'CONNECTION_UPDATE'],
         },
         {
-          headers: {
-            apikey: this.apiKey,
-            'Content-Type': 'application/json',
-          },
+          headers: this.getHeaders(),
+          timeout: 10000,
         }
       );
       return response.data;

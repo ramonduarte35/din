@@ -41,6 +41,7 @@ export class AuthService {
         email: true,
         phone_number: true,
         subscription_tier: true,
+        role: true,
         created_at: true,
       },
     });
@@ -68,6 +69,7 @@ export class AuthService {
       email: user.email,
       phone_number: user.phone_number,
       subscription_tier: user.subscription_tier,
+      role: user.role,
     };
   }
 }

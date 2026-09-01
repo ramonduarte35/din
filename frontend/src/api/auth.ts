@@ -6,6 +6,7 @@ export interface User {
   email: string;
   phone_number: string | null;
   subscription_tier: 'FREE' | 'PRO';
+  role?: 'USER' | 'ADMIN';
   created_at?: string;
   updated_at?: string;
 }
