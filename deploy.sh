@@ -52,14 +52,8 @@ fi
 mkdir -p data/postgres data/redis data/evolution
 chmod +x docker/init-db.sh 2>/dev/null || true
 
-# 6. Build e Inicialização dos Containers
-echo -e "\n${CYAN}🔨 Compilando aplicação TypeScript (backend e frontend)...${NC}"
-if command -v npm &> /dev/null; then
-    (cd backend && npm run build)
-    (cd frontend && npm run build)
-fi
-
-echo -e "\n${CYAN}🔨 Construindo imagens otimizadas para ${ARCH} e iniciando containers...${NC}"
+# 6. Build e Inicialização dos Containers (Multi-stage Docker)
+echo -e "\n${CYAN}🔨 Construindo imagens Docker nativas para ${ARCH} e iniciando containers...${NC}"
 docker compose up --build -d --remove-orphans
 
 # 7. Aguardar o banco de dados PostgreSQL inicializar

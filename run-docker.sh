@@ -45,13 +45,8 @@ fi
 mkdir -p data/postgres data/redis data/evolution
 chmod +x docker/init-db.sh 2>/dev/null || true
 
-# 4. Compilar artefatos e inicializar containers
-echo -e "\n${CYAN}🔨 Compilando aplicação TypeScript (backend e frontend)...${NC}"
-export PATH=$PATH:/home/ramon/.nvm/versions/node/v24.15.0/bin
-(cd backend && npm run build)
-(cd frontend && npm run build)
-
-echo -e "\n${CYAN}📦 Construindo e inicializando containers...${NC}"
+# 4. Construir e inicializar containers
+echo -e "\n${CYAN}📦 Construindo e inicializando containers com Docker...${NC}"
 docker compose down --remove-orphans
 docker compose up --build -d
 

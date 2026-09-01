@@ -1,4 +1,21 @@
-FROM node:20-alpine
+# Build stage
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN npm install
+
+COPY tsconfig.json ./
+COPY src ./src/
+
+RUN npx prisma generate
+RUN npm run build
+
+# Production runner stage
+FROM node:20-alpine AS runner
 
 WORKDIR /app
 
@@ -6,8 +23,13 @@ ENV NODE_ENV=production
 
 COPY package*.json ./
 COPY prisma ./prisma/
-COPY node_modules ./node_modules/
-COPY dist ./dist/
+
+RUN npm install --omit=dev
+
+# Copy generated Prisma engine binaries and compiled dist from builder stage
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/dist ./dist
 
 EXPOSE 3000
 

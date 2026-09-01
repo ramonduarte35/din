@@ -1,7 +1,4 @@
 node_modules
-src
-public
-tsconfig*.json
-vite.config.ts
-tailwind.config.js
-postcss.config.js
+dist
+.git
+.env
