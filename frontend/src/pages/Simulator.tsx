@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { simulateWhatsAppRequest } from '../api/transactions';
+import { getSystemNumbersRequest, SystemWhatsAppNumber } from '../api/system-numbers';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
@@ -18,7 +19,8 @@ interface ChatMessage {
 export function Simulator() {
   const { user } = useAuth();
   const [message, setMessage] = useState('');
-  const [instance, setInstance] = useState('din-finance-01');
+  const [instance, setInstance] = useState('din');
+  const [systemNumbers, setSystemNumbers] = useState<SystemWhatsAppNumber[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
     {
@@ -28,6 +30,17 @@ export function Simulator() {
       timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
+
+  useEffect(() => {
+    getSystemNumbersRequest()
+      .then((numbers) => {
+        setSystemNumbers(numbers);
+        if (numbers.length > 0) {
+          setInstance(numbers[0].label || 'din');
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const [lastPayload, setLastPayload] = useState<any>(null);
 
@@ -132,9 +145,15 @@ export function Simulator() {
               onChange={(e) => setInstance(e.target.value)}
               className="bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none"
             >
-              <option value="din-finance-01">Linha Principal (01)</option>
-              <option value="din-finance-02">Linha Secundária (02)</option>
-              <option value="din-finance-03">Linha Secundária (03)</option>
+              {systemNumbers.length > 0 ? (
+                systemNumbers.map((num) => (
+                  <option key={num.id} value={num.label || num.phone_number}>
+                    {num.label} ({num.formatted_phone})
+                  </option>
+                ))
+              ) : (
+                <option value="din">Instância Padrão (din)</option>
+              )}
             </select>
           </div>
 

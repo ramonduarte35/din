@@ -43,42 +43,7 @@ async function main() {
   }
   console.log(`✅ ${defaultCategories.length} categorias padrão sincronizadas.`);
 
-  // 2. Números Oficiais do Sistema (Evolution Go)
-  const systemNumbers = [
-    {
-      instance_name: 'din-finance-01',
-      phone_number: '5586988881111',
-      label: 'Linha Principal (IA Din 01)',
-      is_active: true,
-    },
-    {
-      instance_name: 'din-finance-02',
-      phone_number: '5586988882222',
-      label: 'Linha Secundária 01 (IA Din 02)',
-      is_active: true,
-    },
-    {
-      instance_name: 'din-finance-03',
-      phone_number: '5586988883333',
-      label: 'Linha Secundária 02 (IA Din 03)',
-      is_active: true,
-    },
-  ];
-
-  for (const num of systemNumbers) {
-    await prisma.systemWhatsAppNumber.upsert({
-      where: { instance_name: num.instance_name },
-      update: {
-        phone_number: num.phone_number,
-        label: num.label,
-        is_active: num.is_active,
-      },
-      create: num,
-    });
-  }
-  console.log(`✅ ${systemNumbers.length} números oficiais do WhatsApp configurados.`);
-
-  // 3. Usuário Demo PRO para testes imediatos
+  // 2. Usuário Demo PRO para testes imediatos
   const demoEmail = 'demo@din.app';
   let demoUser = await prisma.user.findUnique({ where: { email: demoEmail } });
 

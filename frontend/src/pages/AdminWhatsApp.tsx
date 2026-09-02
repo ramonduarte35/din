@@ -1284,7 +1284,7 @@ export function AdminWhatsApp() {
                   Nome da Instância (Identificador Slug)
                 </label>
                 <Input
-                  placeholder="ex: din-finance-03"
+                  placeholder="ex: din ou whatsapp-01"
                   value={createForm.instance_name}
                   onChange={(e) => setCreateForm({ ...createForm, instance_name: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '') })}
                   required
