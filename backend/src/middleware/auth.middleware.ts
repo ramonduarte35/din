@@ -47,6 +47,11 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
     }
 
     request.currentUser = user;
+    (request as any).user = {
+      id: user.id,
+      userId: user.id,
+      email: user.email,
+    };
   } catch (err) {
     return reply.status(401).send({
       statusCode: 401,
@@ -54,6 +59,19 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
       message: 'Token de autenticação inválido ou ausente.',
     });
   }
+}
+
+export function getUserId(request: FastifyRequest): string {
+  const id =
+    request.currentUser?.id ||
+    request.userPayload?.userId ||
+    (request.user as any)?.userId ||
+    (request.user as any)?.id;
+
+  if (!id) {
+    throw { statusCode: 401, message: 'Usuário não autenticado.' };
+  }
+  return id;
 }
 
 export async function requireAdmin(request: FastifyRequest, reply: FastifyReply) {

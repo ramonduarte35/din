@@ -3,11 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BillsController = void 0;
 const bills_service_js_1 = require("./bills.service.js");
 const bills_schemas_js_1 = require("./bills.schemas.js");
+const auth_middleware_js_1 = require("../../middleware/auth.middleware.js");
 const billsService = new bills_service_js_1.BillsService();
 class BillsController {
     async create(request, reply) {
         try {
-            const userId = request.user.id;
+            const userId = (0, auth_middleware_js_1.getUserId)(request);
             const data = bills_schemas_js_1.createBillSchema.parse(request.body);
             const bill = await billsService.createBill(userId, data);
             return reply.status(201).send(bill);
@@ -21,7 +22,7 @@ class BillsController {
     }
     async list(request, reply) {
         try {
-            const userId = request.user.id;
+            const userId = (0, auth_middleware_js_1.getUserId)(request);
             const query = bills_schemas_js_1.listBillsQuerySchema.parse(request.query);
             const result = await billsService.listBills(userId, query);
             return reply.send(result);
@@ -35,7 +36,7 @@ class BillsController {
     }
     async getSummary(request, reply) {
         try {
-            const userId = request.user.id;
+            const userId = (0, auth_middleware_js_1.getUserId)(request);
             const { month, year } = request.query;
             const summary = await billsService.getBillSummary(userId, month ? parseInt(month, 10) : undefined, year ? parseInt(year, 10) : undefined);
             return reply.send(summary);
@@ -46,7 +47,7 @@ class BillsController {
     }
     async getById(request, reply) {
         try {
-            const userId = request.user.id;
+            const userId = (0, auth_middleware_js_1.getUserId)(request);
             const { id } = request.params;
             const bill = await billsService.getBillById(userId, id);
             return reply.send(bill);
@@ -57,7 +58,7 @@ class BillsController {
     }
     async update(request, reply) {
         try {
-            const userId = request.user.id;
+            const userId = (0, auth_middleware_js_1.getUserId)(request);
             const { id } = request.params;
             const data = bills_schemas_js_1.updateBillSchema.parse(request.body);
             const updated = await billsService.updateBill(userId, id, data);
@@ -72,7 +73,7 @@ class BillsController {
     }
     async pay(request, reply) {
         try {
-            const userId = request.user.id;
+            const userId = (0, auth_middleware_js_1.getUserId)(request);
             const { id } = request.params;
             const data = bills_schemas_js_1.payBillSchema.parse(request.body);
             const result = await billsService.payBill(userId, id, data);
@@ -87,7 +88,7 @@ class BillsController {
     }
     async unpay(request, reply) {
         try {
-            const userId = request.user.id;
+            const userId = (0, auth_middleware_js_1.getUserId)(request);
             const { id } = request.params;
             const result = await billsService.unpayBill(userId, id);
             return reply.send(result);
@@ -98,7 +99,7 @@ class BillsController {
     }
     async delete(request, reply) {
         try {
-            const userId = request.user.id;
+            const userId = (0, auth_middleware_js_1.getUserId)(request);
             const { id } = request.params;
             const result = await billsService.deleteBill(userId, id);
             return reply.send(result);

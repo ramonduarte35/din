@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authenticate = authenticate;
+exports.getUserId = getUserId;
 exports.requireAdmin = requireAdmin;
 const prisma_js_1 = require("../lib/prisma.js");
 const env_js_1 = require("../config/env.js");
@@ -27,6 +28,11 @@ async function authenticate(request, reply) {
             });
         }
         request.currentUser = user;
+        request.user = {
+            id: user.id,
+            userId: user.id,
+            email: user.email,
+        };
     }
     catch (err) {
         return reply.status(401).send({
@@ -35,6 +41,16 @@ async function authenticate(request, reply) {
             message: 'Token de autenticação inválido ou ausente.',
         });
     }
+}
+function getUserId(request) {
+    const id = request.currentUser?.id ||
+        request.userPayload?.userId ||
+        request.user?.userId ||
+        request.user?.id;
+    if (!id) {
+        throw { statusCode: 401, message: 'Usuário não autenticado.' };
+    }
+    return id;
 }
 async function requireAdmin(request, reply) {
     // First ensure user is authenticated

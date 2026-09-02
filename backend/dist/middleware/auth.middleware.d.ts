@@ -17,4 +17,5 @@ declare module 'fastify' {
     }
 }
 export declare function authenticate(request: FastifyRequest, reply: FastifyReply): Promise<undefined>;
+export declare function getUserId(request: FastifyRequest): string;
 export declare function requireAdmin(request: FastifyRequest, reply: FastifyReply): Promise<undefined>;

@@ -1,13 +1,14 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { BillsService } from './bills.service.js';
 import { createBillSchema, updateBillSchema, payBillSchema, listBillsQuerySchema } from './bills.schemas.js';
+import { getUserId } from '../../middleware/auth.middleware.js';
 
 const billsService = new BillsService();
 
 export class BillsController {
   async create(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const userId = (request.user as any).id;
+      const userId = getUserId(request);
       const data = createBillSchema.parse(request.body);
       const bill = await billsService.createBill(userId, data);
       return reply.status(201).send(bill);
@@ -21,7 +22,7 @@ export class BillsController {
 
   async list(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const userId = (request.user as any).id;
+      const userId = getUserId(request);
       const query = listBillsQuerySchema.parse(request.query);
       const result = await billsService.listBills(userId, query);
       return reply.send(result);
@@ -35,7 +36,7 @@ export class BillsController {
 
   async getSummary(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const userId = (request.user as any).id;
+      const userId = getUserId(request);
       const { month, year } = request.query as { month?: string; year?: string };
       const summary = await billsService.getBillSummary(
         userId,
@@ -50,7 +51,7 @@ export class BillsController {
 
   async getById(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
     try {
-      const userId = (request.user as any).id;
+      const userId = getUserId(request);
       const { id } = request.params;
       const bill = await billsService.getBillById(userId, id);
       return reply.send(bill);
@@ -61,7 +62,7 @@ export class BillsController {
 
   async update(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
     try {
-      const userId = (request.user as any).id;
+      const userId = getUserId(request);
       const { id } = request.params;
       const data = updateBillSchema.parse(request.body);
       const updated = await billsService.updateBill(userId, id, data);
@@ -76,7 +77,7 @@ export class BillsController {
 
   async pay(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
     try {
-      const userId = (request.user as any).id;
+      const userId = getUserId(request);
       const { id } = request.params;
       const data = payBillSchema.parse(request.body);
       const result = await billsService.payBill(userId, id, data);
@@ -91,7 +92,7 @@ export class BillsController {
 
   async unpay(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
     try {
-      const userId = (request.user as any).id;
+      const userId = getUserId(request);
       const { id } = request.params;
       const result = await billsService.unpayBill(userId, id);
       return reply.send(result);
@@ -102,7 +103,7 @@ export class BillsController {
 
   async delete(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
     try {
-      const userId = (request.user as any).id;
+      const userId = getUserId(request);
       const { id } = request.params;
       const result = await billsService.deleteBill(userId, id);
       return reply.send(result);
