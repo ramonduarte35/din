@@ -38,7 +38,8 @@ if [ -d .git ] && [ "$1" != "--no-pull" ]; then
     echo -e "\n${CYAN}📥 Baixando atualizações mais recentes do Git...${NC}"
     git fetch origin
     OLD_HEAD=$(git rev-parse HEAD)
-    git pull origin main || echo -e "${YELLOW}⚠️  Aviso: Não foi possível fazer git pull automático. Continuando com arquivos locais.${NC}"
+    git checkout -- . 2>/dev/null || true
+    git pull origin main || (git reset --hard origin/main 2>/dev/null || echo -e "${YELLOW}⚠️  Aviso: Não foi possível fazer git pull automático. Continuando com arquivos locais.${NC}")
     NEW_HEAD=$(git rev-parse HEAD)
     if [ "$OLD_HEAD" != "$NEW_HEAD" ]; then
         echo -e "${GREEN}✓ Código atualizado com sucesso! Reiniciando deploy com a versão mais recente...${NC}\n"
