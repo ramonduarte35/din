@@ -180,6 +180,8 @@ chmod +x docker/init-db.sh 2>/dev/null || true
 echo -e "\n${CYAN}⚡ Compilando TypeScript do Backend e Frontend...${NC}"
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+export PRISMA_HIDE_UPDATE_MESSAGE=true
+export CHECKPOINT_DISABLE=1
 
 if command -v npm &> /dev/null; then
     npm --prefix backend run build
