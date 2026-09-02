@@ -56,10 +56,14 @@ import { formatCurrency, formatPhone } from '../lib/utils';
 export function AdminWhatsApp() {
   const [instances, setInstances] = useState<AdminWhatsAppInstance[]>([]);
   const [logs, setLogs] = useState<AdminWhatsAppLog[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'instances' | 'evolution' | 'logs'>('instances');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Independent loading states
+  const [isInstancesLoading, setIsInstancesLoading] = useState(true);
+  const [isEvolutionLoading, setIsEvolutionLoading] = useState(true);
+  const [isLogsLoading, setIsLogsLoading] = useState(false);
 
   // Evolution Go state
   const [evolutionStatus, setEvolutionStatus] = useState<EvolutionStatusResponse | null>(null);
@@ -97,30 +101,69 @@ export function AdminWhatsApp() {
 
   const [formSubmitting, setFormSubmitting] = useState(false);
 
-  // Load instances, logs & evolution status
-  const loadData = async (silent = false) => {
-    if (!silent) setIsLoading(true);
-    setIsRefreshing(true);
+  // Independent Loaders
+  const loadInstances = async (silent = false) => {
+    if (!silent) setIsInstancesLoading(true);
     try {
-      const [instData, logData, evoData] = await Promise.all([
-        fetchAdminInstances().catch(() => []),
-        fetchAdminLogs({ limit: 30 }).catch(() => ({ data: [], meta: { total: 0, page: 1, limit: 30, totalPages: 0 } })),
-        fetchEvolutionStatus().catch(() => null),
-      ]);
-      setInstances(Array.isArray(instData) ? instData : []);
-      setLogs(Array.isArray(logData?.data) ? logData.data : []);
-      if (evoData) setEvolutionStatus(evoData);
+      const data = await fetchAdminInstances();
+      setInstances(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      console.error('Erro ao carregar dados do admin:', err);
+      console.error('Erro ao buscar instâncias:', err);
+      showMessage('error', 'Falha ao buscar instâncias do WhatsApp.');
     } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
+      setIsInstancesLoading(false);
     }
   };
 
+  const loadEvolutionStatus = async (silent = false) => {
+    if (!silent) setIsEvolutionLoading(true);
+    try {
+      const status = await fetchEvolutionStatus();
+      setEvolutionStatus(status);
+    } catch (err: any) {
+      console.error('Erro ao buscar status do Evolution:', err);
+    } finally {
+      setIsEvolutionLoading(false);
+    }
+  };
+
+  const loadLogs = async (silent = false) => {
+    if (!silent) setIsLogsLoading(true);
+    try {
+      const res = await fetchAdminLogs({ limit: 30 });
+      setLogs(Array.isArray(res?.data) ? res.data : []);
+    } catch (err: any) {
+      console.error('Erro ao buscar logs:', err);
+    } finally {
+      setIsLogsLoading(false);
+    }
+  };
+
+  const loadAll = async () => {
+    setIsRefreshing(true);
+    await Promise.allSettled([
+      loadInstances(false),
+      loadEvolutionStatus(false),
+      loadLogs(false),
+    ]);
+    setIsRefreshing(false);
+  };
+
   useEffect(() => {
-    loadData();
+    loadInstances();
+    loadEvolutionStatus();
   }, []);
+
+  const handleTabChange = (tab: 'instances' | 'evolution' | 'logs') => {
+    setActiveTab(tab);
+    if (tab === 'instances') {
+      loadInstances(true);
+    } else if (tab === 'evolution') {
+      loadEvolutionStatus(true);
+    } else if (tab === 'logs') {
+      loadLogs(true);
+    }
+  };
 
   const showMessage = (type: 'success' | 'error', text: string) => {
     setActionMessage({ type, text });
@@ -355,12 +398,12 @@ export function AdminWhatsApp() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => loadData(true)}
+            onClick={loadAll}
             disabled={isRefreshing}
             className="flex items-center gap-2 text-xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span>Atualizar Status</span>
+            <span>Atualizar Dados</span>
           </Button>
 
           <Button
@@ -467,7 +510,7 @@ export function AdminWhatsApp() {
             </div>
           </div>
           <button
-            onClick={() => setActiveTab('evolution')}
+            onClick={() => handleTabChange('evolution')}
             className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md transition-all flex-shrink-0"
           >
             <Key className="w-4 h-4" />
@@ -479,7 +522,7 @@ export function AdminWhatsApp() {
       {/* Tabs Switcher */}
       <div className="flex items-center gap-2 border-b border-slate-800 overflow-x-auto">
         <button
-          onClick={() => setActiveTab('instances')}
+          onClick={() => handleTabChange('instances')}
           className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
             activeTab === 'instances'
               ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5'
@@ -491,7 +534,7 @@ export function AdminWhatsApp() {
         </button>
 
         <button
-          onClick={() => setActiveTab('evolution')}
+          onClick={() => handleTabChange('evolution')}
           className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
             activeTab === 'evolution'
               ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5'
@@ -500,7 +543,9 @@ export function AdminWhatsApp() {
         >
           <Key className="w-4 h-4" />
           <span>Gateway & Licença Evolution Go</span>
-          {evolutionStatus && (
+          {isEvolutionLoading && !evolutionStatus ? (
+            <span className="w-2 h-2 rounded-full bg-slate-500 animate-ping" />
+          ) : evolutionStatus ? (
             <span
               className={`w-2 h-2 rounded-full ${
                 evolutionStatus.license?.status === 'active'
@@ -508,11 +553,11 @@ export function AdminWhatsApp() {
                   : 'bg-amber-400 animate-pulse'
               }`}
             />
-          )}
+          ) : null}
         </button>
 
         <button
-          onClick={() => setActiveTab('logs')}
+          onClick={() => handleTabChange('logs')}
           className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
             activeTab === 'logs'
               ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5'
@@ -527,7 +572,7 @@ export function AdminWhatsApp() {
       {/* TAB 1: INSTÂNCIAS */}
       {activeTab === 'instances' && (
         <div className="space-y-4">
-          {isLoading ? (
+          {isInstancesLoading ? (
             <div className="py-20 flex flex-col items-center justify-center">
               <div className="w-10 h-10 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin" />
               <p className="text-xs text-slate-400 mt-4">Verificando status das instâncias no Evolution Go...</p>
@@ -742,7 +787,12 @@ export function AdminWhatsApp() {
                   </div>
 
                   <div>
-                    {evolutionStatus?.license?.status === 'active' ? (
+                    {isEvolutionLoading && !evolutionStatus ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 animate-pulse">
+                        <RefreshCw className="w-3 h-3 animate-spin text-emerald-400" />
+                        Verificando...
+                      </span>
+                    ) : evolutionStatus?.license?.status === 'active' ? (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                         Licença Ativa
@@ -767,7 +817,9 @@ export function AdminWhatsApp() {
                     <div className="overflow-hidden">
                       <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">ID da Instância Evolution Go</p>
                       <p className="text-xs font-mono font-semibold text-slate-200 mt-0.5 truncate">
-                        {evolutionStatus?.license?.instance_id || 'Buscando identificador...'}
+                        {isEvolutionLoading && !evolutionStatus
+                          ? 'Verificando container...'
+                          : evolutionStatus?.license?.instance_id || 'ID não disponível'}
                       </p>
                     </div>
                     {evolutionStatus?.license?.instance_id && (
@@ -789,7 +841,11 @@ export function AdminWhatsApp() {
                     <div>
                       <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Status do Gateway</p>
                       <p className="text-xs font-medium text-slate-200 mt-0.5 flex items-center gap-2">
-                        {evolutionStatus?.is_online ? (
+                        {isEvolutionLoading && !evolutionStatus ? (
+                          <span className="text-slate-400 flex items-center gap-1.5 font-medium">
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-400" /> Conectando ao Gateway...
+                          </span>
+                        ) : evolutionStatus?.is_online ? (
                           <span className="text-emerald-400 flex items-center gap-1 font-semibold">
                             <Wifi className="w-3.5 h-3.5" /> Online ({evolutionStatus.latency_ms} ms)
                           </span>
@@ -801,7 +857,9 @@ export function AdminWhatsApp() {
                       </p>
                     </div>
                     <span className="text-xs text-slate-400 font-mono">
-                      {evolutionStatus?.instances_count ?? 0} instâncias ativas
+                      {isEvolutionLoading && !evolutionStatus
+                        ? '...'
+                        : `${evolutionStatus?.instances_count ?? 0} instâncias ativas`}
                     </span>
                   </div>
                 </div>
