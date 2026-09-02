@@ -262,6 +262,28 @@ export class AdminWhatsAppService {
       },
     };
   }
+
+  async getEvolutionStatus() {
+    return await evolutionClient.testConnection();
+  }
+
+  async getEvolutionLicense() {
+    const [statusRes, registerRes] = await Promise.all([
+      evolutionClient.getLicenseStatus(),
+      evolutionClient.getLicenseRegisterUrl(),
+    ]);
+
+    return {
+      status: statusRes.status,
+      instance_id: statusRes.instance_id || registerRes.instance_id,
+      register_url: registerRes.register_url,
+    };
+  }
+
+  async testEvolutionConnection() {
+    return await evolutionClient.testConnection();
+  }
 }
 
 export const adminWhatsAppService = new AdminWhatsAppService();
+

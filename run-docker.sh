@@ -52,10 +52,17 @@ docker compose up --build -d
 
 # 5. Aguardar banco de dados estar pronto
 echo -e "\n${CYAN}⏳ Aguardando banco de dados PostgreSQL inicializar...${NC}"
-until docker compose exec -T db pg_isready -U postgres -d din &> /dev/null; do
+RETRIES=30
+until docker compose exec -T db pg_isready -U postgres -d din &> /dev/null || [ $RETRIES -eq 0 ]; do
     echo -n "."
     sleep 2
+    RETRIES=$((RETRIES-1))
 done
+
+if [ $RETRIES -eq 0 ]; then
+    echo -e "\n${RED}❌ Timeout ao aguardar o PostgreSQL. Verifique os logs com: docker compose logs db${NC}"
+    exit 1
+fi
 echo -e "\n${GREEN}✓ PostgreSQL pronto e saudável!${NC}"
 
 # 6. Executar sincronização do banco de dados (Prisma) e Seed
@@ -66,9 +73,12 @@ echo -e "\n${CYAN}🌱 Executando seed com dados iniciais e usuário demo...${NC
 docker compose exec -T api npx tsx prisma/seed.ts
 
 # 7. Resumo de Acesso
-WEB_PORT=$(grep '^PORT_FRONTEND=' .env 2>/dev/null | cut -d '=' -f2 || echo "8000")
-API_PORT=$(grep '^PORT_API=' .env 2>/dev/null | cut -d '=' -f2 || echo "3001")
-EVO_PORT=$(grep '^PORT_EVOLUTION=' .env 2>/dev/null | cut -d '=' -f2 || echo "4000")
+WEB_PORT=$(grep '^PORT_FRONTEND=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' "\r\n' || echo "8000")
+API_PORT=$(grep '^PORT_API=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' "\r\n' || echo "3001")
+EVO_PORT=$(grep '^PORT_EVOLUTION=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' "\r\n' || echo "4000")
+[ -z "$WEB_PORT" ] && WEB_PORT="8000"
+[ -z "$API_PORT" ] && API_PORT="3001"
+[ -z "$EVO_PORT" ] && EVO_PORT="4000"
 
 echo -e "\n${GREEN}${BOLD}══════════════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}${BOLD}🎉 SISTEMA DIN INICIALIZADO COM SUCESSO!${NC}"

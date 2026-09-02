@@ -60,6 +60,21 @@ export class AdminWhatsAppController {
     const logs = await adminWhatsAppService.getLogs(parsed);
     return reply.status(200).send(logs);
   }
+
+  async getEvolutionStatus(request: FastifyRequest, reply: FastifyReply) {
+    const status = await adminWhatsAppService.getEvolutionStatus();
+    return reply.status(200).send(status);
+  }
+
+  async getEvolutionLicense(request: FastifyRequest, reply: FastifyReply) {
+    const license = await adminWhatsAppService.getEvolutionLicense();
+    return reply.status(200).send(license);
+  }
+
+  async testEvolutionConnection(request: FastifyRequest, reply: FastifyReply) {
+    const testResult = await adminWhatsAppService.testEvolutionConnection();
+    return reply.status(200).send(testResult);
+  }
 }
 
 export const adminWhatsAppController = new AdminWhatsAppController();

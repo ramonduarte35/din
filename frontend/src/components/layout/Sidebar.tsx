@@ -133,7 +133,7 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
                         isActive ? 'text-emerald-400' : 'text-slate-400 group-hover:text-slate-200'
                       )}
                     />
-                    <span>Gestão WhatsApp</span>
+                    <span>WhatsApp & Evolution</span>
                   </div>
                   <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                     ADMIN

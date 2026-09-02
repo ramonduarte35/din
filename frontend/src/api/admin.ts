@@ -97,3 +97,39 @@ export async function fetchAdminLogs(params?: {
   const { data } = await api.get('/admin/whatsapp/logs', { params });
   return data;
 }
+
+export interface EvolutionLicenseResponse {
+  status: 'active' | 'inactive' | 'pending' | 'offline' | string;
+  instance_id?: string;
+  register_url?: string | null;
+}
+
+export interface EvolutionStatusResponse {
+  is_online: boolean;
+  base_url: string;
+  api_key_configured: boolean;
+  license: {
+    status: string;
+    instance_id?: string;
+    register_url?: string | null;
+  };
+  instances_count: number;
+  latency_ms: number;
+  error?: string;
+}
+
+export async function fetchEvolutionStatus(): Promise<EvolutionStatusResponse> {
+  const { data } = await api.get<EvolutionStatusResponse>('/admin/whatsapp/evolution/status');
+  return data;
+}
+
+export async function fetchEvolutionLicense(): Promise<EvolutionLicenseResponse> {
+  const { data } = await api.get<EvolutionLicenseResponse>('/admin/whatsapp/evolution/license');
+  return data;
+}
+
+export async function testEvolutionConnection(): Promise<EvolutionStatusResponse> {
+  const { data } = await api.post<EvolutionStatusResponse>('/admin/whatsapp/evolution/test');
+  return data;
+}
+

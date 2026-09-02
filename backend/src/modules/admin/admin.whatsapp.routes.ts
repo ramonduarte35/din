@@ -18,4 +18,10 @@ export async function adminWhatsAppRoutes(app: FastifyInstance) {
 
   // Logs
   app.get('/logs', adminWhatsAppController.getLogs);
+
+  // Evolution Go Gateway & License
+  app.get('/evolution/status', adminWhatsAppController.getEvolutionStatus);
+  app.get('/evolution/license', adminWhatsAppController.getEvolutionLicense);
+  app.post('/evolution/test', adminWhatsAppController.testEvolutionConnection);
 }
+

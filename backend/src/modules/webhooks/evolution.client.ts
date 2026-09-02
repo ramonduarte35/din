@@ -61,23 +61,84 @@ export class EvolutionClient {
     }
   }
 
-  async getLicenseStatus(): Promise<{ status: string; instance_id?: string }> {
+  async getLicenseStatus(): Promise<{ status: string; instance_id?: string; error?: string }> {
     try {
       const url = `${this.baseUrl}/license/status`;
-      const response = await axios.get(url, { timeout: 3000 });
+      const response = await axios.get(url, { timeout: 4000 });
       return response.data;
-    } catch {
-      return { status: 'active' };
+    } catch (err: any) {
+      if (err?.response?.data) {
+        return err.response.data;
+      }
+      return { status: 'offline', error: err?.message || 'Evolution Go inacessível' };
     }
   }
 
-  async getLicenseRegisterUrl(): Promise<string | null> {
+  async getLicenseRegisterUrl(): Promise<{ register_url: string | null; status: string; instance_id?: string }> {
     try {
       const url = `${this.baseUrl}/license/register`;
-      const response = await axios.get(url, { timeout: 3000 });
-      return response.data?.register_url || null;
-    } catch {
-      return null;
+      const response = await axios.get(url, { timeout: 4000 });
+      return {
+        register_url: response.data?.register_url || null,
+        status: response.data?.status || 'unknown',
+        instance_id: response.data?.instance_id,
+      };
+    } catch (err: any) {
+      return {
+        register_url: null,
+        status: 'error',
+      };
+    }
+  }
+
+  async testConnection(): Promise<{
+    is_online: boolean;
+    base_url: string;
+    api_key_configured: boolean;
+    license: {
+      status: string;
+      instance_id?: string;
+      register_url?: string | null;
+    };
+    instances_count: number;
+    latency_ms: number;
+    error?: string;
+  }> {
+    const startTime = Date.now();
+    try {
+      const [licenseRes, registerRes, instances] = await Promise.all([
+        this.getLicenseStatus(),
+        this.getLicenseRegisterUrl(),
+        this.fetchInstances(),
+      ]);
+
+      const latency_ms = Date.now() - startTime;
+      const is_online = licenseRes.status !== 'offline';
+
+      return {
+        is_online,
+        base_url: this.baseUrl,
+        api_key_configured: Boolean(this.apiKey && this.apiKey.length > 0),
+        license: {
+          status: licenseRes.status || 'unknown',
+          instance_id: licenseRes.instance_id || registerRes.instance_id,
+          register_url: registerRes.register_url,
+        },
+        instances_count: instances.length,
+        latency_ms,
+      };
+    } catch (err: any) {
+      return {
+        is_online: false,
+        base_url: this.baseUrl,
+        api_key_configured: Boolean(this.apiKey && this.apiKey.length > 0),
+        license: {
+          status: 'offline',
+        },
+        instances_count: 0,
+        latency_ms: Date.now() - startTime,
+        error: err?.message || 'Falha ao conectar ao gateway Evolution Go',
+      };
     }
   }
 

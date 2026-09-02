@@ -20,11 +20,21 @@ import {
   Radio,
   Eye,
   Check,
+  Zap,
+  Key,
+  Server,
+  Activity,
+  Copy,
+  ShieldCheck,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 import {
   AdminWhatsAppInstance,
   AdminWhatsAppLog,
   QrCodeResponse,
+  EvolutionStatusResponse,
+  EvolutionLicenseResponse,
   fetchAdminInstances,
   createAdminInstance,
   getAdminInstanceQrCode,
@@ -34,6 +44,9 @@ import {
   updateAdminInstance,
   deleteAdminInstance,
   fetchAdminLogs,
+  fetchEvolutionStatus,
+  fetchEvolutionLicense,
+  testEvolutionConnection,
 } from '../api/admin';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -44,9 +57,15 @@ export function AdminWhatsApp() {
   const [instances, setInstances] = useState<AdminWhatsAppInstance[]>([]);
   const [logs, setLogs] = useState<AdminWhatsAppLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'instances' | 'logs'>('instances');
+  const [activeTab, setActiveTab] = useState<'instances' | 'evolution' | 'logs'>('instances');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Evolution Go state
+  const [evolutionStatus, setEvolutionStatus] = useState<EvolutionStatusResponse | null>(null);
+  const [isTestingEvolution, setIsTestingEvolution] = useState(false);
+  const [isCheckingLicense, setIsCheckingLicense] = useState(false);
+  const [copiedText, setCopiedText] = useState<string | null>(null);
 
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -76,17 +95,19 @@ export function AdminWhatsApp() {
 
   const [formSubmitting, setFormSubmitting] = useState(false);
 
-  // Load instances & logs
+  // Load instances, logs & evolution status
   const loadData = async (silent = false) => {
     if (!silent) setIsLoading(true);
     setIsRefreshing(true);
     try {
-      const [instData, logData] = await Promise.all([
+      const [instData, logData, evoData] = await Promise.all([
         fetchAdminInstances(),
         fetchAdminLogs({ limit: 30 }),
+        fetchEvolutionStatus().catch(() => null),
       ]);
       setInstances(instData);
       setLogs(logData.data);
+      if (evoData) setEvolutionStatus(evoData);
     } catch (err: any) {
       console.error('Erro ao carregar dados do admin:', err);
       showMessage('error', 'Falha ao carregar instâncias do WhatsApp.');
@@ -103,6 +124,49 @@ export function AdminWhatsApp() {
   const showMessage = (type: 'success' | 'error', text: string) => {
     setActionMessage({ type, text });
     setTimeout(() => setActionMessage(null), 5000);
+  };
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(id);
+    setTimeout(() => setCopiedText(null), 2500);
+  };
+
+  const handleTestEvolution = async () => {
+    setIsTestingEvolution(true);
+    try {
+      const res = await testEvolutionConnection();
+      setEvolutionStatus(res);
+      if (res.is_online) {
+        showMessage('success', `✓ Conexão com Evolution Go OK! Latência: ${res.latency_ms} ms`);
+      } else {
+        showMessage('error', res.error || 'Evolution Go está inacessível.');
+      }
+    } catch (err: any) {
+      showMessage('error', 'Falha ao executar teste de conexão com o Evolution Go.');
+    } finally {
+      setIsTestingEvolution(false);
+    }
+  };
+
+  const handleCheckLicense = async () => {
+    setIsCheckingLicense(true);
+    try {
+      const lic = await fetchEvolutionLicense();
+      const statusRes = await fetchEvolutionStatus();
+      setEvolutionStatus(statusRes);
+      if (lic.status === 'active') {
+        showMessage('success', '🎉 Licença do Evolution Go está ATIVA e operacional!');
+      } else if (lic.register_url) {
+        showMessage('success', 'Link de registro atualizado. Clique em "Registrar Licença Oficial".');
+      } else {
+        showMessage('error', `Status da licença: ${lic.status.toUpperCase()}.`);
+      }
+    } catch (err: any) {
+      showMessage('error', 'Erro ao verificar licença do Evolution Go.');
+    } finally {
+      setIsCheckingLicense(false);
+    }
   };
 
   // QR Code handlers
@@ -362,11 +426,40 @@ export function AdminWhatsApp() {
         </div>
       </div>
 
+      {/* Evolution Go License Warning Banner (if inactive or pending) */}
+      {evolutionStatus && evolutionStatus.license?.status !== 'active' && activeTab !== 'evolution' && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in shadow-lg">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Key className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-white">Licença do Evolution Go Requer Ativação</h3>
+                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                  {evolutionStatus.license?.status || 'PENDENTE'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-1">
+                Ative sua licença oficial gratuita do Evolution Go para permitir que as instâncias gerem QR Code e enviem mensagens normalmente.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setActiveTab('evolution')}
+            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md transition-all flex-shrink-0"
+          >
+            <Key className="w-4 h-4" />
+            <span>Registrar Licença Agora</span>
+          </button>
+        </div>
+      )}
+
       {/* Tabs Switcher */}
-      <div className="flex items-center gap-2 border-b border-slate-800">
+      <div className="flex items-center gap-2 border-b border-slate-800 overflow-x-auto">
         <button
           onClick={() => setActiveTab('instances')}
-          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all ${
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
             activeTab === 'instances'
               ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5'
               : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -377,8 +470,29 @@ export function AdminWhatsApp() {
         </button>
 
         <button
+          onClick={() => setActiveTab('evolution')}
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+            activeTab === 'evolution'
+              ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Key className="w-4 h-4" />
+          <span>Gateway & Licença Evolution Go</span>
+          {evolutionStatus && (
+            <span
+              className={`w-2 h-2 rounded-full ${
+                evolutionStatus.license?.status === 'active'
+                  ? 'bg-emerald-400'
+                  : 'bg-amber-400 animate-pulse'
+              }`}
+            />
+          )}
+        </button>
+
+        <button
           onClick={() => setActiveTab('logs')}
-          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all ${
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
             activeTab === 'logs'
               ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5'
               : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -542,7 +656,291 @@ export function AdminWhatsApp() {
         </div>
       )}
 
-      {/* TAB 2: LOGS DE MENSAGENS */}
+      {/* TAB 2: EVOLUTION GO GATEWAY & LICENÇA */}
+      {activeTab === 'evolution' && (
+        <div className="space-y-6 animate-fade-in">
+          {/* Top Banner if License Pending / Inactive */}
+          {evolutionStatus && evolutionStatus.license?.status !== 'active' && (
+            <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Key className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    Ativação da Licença Evolution Go Necessária
+                    <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                      {evolutionStatus.license?.status || 'PENDENTE'}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                    O gateway Evolution Go requer a validação gratuita da licença para autorizar a geração de QR Code e conexões do WhatsApp.
+                  </p>
+                </div>
+              </div>
+
+              {evolutionStatus.license?.register_url ? (
+                <a
+                  href={evolutionStatus.license.register_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-amber-500/25 transition-all flex-shrink-0"
+                >
+                  <Key className="w-4 h-4" />
+                  <span>Registrar Licença (1 Clique)</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={handleCheckLicense}
+                  disabled={isCheckingLicense}
+                  className="bg-amber-500 text-slate-950 font-bold text-xs"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isCheckingLicense ? 'animate-spin' : ''}`} />
+                  Obter Link de Registro
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Card 1: Licenciamento Oficial */}
+            <div className="glass-card rounded-2xl border border-slate-800/80 p-6 flex flex-col justify-between relative overflow-hidden shadow-xl">
+              <div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 shadow-md">
+                      <ShieldCheck className="w-5 h-5 font-bold" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white">Licença Oficial Evolution Go</h3>
+                      <p className="text-xs text-slate-400">Validação da Fundação Evolution API</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    {evolutionStatus?.license?.status === 'active' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        Licença Ativa
+                      </span>
+                    ) : evolutionStatus?.license?.status === 'pending' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                        <span className="w-2 h-2 rounded-full bg-amber-400" />
+                        Pendente
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                        <span className="w-2 h-2 rounded-full bg-rose-400" />
+                        {evolutionStatus?.license?.status?.toUpperCase() || 'INATIVO'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Instance ID & Details */}
+                <div className="mt-6 space-y-3.5">
+                  <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3">
+                    <div className="overflow-hidden">
+                      <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">ID da Instância Evolution Go</p>
+                      <p className="text-xs font-mono font-semibold text-slate-200 mt-0.5 truncate">
+                        {evolutionStatus?.license?.instance_id || 'Buscando identificador...'}
+                      </p>
+                    </div>
+                    {evolutionStatus?.license?.instance_id && (
+                      <button
+                        onClick={() => copyToClipboard(evolutionStatus.license.instance_id!, 'inst_id')}
+                        className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-1 text-[11px] flex-shrink-0"
+                        title="Copiar ID"
+                      >
+                        {copiedText === 'inst_id' ? (
+                          <Check className="w-4 h-4 text-emerald-400" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Status do Gateway</p>
+                      <p className="text-xs font-medium text-slate-200 mt-0.5 flex items-center gap-2">
+                        {evolutionStatus?.is_online ? (
+                          <span className="text-emerald-400 flex items-center gap-1 font-semibold">
+                            <Wifi className="w-3.5 h-3.5" /> Online ({evolutionStatus.latency_ms} ms)
+                          </span>
+                        ) : (
+                          <span className="text-rose-400 flex items-center gap-1 font-semibold">
+                            <WifiOff className="w-3.5 h-3.5" /> Inacessível
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <span className="text-xs text-slate-400 font-mono">
+                      {evolutionStatus?.instances_count ?? 0} instâncias ativas
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-6 pt-5 border-t border-slate-800/80 flex flex-col sm:flex-row items-center gap-3">
+                {evolutionStatus?.license?.register_url ? (
+                  <a
+                    href={evolutionStatus.license.register_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full sm:flex-1 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all text-center"
+                  >
+                    <Key className="w-4 h-4" />
+                    <span>Registrar Licença Oficial</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={handleCheckLicense}
+                    disabled={isCheckingLicense}
+                    className="w-full sm:flex-1 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isCheckingLicense ? 'animate-spin' : ''}`} />
+                    Verificar / Gerar Registro
+                  </Button>
+                )}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCheckLicense}
+                  disabled={isCheckingLicense}
+                  className="w-full sm:w-auto text-xs"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isCheckingLicense ? 'animate-spin' : ''}`} />
+                  Atualizar Status
+                </Button>
+              </div>
+            </div>
+
+            {/* Card 2: Informações de Gateway & Configuração */}
+            <div className="glass-card rounded-2xl border border-slate-800/80 p-6 flex flex-col justify-between shadow-xl">
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-md">
+                      <Server className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white">Configurações do Gateway</h3>
+                      <p className="text-xs text-slate-400">Comunicação e rotas internas do container</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    Evolution Go
+                  </span>
+                </div>
+
+                <div className="mt-6 space-y-3">
+                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-slate-400">URL do Gateway (Backend API)</p>
+                      <p className="text-xs font-mono text-emerald-400 font-semibold mt-0.5">
+                        {evolutionStatus?.base_url || 'http://evolution-go:4000'}
+                      </p>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400">Interno</span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-slate-400">Endpoint do Webhook Din</p>
+                      <p className="text-xs font-mono text-slate-300 font-medium mt-0.5">
+                        http://api:3000/api/v1/webhooks/evolution
+                      </p>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      Automático
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-slate-400">Chave Global de API (API Key)</p>
+                      <p className="text-xs font-mono text-slate-300 font-medium mt-0.5">
+                        ••••••••••••••••••••••••
+                      </p>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold">
+                      Configurada
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-5 border-t border-slate-800/80 flex items-center justify-between gap-3">
+                <Button
+                  size="sm"
+                  onClick={handleTestEvolution}
+                  disabled={isTestingEvolution}
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2"
+                >
+                  <Activity className={`w-3.5 h-3.5 ${isTestingEvolution ? 'animate-spin' : ''}`} />
+                  <span>{isTestingEvolution ? 'Testando Conexão...' : 'Testar Conexão Completa do Gateway'}</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Guia Passo a Passo de Ativação */}
+          <div className="glass-card rounded-2xl border border-slate-800/80 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center">
+                <HelpCircle className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white">Como Funciona o Registro da Licença do Evolution Go</h3>
+                <p className="text-xs text-slate-400">Passo a passo simples para manter seu gateway 100% ativo e funcional</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+                <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center mb-2">
+                  1
+                </span>
+                <h4 className="text-xs font-bold text-white">1. Clique em Registrar Licença</h4>
+                <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                  Você será direcionado para o portal da Evolution Foundation com o token exclusivo gerado pelo seu container.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+                <span className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center mb-2">
+                  2
+                </span>
+                <h4 className="text-xs font-bold text-white">2. Confirme com seu E-mail</h4>
+                <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                  Basta informar seu e-mail para ativar a licença comunitária ou logar com sua conta Evolution. A ativação é gratuita.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+                <span className="w-6 h-6 rounded-full bg-teal-500/20 text-teal-400 text-xs font-bold flex items-center justify-center mb-2">
+                  3
+                </span>
+                <h4 className="text-xs font-bold text-white">3. Sincronize e Conecte</h4>
+                <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                  Volte a esta tela e clique em "Atualizar Status". Sua licença ficará ATIVA e pronta para ler QR Codes.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: LOGS DE MENSAGENS */}
       {activeTab === 'logs' && (
         <div className="glass-card rounded-2xl border border-slate-800/80 overflow-hidden">
           <div className="p-4 sm:p-5 border-b border-slate-800/80 flex items-center justify-between">

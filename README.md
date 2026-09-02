@@ -35,28 +35,39 @@ O projeto é 100% orquestrado via `docker-compose.yml`:
 ## 🚀 3. Como Executar o Sistema
 
 ### Pré-requisitos
-- [Docker](https://docs.docker.com/get-docker/) e [Docker Compose](https://docs.docker.com/compose/) instalados na sua máquina.
+- [Docker](https://docs.docker.com/get-docker/) e [Docker Compose](https://docs.docker.com/compose/) instalados na sua máquina (ex: Docker Desktop no macOS).
 
-### 3. Como Executar o Sistema
+### Opções de Execução
 
 Você pode executar o sistema de forma 100% automatizada utilizando os scripts prontos:
 
-#### A. Execução Local Rápida (Desenvolvimento / Testes):
+#### A. No MacBook / macOS (Apple Silicon M1/M2/M3/M4 ou Intel):
+```bash
+./run-docker-macbook.sh
+```
+> **Recursos Específicos para Mac:**
+> - Detecção automática do processador (Apple Silicon ARM64 / Intel x86_64).
+> - Inicialização automática do Docker Desktop caso esteja fechado.
+> - Verificação e alerta de portas em uso no macOS.
+> - Abertura automática do navegador padrão com o Painel Web.
+> - Suporte a flags como `./run-docker-macbook.sh --logs`, `./run-docker-macbook.sh --rebuild` e `./run-docker-macbook.sh --down`.
+
+#### B. Execução Local Padrão (Linux / Geral):
 ```bash
 ./run-docker.sh
 ```
 > O script cuidará de tudo: verificação de dependências, criação de diretórios, subida dos containers com Docker Compose, espera pela saúde do PostgreSQL, execução automática das migrações do Prisma e Seed com usuário Demo.
 
-#### B. Deploy em Produção (Raspberry Pi 4/5 ARM64, VPS ou Servidor Cloud):
+#### C. Deploy em Produção (Raspberry Pi 4/5 ARM64, VPS ou Servidor Cloud):
 ```bash
 ./deploy.sh
 ```
 > O script detecta a arquitetura do hardware (ARM64/x86), atualiza o repositório (`git pull`), constrói imagens otimizadas, aplica migrações, limpa imagens antigas (`prune`) para economizar espaço em disco e exibe os IPs de acesso na sua rede local ou domínio.
 
-5. **Acesse as aplicações:**
-   - 🌐 **Painel Web (Frontend):** [http://localhost](http://localhost) (ou porta `80`)
-   - ⚡ **API Backend (Fastify):** [http://localhost:3000/health](http://localhost:3000/health)
-   - 📱 **Evolution Go Gateway:** [http://localhost:4000](http://localhost:4000)
+### 🌐 Acesso às Aplicações
+- 🌐 **Painel Web (Dashboard):** [http://localhost:8000](http://localhost:8000) (ou porta configurada em `PORT_FRONTEND`)
+- ⚡ **API Backend (Fastify):** [http://localhost:3001/health](http://localhost:3001/health) (ou porta configurada em `PORT_API`)
+- 📱 **Evolution Go Gateway:** [http://localhost:4000](http://localhost:4000) (ou porta configurada em `PORT_EVOLUTION`)
 
 ---
 
