@@ -39,10 +39,23 @@ export class WebhooksService {
       return { status: 'qrcode_saved' };
     }
 
-    const key = data?.key || {};
-    const messageId = key?.id || `msg_${Date.now()}_${Math.random()}`;
-    const fromMe = key?.fromMe === true;
-    const remoteJid = key?.remoteJid || data?.remoteJid || data?.sender || '';
+    const key = data?.key || data?.Key || {};
+    const info = data?.info || data?.Info || {};
+    const messageId = key?.id || key?.ID || info?.id || info?.ID || data?.id || `msg_${Date.now()}_${Math.random()}`;
+    const fromMe = key?.fromMe === true || key?.FromMe === true || info?.isFromMe === true || info?.IsFromMe === true || data?.fromMe === true;
+    const remoteJid =
+      key?.remoteJid ||
+      key?.RemoteJid ||
+      info?.sender ||
+      info?.Sender ||
+      info?.chat ||
+      info?.Chat ||
+      data?.remoteJid ||
+      data?.sender ||
+      data?.from ||
+      data?.chatId ||
+      payload?.sender ||
+      '';
 
     // Ignora mensagens enviadas pelo próprio bot ou de grupos
     if (fromMe || remoteJid.includes('@g.us') || remoteJid.includes('status@broadcast')) {
@@ -63,12 +76,19 @@ export class WebhooksService {
     }
 
     // Extrair texto da mensagem
+    const messageObj = data?.message || data?.Message || {};
     const messageContent =
-      data?.message?.conversation ||
-      data?.message?.extendedTextMessage?.text ||
-      data?.message?.imageMessage?.caption ||
+      (typeof messageObj === 'string' ? messageObj : null) ||
+      messageObj?.conversation ||
+      messageObj?.Conversation ||
+      messageObj?.extendedTextMessage?.text ||
+      messageObj?.ExtendedTextMessage?.Text ||
+      messageObj?.imageMessage?.caption ||
+      messageObj?.ImageMessage?.Caption ||
       data?.text ||
       data?.body ||
+      data?.content ||
+      (typeof data === 'string' ? data : '') ||
       '';
 
     if (!messageContent || messageContent.trim() === '') {
@@ -81,12 +101,28 @@ export class WebhooksService {
 
     console.log(`📱 [Webhook] Remetente: ${normalizedSender} (${remoteJid}) | Texto: "${trimmedText}"`);
 
-    // 1. Identificar Usuário no Banco
-    const user = await prisma.user.findFirst({
+    // 1. Identificar Usuário no Banco (com suporte resiliente a variações do 9º dígito)
+    let user = await prisma.user.findFirst({
       where: {
         phone_number: normalizedSender,
       },
     });
+
+    if (!user && normalizedSender.startsWith('55')) {
+      const ddd = normalizedSender.slice(2, 4);
+      const rest = normalizedSender.slice(4);
+      if (rest.length === 9 && rest.startsWith('9')) {
+        const withoutNine = `55${ddd}${rest.slice(1)}`;
+        user = await prisma.user.findFirst({
+          where: { phone_number: withoutNine },
+        });
+      } else if (rest.length === 8) {
+        const withNine = `55${ddd}9${rest}`;
+        user = await prisma.user.findFirst({
+          where: { phone_number: withNine },
+        });
+      }
+    }
 
     // Se o usuário não existir
     if (!user) {

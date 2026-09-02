@@ -33,7 +33,7 @@ export class EvolutionClient {
   async sendText(instanceName: string, recipientNumber: string, message: string): Promise<boolean> {
     try {
       const cleanNumber = recipientNumber.replace(/\D/g, '');
-      const url = `${this.baseUrl}/message/sendText/${instanceName}`;
+      const url = `${this.baseUrl}/send/text`;
 
       console.log(`📤 [Evolution] Enviando mensagem via instância "${instanceName}" para "${cleanNumber}"...`);
 
@@ -45,7 +45,10 @@ export class EvolutionClient {
           delay: 1000,
         },
         {
-          headers: this.getHeaders(),
+          headers: {
+            apikey: instanceName,
+            'Content-Type': 'application/json',
+          },
           timeout: 10000,
         }
       );
@@ -202,14 +205,24 @@ export class EvolutionClient {
       // 1. Garantir que a instância existe no Evolution Go
       await this.createInstance(instanceName);
 
-      // 2. Iniciar conexão com webhook
+      // 2. Iniciar conexão com webhook e eventos
       const connectUrl = `${this.baseUrl}/instance/connect`;
       const webhookUrl = 'http://api:3000/api/v1/webhooks/evolution';
       
       try {
         await axios.post(
           connectUrl,
-          { webhookUrl },
+          {
+            webhookUrl,
+            subscribe: [
+              'ALL',
+              'MESSAGE',
+              'CONNECTION',
+              'QRCODE',
+              'MESSAGES_UPSERT',
+              'CONNECTION_UPDATE',
+            ],
+          },
           {
             headers: { apikey: instanceName },
             timeout: 10000,
@@ -298,16 +311,22 @@ export class EvolutionClient {
 
   async setWebhook(instanceName: string, webhookUrl: string) {
     try {
-      const url = `${this.baseUrl}/webhook/set/${instanceName}`;
+      const url = `${this.baseUrl}/instance/connect`;
       const response = await axios.post(
         url,
         {
-          url: webhookUrl,
-          webhook_by_events: false,
-          events: ['MESSAGES_UPSERT', 'CONNECTION_UPDATE'],
+          webhookUrl,
+          subscribe: [
+            'ALL',
+            'MESSAGE',
+            'CONNECTION',
+            'QRCODE',
+            'MESSAGES_UPSERT',
+            'CONNECTION_UPDATE',
+          ],
         },
         {
-          headers: this.getHeaders(),
+          headers: { apikey: instanceName },
           timeout: 10000,
         }
       );
