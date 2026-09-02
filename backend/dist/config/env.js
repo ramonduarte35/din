@@ -13,6 +13,8 @@ const envSchema = zod_1.z.object({
     DATABASE_URL: zod_1.z.string().min(1, 'DATABASE_URL é obrigatória'),
     REDIS_URL: zod_1.z.string().default('redis://redis:6379'),
     JWT_SECRET: zod_1.z.string().min(8, 'JWT_SECRET deve ter no mínimo 8 caracteres'),
+    ADMIN_EMAIL: zod_1.z.string().email().default('admin@din.app'),
+    ADMIN_PASSWORD: zod_1.z.string().default('din_admin_password_2026'),
     OPENAI_API_KEY: zod_1.z.string().optional().default(''),
     OPENAI_MODEL: zod_1.z.string().default('gpt-4o-mini'),
     EVOLUTION_API_URL: zod_1.z.string().default('http://evolution-go:4000'),

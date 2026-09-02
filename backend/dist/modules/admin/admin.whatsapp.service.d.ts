@@ -65,5 +65,52 @@ export declare class AdminWhatsAppService {
             totalPages: number;
         };
     }>;
+    getEvolutionStatus(): Promise<{
+        is_online: boolean;
+        base_url: string;
+        api_key_configured: boolean;
+        license: {
+            status: string;
+            instance_id?: string;
+            register_url?: string | null;
+        };
+        instances_count: number;
+        latency_ms: number;
+        error?: string;
+    }>;
+    getEvolutionLicense(): Promise<{
+        status: string;
+        instance_id: string | undefined;
+        register_url: string | null;
+    }>;
+    testEvolutionConnection(): Promise<{
+        is_online: boolean;
+        base_url: string;
+        api_key_configured: boolean;
+        license: {
+            status: string;
+            instance_id?: string;
+            register_url?: string | null;
+        };
+        instances_count: number;
+        latency_ms: number;
+        error?: string;
+    }>;
+    activateEvolutionLicense(code: string): Promise<{
+        message: string;
+        status: {
+            is_online: boolean;
+            base_url: string;
+            api_key_configured: boolean;
+            license: {
+                status: string;
+                instance_id?: string;
+                register_url?: string | null;
+            };
+            instances_count: number;
+            latency_ms: number;
+            error?: string;
+        };
+    }>;
 }
 export declare const adminWhatsAppService: AdminWhatsAppService;

@@ -19,15 +19,51 @@ export declare class EvolutionClient {
     getLicenseStatus(): Promise<{
         status: string;
         instance_id?: string;
+        error?: string;
     }>;
-    getLicenseRegisterUrl(): Promise<string | null>;
+    getLicenseRegisterUrl(): Promise<{
+        register_url: string | null;
+        status: string;
+        instance_id?: string;
+    }>;
+    activateLicense(code: string): Promise<{
+        success: boolean;
+        message?: string;
+        error?: string;
+        details?: any;
+    }>;
+    testConnection(): Promise<{
+        is_online: boolean;
+        base_url: string;
+        api_key_configured: boolean;
+        license: {
+            status: string;
+            instance_id?: string;
+            register_url?: string | null;
+        };
+        instances_count: number;
+        latency_ms: number;
+        error?: string;
+    }>;
     fetchInstances(): Promise<any[]>;
     createInstance(instanceName: string): Promise<any>;
-    connectInstance(instanceName: string): Promise<any>;
+    connectInstance(instanceName: string): Promise<{
+        base64: any;
+        code: any;
+        qrcode: {
+            base64: any;
+        };
+    }>;
     getConnectionState(instanceName: string): Promise<{
         state: string;
     }>;
-    restartInstance(instanceName: string): Promise<any>;
+    restartInstance(instanceName: string): Promise<{
+        base64: any;
+        code: any;
+        qrcode: {
+            base64: any;
+        };
+    }>;
     logoutInstance(instanceName: string): Promise<any>;
     deleteInstance(instanceName: string): Promise<any>;
     setWebhook(instanceName: string, webhookUrl: string): Promise<any>;

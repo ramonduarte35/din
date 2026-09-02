@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.authenticate = authenticate;
 exports.requireAdmin = requireAdmin;
 const prisma_js_1 = require("../lib/prisma.js");
+const env_js_1 = require("../config/env.js");
 async function authenticate(request, reply) {
     try {
         const payload = await request.jwtVerify();
@@ -40,11 +41,13 @@ async function requireAdmin(request, reply) {
     await authenticate(request, reply);
     if (reply.sent)
         return;
-    if (request.currentUser?.role !== 'ADMIN') {
+    const isEmailAdmin = request.currentUser?.email.toLowerCase() === env_js_1.env.ADMIN_EMAIL.toLowerCase();
+    const isRoleAdmin = request.currentUser?.role === 'ADMIN';
+    if (!isEmailAdmin && !isRoleAdmin) {
         return reply.status(403).send({
             statusCode: 403,
             error: 'Forbidden',
-            message: 'Acesso restrito para administradores do sistema.',
+            message: 'Sem permissão. Acesso exclusivo para o administrador do sistema.',
         });
     }
 }

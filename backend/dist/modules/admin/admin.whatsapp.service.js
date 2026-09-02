@@ -225,6 +225,37 @@ class AdminWhatsAppService {
             },
         };
     }
+    async getEvolutionStatus() {
+        return await evolution_client_js_1.evolutionClient.testConnection();
+    }
+    async getEvolutionLicense() {
+        const [statusRes, registerRes] = await Promise.all([
+            evolution_client_js_1.evolutionClient.getLicenseStatus(),
+            evolution_client_js_1.evolutionClient.getLicenseRegisterUrl(),
+        ]);
+        return {
+            status: statusRes.status,
+            instance_id: statusRes.instance_id || registerRes.instance_id,
+            register_url: registerRes.register_url,
+        };
+    }
+    async testEvolutionConnection() {
+        return await evolution_client_js_1.evolutionClient.testConnection();
+    }
+    async activateEvolutionLicense(code) {
+        if (!code || !code.trim()) {
+            throw new Error('Código de autorização é obrigatório.');
+        }
+        const result = await evolution_client_js_1.evolutionClient.activateLicense(code.trim());
+        if (!result.success) {
+            throw new Error(result.error || 'Falha ao ativar a licença.');
+        }
+        const updatedStatus = await evolution_client_js_1.evolutionClient.testConnection();
+        return {
+            message: 'Licença do Evolution Go ativada com sucesso!',
+            status: updatedStatus,
+        };
+    }
 }
 exports.AdminWhatsAppService = AdminWhatsAppService;
 exports.adminWhatsAppService = new AdminWhatsAppService();

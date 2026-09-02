@@ -215,12 +215,9 @@ export class EvolutionClient {
           {
             webhookUrl,
             subscribe: [
-              'ALL',
-              'MESSAGE',
-              'CONNECTION',
-              'QRCODE',
               'MESSAGES_UPSERT',
               'CONNECTION_UPDATE',
+              'QRCODE_UPDATED',
             ],
           },
           {
@@ -317,12 +314,9 @@ export class EvolutionClient {
         {
           webhookUrl,
           subscribe: [
-            'ALL',
-            'MESSAGE',
-            'CONNECTION',
-            'QRCODE',
             'MESSAGES_UPSERT',
             'CONNECTION_UPDATE',
+            'QRCODE_UPDATED',
           ],
         },
         {

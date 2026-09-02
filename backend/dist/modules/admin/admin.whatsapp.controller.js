@@ -49,6 +49,31 @@ class AdminWhatsAppController {
         const logs = await admin_whatsapp_service_js_1.adminWhatsAppService.getLogs(parsed);
         return reply.status(200).send(logs);
     }
+    async getEvolutionStatus(request, reply) {
+        const status = await admin_whatsapp_service_js_1.adminWhatsAppService.getEvolutionStatus();
+        return reply.status(200).send(status);
+    }
+    async getEvolutionLicense(request, reply) {
+        const license = await admin_whatsapp_service_js_1.adminWhatsAppService.getEvolutionLicense();
+        return reply.status(200).send(license);
+    }
+    async testEvolutionConnection(request, reply) {
+        const testResult = await admin_whatsapp_service_js_1.adminWhatsAppService.testEvolutionConnection();
+        return reply.status(200).send(testResult);
+    }
+    async activateEvolutionLicense(request, reply) {
+        const { code } = request.body;
+        if (!code || !code.trim()) {
+            return reply.status(400).send({ message: 'O código de autorização (code) é obrigatório.' });
+        }
+        try {
+            const result = await admin_whatsapp_service_js_1.adminWhatsAppService.activateEvolutionLicense(code);
+            return reply.status(200).send(result);
+        }
+        catch (err) {
+            return reply.status(400).send({ message: err?.message || 'Falha ao ativar a licença.' });
+        }
+    }
 }
 exports.AdminWhatsAppController = AdminWhatsAppController;
 exports.adminWhatsAppController = new AdminWhatsAppController();

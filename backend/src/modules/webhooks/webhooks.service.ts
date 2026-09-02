@@ -26,7 +26,7 @@ export class WebhooksService {
     const data = payload?.data || payload;
 
     // Tratar eventos de QR Code
-    if (event === 'qrcode.updated' || event === 'qrcode_updated') {
+    if (event === 'qrcode.updated' || event === 'qrcode_updated' || event === 'QRCODE_UPDATED') {
       const qrcodeBase64 = data?.qrcode?.base64 || data?.base64 || data?.code;
       if (qrcodeBase64) {
         console.log(`📱 [Webhook] Recebido e cacheado QR Code para a instância "${instance}"`);
@@ -39,29 +39,137 @@ export class WebhooksService {
       return { status: 'qrcode_saved' };
     }
 
+    // Tratar eventos de status de conexão
+    if (event === 'connection.update' || event === 'CONNECTION_UPDATE') {
+      console.log(`📡 [Webhook] Atualização de conexão para "${instance}":`, data?.state || data?.status);
+      return { status: 'connection_updated' };
+    }
+
+    // Filtrar apenas eventos válidos de mensagens (se o campo event estiver preenchido)
+    const validMessageEvents = [
+      'messages.upsert',
+      'MESSAGES_UPSERT',
+      'message',
+      'MESSAGE',
+      'messages',
+      'send.message',
+      'SEND_MESSAGE',
+      '',
+    ];
+
+    if (event && !validMessageEvents.includes(event)) {
+      console.log(`⏭️ [Webhook] Evento ignorado (não é mensagem): "${event}"`);
+      return { status: 'ignored_event' };
+    }
+
     const key = data?.key || data?.Key || {};
     const info = data?.info || data?.Info || {};
     const messageId = key?.id || key?.ID || info?.id || info?.ID || data?.id || `msg_${Date.now()}_${Math.random()}`;
-    const fromMe = key?.fromMe === true || key?.FromMe === true || info?.isFromMe === true || info?.IsFromMe === true || data?.fromMe === true;
-    const remoteJid =
+
+    // Identificar a conversa principal (sala/chat)
+    const chatJid = (
       key?.remoteJid ||
       key?.RemoteJid ||
-      info?.sender ||
-      info?.Sender ||
       info?.chat ||
       info?.Chat ||
+      data?.chatId ||
+      data?.chatJid ||
       data?.remoteJid ||
+      payload?.remoteJid ||
+      info?.sender ||
       data?.sender ||
       data?.from ||
-      data?.chatId ||
       payload?.sender ||
-      '';
+      ''
+    ).toString().trim();
 
-    // Ignora mensagens enviadas pelo próprio bot ou de grupos
-    if (fromMe || remoteJid.includes('@g.us') || remoteJid.includes('status@broadcast')) {
-      console.log('⏭️ [Webhook] Ignorando mensagem (fromMe ou grupo):', remoteJid);
-      return { status: 'ignored' };
+    // Identificar se há participante (presente em grupos quando um membro envia mensagem)
+    const participant = (
+      key?.participant ||
+      key?.Participant ||
+      data?.participant ||
+      data?.Participant ||
+      info?.participant ||
+      info?.Participant ||
+      data?.message?.extendedTextMessage?.contextInfo?.participant ||
+      ''
+    ).toString().trim();
+
+    // Mensagens enviadas pelo próprio bot
+    const fromMe =
+      key?.fromMe === true ||
+      key?.FromMe === true ||
+      info?.isFromMe === true ||
+      info?.IsFromMe === true ||
+      data?.fromMe === true ||
+      data?.isFromMe === true;
+
+    // Sinalizadores de grupo
+    const isGroupFlag =
+      data?.isGroup === true ||
+      data?.IsGroup === true ||
+      key?.isGroup === true ||
+      key?.IsGroup === true ||
+      info?.isGroup === true ||
+      info?.IsGroup === true ||
+      payload?.isGroup === true ||
+      payload?.IsGroup === true ||
+      data?.chatType === 'group' ||
+      payload?.chatType === 'group';
+
+    // Contexto de menção coletiva em grupos (@todos / @everyone / menções de participantes)
+    const contextInfo =
+      data?.message?.extendedTextMessage?.contextInfo ||
+      data?.message?.ExtendedTextMessage?.ContextInfo ||
+      data?.contextInfo ||
+      {};
+    const isGroupMention =
+      Boolean(contextInfo?.groupMentions) ||
+      (Boolean(contextInfo?.participant) && contextInfo.participant !== chatJid);
+
+    // FILTRO MANDATÓRIO: Aceitar SOMENTE mensagens diretas enviadas para o número do bot
+    // Bloquear:
+    // - Mensagens enviadas pelo próprio bot (fromMe)
+    // - Grupos (@g.us ou isGroupFlag)
+    // - Menções em grupos (@everyone / @todos)
+    // - Transmissões e Status (@broadcast / status@broadcast)
+    // - Canais / Newsletters (@newsletter)
+    // - Notificações de chamadas (@call)
+    const isNonDirect =
+      fromMe ||
+      isGroupFlag ||
+      isGroupMention ||
+      Boolean(participant && participant !== chatJid) ||
+      chatJid.includes('@g.us') ||
+      chatJid.includes('@broadcast') ||
+      chatJid.includes('status@broadcast') ||
+      chatJid.includes('@newsletter') ||
+      chatJid.includes('@lid') ||
+      chatJid.includes('@call');
+
+    if (isNonDirect) {
+      console.log('⏭️ [Webhook] Ignorando mensagem não-direta (grupo, menção coletiva, canal, status ou fromMe):', {
+        chatJid,
+        participant,
+        fromMe,
+        isGroupFlag,
+        isGroupMention,
+      });
+      return { status: 'ignored_non_direct_message' };
     }
+
+    // Garantir formato válido de mensagem direta individual (@s.whatsapp.net, @c.us ou dígitos)
+    const isIndividualJid =
+      chatJid.endsWith('@s.whatsapp.net') ||
+      chatJid.endsWith('@c.us') ||
+      /^\+?\d{8,15}$/.test(chatJid);
+
+    if (!isIndividualJid) {
+      console.log('⏭️ [Webhook] Ignorando mensagem: identificador de conversa não-individual:', chatJid);
+      return { status: 'ignored_invalid_jid' };
+    }
+
+    const remoteJid = chatJid;
 
     // Deduplicação com Redis (24 horas)
     try {
