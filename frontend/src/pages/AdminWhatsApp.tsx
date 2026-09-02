@@ -270,7 +270,7 @@ export function AdminWhatsApp() {
           if (qrPollingRef.current) clearInterval(qrPollingRef.current);
           showMessage('success', `🎉 WhatsApp da instância "${status.instance_name}" conectado com sucesso!`);
           setIsQrModalOpen(false);
-          loadData(true);
+          loadInstances(true);
         }
       } catch (err) {
         // ignore polling error
@@ -291,7 +291,7 @@ export function AdminWhatsApp() {
     try {
       await restartAdminInstance(id);
       showMessage('success', `Instância "${name}" reiniciada.`);
-      loadData(true);
+      loadInstances(true);
     } catch (err: any) {
       showMessage('error', 'Erro ao reiniciar instância.');
     }
@@ -302,7 +302,7 @@ export function AdminWhatsApp() {
     try {
       await logoutAdminInstance(id);
       showMessage('success', `Sessão deslogada com sucesso.`);
-      loadData(true);
+      loadInstances(true);
     } catch (err: any) {
       showMessage('error', 'Erro ao deslogar instância.');
     }
@@ -313,7 +313,7 @@ export function AdminWhatsApp() {
     try {
       await deleteAdminInstance(id);
       showMessage('success', `Instância "${name}" removida com sucesso.`);
-      loadData(true);
+      loadInstances(true);
     } catch (err: any) {
       showMessage('error', 'Erro ao excluir instância.');
     }

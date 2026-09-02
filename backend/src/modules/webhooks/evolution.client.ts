@@ -242,13 +242,14 @@ export class EvolutionClient {
 
   async getConnectionState(instanceName: string): Promise<{ state: string }> {
     try {
-      const url = `${this.baseUrl}/instance/info/${encodeURIComponent(instanceName)}`;
-      const response = await axios.get(url, {
-        headers: this.getHeaders(),
-        timeout: 6000,
-      });
-      const data = response.data?.data;
-      if (data?.connected === true || data?.status === 'open') {
+      const instances = await this.fetchInstances();
+      const target = instances.find(
+        (inst: any) =>
+          inst.name === instanceName ||
+          inst.token === instanceName ||
+          inst.id === instanceName
+      );
+      if (target && (target.connected === true || target.status === 'open')) {
         return { state: 'open' };
       }
       return { state: 'close' };
