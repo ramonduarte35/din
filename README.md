@@ -156,6 +156,22 @@ Para desenvolvedores e testes sem necessidade de escanear QR Code imediatamente,
 
 ---
 
-## 🛡️ 8. Licença e Autoria
+## 🧹 8. Reset e Limpeza Total de Dados
+
+Caso você precise apagar todos os dados após uma implantação de testes, migração para um novo servidor ou limpeza para entrega ao cliente:
+
+```bash
+./reset-system-data.sh
+```
+
+> **O que o script faz com segurança:**
+> - Solicita confirmação manual digitando `RESET` (ou pode ser executado via `./reset-system-data.sh --force`).
+> - Para e remove todos os containers e volumes do Docker (`postgres_data`, `redis_data`, `evolution_data`).
+> - Limpa arquivos locais de banco, sessões e logs.
+> - Recria as permissões e pastas limpas para um novo deploy.
+
+---
+
+## 🛡️ 9. Licença e Autoria
 Desenvolvido para o ecossistema **Din — Inteligência Financeira**.
-# din
+
