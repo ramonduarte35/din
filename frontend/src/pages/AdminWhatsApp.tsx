@@ -103,16 +103,15 @@ export function AdminWhatsApp() {
     setIsRefreshing(true);
     try {
       const [instData, logData, evoData] = await Promise.all([
-        fetchAdminInstances(),
-        fetchAdminLogs({ limit: 30 }),
+        fetchAdminInstances().catch(() => []),
+        fetchAdminLogs({ limit: 30 }).catch(() => ({ data: [], meta: { total: 0, page: 1, limit: 30, totalPages: 0 } })),
         fetchEvolutionStatus().catch(() => null),
       ]);
-      setInstances(instData);
-      setLogs(logData.data);
+      setInstances(Array.isArray(instData) ? instData : []);
+      setLogs(Array.isArray(logData?.data) ? logData.data : []);
       if (evoData) setEvolutionStatus(evoData);
     } catch (err: any) {
       console.error('Erro ao carregar dados do admin:', err);
-      showMessage('error', 'Falha ao carregar instâncias do WhatsApp.');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

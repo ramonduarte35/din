@@ -30,8 +30,15 @@ export interface QrCodeResponse {
 }
 
 export async function fetchAdminInstances(): Promise<AdminWhatsAppInstance[]> {
-  const { data } = await api.get<{ instances: AdminWhatsAppInstance[] }>('/admin/whatsapp/instances');
-  return data.instances;
+  try {
+    const { data } = await api.get<any>('/admin/whatsapp/instances');
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.instances)) return data.instances;
+    return [];
+  } catch (error) {
+    console.error('Erro ao buscar instâncias:', error);
+    return [];
+  }
 }
 
 export async function createAdminInstance(payload: {
@@ -94,8 +101,13 @@ export async function fetchAdminLogs(params?: {
   data: AdminWhatsAppLog[];
   meta: { total: number; page: number; limit: number; totalPages: number };
 }> {
-  const { data } = await api.get('/admin/whatsapp/logs', { params });
-  return data;
+  try {
+    const { data } = await api.get('/admin/whatsapp/logs', { params });
+    return data || { data: [], meta: { total: 0, page: 1, limit: 30, totalPages: 0 } };
+  } catch (error) {
+    console.error('Erro ao buscar logs:', error);
+    return { data: [], meta: { total: 0, page: 1, limit: 30, totalPages: 0 } };
+  }
 }
 
 export interface EvolutionLicenseResponse {
