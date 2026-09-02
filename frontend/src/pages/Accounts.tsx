@@ -9,9 +9,11 @@ import { AccountModal } from '../components/accounts/AccountModal';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
-import { formatCurrency } from '../lib/utils';
+import { AccountsWidgetSkeleton } from '../components/ui/Skeleton';
+import { EmptyState } from '../components/ui/EmptyState';
 import { useConfirm } from '../contexts/ConfirmContext';
 import { useToast } from '../contexts/ToastContext';
+import { usePrivacy } from '../contexts/PrivacyContext';
 import {
   Landmark,
   CreditCard,
@@ -49,6 +51,7 @@ export function Accounts() {
 
   const confirm = useConfirm();
   const toast = useToast();
+  const { maskValue } = usePrivacy();
 
   const loadAccounts = async () => {
     setIsLoading(true);
@@ -141,10 +144,10 @@ export function Accounts() {
           </Button>
 
           <Button
-            variant="primary"
+            variant="emerald"
             size="sm"
             onClick={handleOpenCreate}
-            className="h-10 min-h-[44px] text-xs px-4 shadow-lg shadow-emerald-500/20"
+            className="h-10 min-h-[44px] text-xs px-4 shadow-lg shadow-emerald-500/20 font-semibold"
           >
             <Plus className="w-4 h-4 mr-1.5" />
             Nova Conta
@@ -154,23 +157,23 @@ export function Accounts() {
 
       {/* Resumo Geral de Saldos */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-4 bg-gradient-to-br from-slate-900/90 to-slate-950/80 border-slate-800">
+        <Card className="p-4 sm:p-5 bg-gradient-to-br from-[#0c1322] to-[#080e1b] border-slate-800/80 shadow-lg">
           <span className="text-xs font-semibold text-slate-400 block mb-1">
             Saldo Total Consolidado
           </span>
-          <div className="text-2xl font-black text-white tracking-tight">
-            {formatCurrency(totalConsolidatedBalance)}
+          <div className="text-2xl font-black text-white font-mono tracking-tight">
+            {maskValue(totalConsolidatedBalance)}
           </div>
           <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1 mt-1">
             <CheckCircle2 className="w-3 h-3" /> Somatório de todas as contas
           </span>
         </Card>
 
-        <Card className="p-4 bg-gradient-to-br from-slate-900/90 to-slate-950/80 border-slate-800">
+        <Card className="p-4 sm:p-5 bg-gradient-to-br from-[#0c1322] to-[#080e1b] border-slate-800/80 shadow-lg">
           <span className="text-xs font-semibold text-slate-400 block mb-1">
             Total de Contas Ativas
           </span>
-          <div className="text-2xl font-black text-white tracking-tight">
+          <div className="text-2xl font-black text-white font-mono tracking-tight">
             {accounts.length}
           </div>
           <span className="text-[11px] text-slate-400 block mt-1">
@@ -178,7 +181,7 @@ export function Accounts() {
           </span>
         </Card>
 
-        <Card className="p-4 bg-gradient-to-br from-slate-900/90 to-slate-950/80 border-slate-800">
+        <Card className="p-4 sm:p-5 bg-gradient-to-br from-[#0c1322] to-[#080e1b] border-slate-800/80 shadow-lg">
           <span className="text-xs font-semibold text-slate-400 block mb-1">
             Conta Padrão do WhatsApp
           </span>
@@ -196,23 +199,16 @@ export function Accounts() {
 
       {/* Grid de Cards de Contas */}
       {isLoading && accounts.length === 0 ? (
-        <div className="py-16 text-center">
-          <div className="w-8 h-8 rounded-full border-2 border-slate-700 border-t-emerald-500 animate-spin mx-auto mb-3" />
-          <p className="text-xs text-slate-400">Carregando suas contas...</p>
-        </div>
+        <AccountsWidgetSkeleton />
       ) : accounts.length === 0 ? (
-        <Card className="p-8 text-center bg-slate-900/40 border-dashed border-slate-800">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto mb-3 border border-emerald-500/20">
-            <Landmark className="w-6 h-6" />
-          </div>
-          <h3 className="text-base font-bold text-white mb-1">Nenhuma conta cadastrada</h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto mb-4">
-            Cadastre seus bancos (Nubank, Banco do Brasil, Itaú) para separar seus saldos e integrar com a IA.
-          </p>
-          <Button variant="primary" size="sm" onClick={handleOpenCreate} className="min-h-[44px]">
-            <Plus className="w-4 h-4 mr-1.5" /> Criar Primeira Conta
-          </Button>
-        </Card>
+        <EmptyState
+          icon={<Landmark className="w-8 h-8" />}
+          title="Nenhuma conta cadastrada"
+          description="Cadastre seus bancos (Nubank, Banco do Brasil, Itaú) para separar seus saldos e integrar com a IA."
+          actionText="Criar Primeira Conta"
+          onAction={handleOpenCreate}
+          variant="emerald"
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {accounts.map((account) => {
@@ -222,35 +218,42 @@ export function Accounts() {
             return (
               <Card
                 key={account.id}
-                className="p-5 flex flex-col justify-between relative overflow-hidden group hover:border-slate-700 transition-all bg-[#0d1527] border-slate-800/90 shadow-lg"
+                className="p-5 flex flex-col justify-between relative overflow-hidden group hover:border-slate-700 transition-all bg-[#0d1527] border-slate-800/90 shadow-lg rounded-3xl"
               >
                 {/* Linha superior com cor do banco */}
                 <div
-                  className="absolute top-0 left-0 right-0 h-1"
+                  className="absolute top-0 left-0 right-0 h-1.5"
                   style={{ backgroundColor: account.color || '#10b981' }}
                 />
 
                 <div>
                   {/* Topo do Card */}
-                  <div className="flex items-start justify-between gap-2 mb-3">
+                  <div className="flex items-start justify-between gap-3 mb-4">
                     <div className="flex items-center gap-3">
                       <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center shadow-md shrink-0"
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform"
                         style={{
                           backgroundColor: `${account.color || '#10b981'}20`,
                           color: account.color || '#10b981',
                           border: `1px solid ${account.color || '#10b981'}40`,
                         }}
                       >
-                        <IconComponent className="w-5 h-5" />
+                        <IconComponent className="w-6 h-6" />
                       </div>
+
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-base font-bold text-white truncate max-w-[160px]">
+                          <h3 className="font-bold text-base text-white group-hover:text-emerald-400 transition-colors">
                             {account.name}
                           </h3>
+                          {account.is_default && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm">
+                              <Star className="w-3 h-3 fill-amber-400" /> Padrão
+                            </span>
+                          )}
                         </div>
-                        <span className="text-[11px] text-slate-400">
+
+                        <span className="text-xs text-slate-400">
                           {account.type === 'CHECKING'
                             ? 'Conta Corrente'
                             : account.type === 'SAVINGS'
@@ -259,74 +262,47 @@ export function Accounts() {
                             ? 'Investimentos'
                             : account.type === 'CREDIT_CARD'
                             ? 'Cartão de Crédito'
-                            : account.type === 'CASH'
-                            ? 'Carteira Física'
-                            : 'Outro'}
+                            : 'Carteira Física'}
                         </span>
                       </div>
                     </div>
-
-                    {account.is_default && (
-                      <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 shrink-0">
-                        <Star className="w-3 h-3 fill-amber-400" /> Padrão
-                      </span>
-                    )}
                   </div>
 
-                  {/* Saldo Atual em Destaque */}
-                  <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800/80 mb-4">
-                    <span className="text-[11px] font-medium text-slate-400 block mb-0.5">
-                      Saldo Atual
+                  {/* Saldo Atual */}
+                  <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 mb-4">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                      Saldo Disponível
                     </span>
                     <div
-                      className={`text-xl sm:text-2xl font-black tracking-tight ${
+                      className={`text-xl sm:text-2xl font-black font-mono tracking-tight ${
                         isNegative ? 'text-rose-400' : 'text-emerald-400'
                       }`}
                     >
-                      {formatCurrency(account.current_balance || 0)}
-                    </div>
-                  </div>
-
-                  {/* Detalhes do Mês */}
-                  <div className="grid grid-cols-2 gap-2 text-xs mb-4">
-                    <div className="p-2 rounded-lg bg-slate-900/40 border border-slate-800/50">
-                      <span className="text-[10px] text-slate-500 block flex items-center gap-1">
-                        <ArrowUpRight className="w-3 h-3 text-emerald-400" /> Entradas Mês
-                      </span>
-                      <span className="font-semibold text-emerald-400 text-xs">
-                        {formatCurrency(account.month_income || 0)}
-                      </span>
-                    </div>
-
-                    <div className="p-2 rounded-lg bg-slate-900/40 border border-slate-800/50">
-                      <span className="text-[10px] text-slate-500 block flex items-center gap-1">
-                        <ArrowDownRight className="w-3 h-3 text-rose-400" /> Saídas Mês
-                      </span>
-                      <span className="font-semibold text-rose-400 text-xs">
-                        {formatCurrency(account.month_expense || 0)}
-                      </span>
+                      {maskValue(account.current_balance || 0)}
                     </div>
                   </div>
                 </div>
 
-                {/* Ações Mobile First */}
-                <div className="flex items-center justify-between pt-3 border-t border-slate-800/80 gap-2">
-                  {!account.is_default && (
-                    <button
-                      type="button"
-                      onClick={() => handleSetDefault(account)}
-                      className="text-[11px] font-medium text-slate-400 hover:text-amber-400 flex items-center gap-1 transition-colors min-h-[44px] px-2"
-                    >
-                      <Star className="w-3.5 h-3.5" /> Tornar Padrão
-                    </button>
-                  )}
+                {/* Ações do Card */}
+                <div className="flex items-center justify-between pt-3 border-t border-slate-800/80">
+                  <div>
+                    {!account.is_default && (
+                      <button
+                        onClick={() => handleSetDefault(account)}
+                        className="text-xs font-semibold text-slate-400 hover:text-amber-300 flex items-center gap-1 transition-colors min-h-[44px] sm:min-h-0 items-center"
+                      >
+                        <Star className="w-3.5 h-3.5" />
+                        <span>Definir Padrão</span>
+                      </button>
+                    )}
+                  </div>
 
-                  <div className="flex items-center gap-1 ml-auto">
+                  <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleOpenEdit(account)}
-                      className="h-9 w-9 p-0 min-h-[44px] min-w-[44px] rounded-lg text-slate-400 hover:text-white"
+                      className="h-9 w-9 p-0 min-h-[44px] min-w-[44px] rounded-xl text-slate-400 hover:text-white"
                       title="Editar Conta"
                     >
                       <Edit2 className="w-4 h-4" />
@@ -337,7 +313,7 @@ export function Accounts() {
                       size="sm"
                       onClick={() => handleDelete(account)}
                       disabled={deletingId === account.id || accounts.length <= 1}
-                      className="h-9 w-9 p-0 min-h-[44px] min-w-[44px] rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10"
+                      className="h-9 w-9 p-0 min-h-[44px] min-w-[44px] rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10"
                       title="Excluir Conta"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -350,10 +326,13 @@ export function Accounts() {
         </div>
       )}
 
-      {/* Modal de Criação / Edição */}
+      {/* Modal de Criação / Edição de Conta */}
       <AccountModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingAccount(null);
+        }}
         onSuccess={loadAccounts}
         accountToEdit={editingAccount}
       />

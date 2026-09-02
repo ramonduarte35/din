@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { Card } from '../ui/Card';
 import { formatCurrency } from '../../lib/utils';
+import { usePrivacy } from '../../contexts/PrivacyContext';
 import { MonthlyHistoryItem } from '../../api/transactions';
 
 interface MonthlyComparisonChartProps {
@@ -19,6 +20,8 @@ interface MonthlyComparisonChartProps {
 }
 
 export function MonthlyComparisonChart({ data, isLoading }: MonthlyComparisonChartProps) {
+  const { maskValue, isPrivate } = usePrivacy();
+
   if (isLoading) {
     return (
       <Card className="h-[380px] flex items-center justify-center animate-pulse">
@@ -41,16 +44,16 @@ export function MonthlyComparisonChart({ data, isLoading }: MonthlyComparisonCha
           <div className="space-y-1 mt-2 text-xs">
             <div className="flex items-center justify-between gap-3">
               <span className="text-emerald-400 font-medium">Receitas:</span>
-              <span className="font-semibold text-white">{formatCurrency(income)}</span>
+              <span className="font-semibold text-white font-mono">{maskValue(income)}</span>
             </div>
             <div className="flex items-center justify-between gap-3">
               <span className="text-rose-400 font-medium">Despesas:</span>
-              <span className="font-semibold text-white">{formatCurrency(expense)}</span>
+              <span className="font-semibold text-white font-mono">{maskValue(expense)}</span>
             </div>
             <div className="flex items-center justify-between gap-3 pt-1 border-t border-slate-800 text-slate-300 font-bold">
               <span>Saldo:</span>
-              <span className={balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
-                {formatCurrency(balance)}
+              <span className={`font-mono ${balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {maskValue(balance)}
               </span>
             </div>
           </div>

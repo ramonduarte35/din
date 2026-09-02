@@ -2,6 +2,7 @@ import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card } from '../ui/Card';
 import { formatCurrency } from '../../lib/utils';
+import { usePrivacy } from '../../contexts/PrivacyContext';
 import { CategoryBreakdownItem } from '../../api/transactions';
 import { PieChart as PieIcon } from 'lucide-react';
 
@@ -11,6 +12,8 @@ interface CategoryChartProps {
 }
 
 export function CategoryChart({ data, isLoading }: CategoryChartProps) {
+  const { maskValue } = usePrivacy();
+
   if (isLoading) {
     return (
       <Card className="h-[380px] flex items-center justify-center animate-pulse">
@@ -42,7 +45,7 @@ export function CategoryChart({ data, isLoading }: CategoryChartProps) {
             <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
             <p className="text-xs font-semibold text-slate-200">{item.name}</p>
           </div>
-          <p className="text-sm font-bold text-white mt-1">{formatCurrency(item.amount)}</p>
+          <p className="text-sm font-bold text-white mt-1">{maskValue(item.amount)}</p>
           <p className="text-[11px] text-slate-400">{item.percentage}% do total de despesas</p>
         </div>
       );
@@ -97,7 +100,7 @@ export function CategoryChart({ data, isLoading }: CategoryChartProps) {
                   <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
                   {cat.name}
                 </span>
-                <span className="text-slate-100 font-semibold">{formatCurrency(cat.amount)}</span>
+                <span className="text-slate-100 font-bold font-mono">{maskValue(cat.amount)}</span>
               </div>
               <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
                 <div

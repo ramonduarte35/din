@@ -1,7 +1,8 @@
 import React from 'react';
-import { Menu, Plus, Sparkles, MessageSquare } from 'lucide-react';
+import { Menu, Plus, Sparkles, MessageSquare, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
+import { usePrivacy } from '../../contexts/PrivacyContext';
 
 interface HeaderProps {
   onOpenMobileMenu: () => void;
@@ -10,6 +11,8 @@ interface HeaderProps {
 
 export function Header({ onOpenMobileMenu, onOpenNewTransaction }: HeaderProps) {
   const { user } = useAuth();
+  const { isPrivate, togglePrivacy } = usePrivacy();
+
   const todayFormatted = new Intl.DateTimeFormat('pt-BR', {
     weekday: 'long',
     day: 'numeric',
@@ -37,7 +40,22 @@ export function Header({ onOpenMobileMenu, onOpenNewTransaction }: HeaderProps) 
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Botão de Modo Privacidade (Ocultar/Exibir Saldos) */}
+        <button
+          type="button"
+          onClick={togglePrivacy}
+          title={isPrivate ? 'Exibir valores financeiros' : 'Ocultar valores financeiros (Modo Privacidade)'}
+          aria-label="Alternar Modo Privacidade"
+          className="p-2.5 rounded-xl text-slate-400 hover:text-emerald-400 hover:bg-slate-800/80 border border-slate-800 transition-all flex items-center justify-center min-w-[44px] min-h-[44px]"
+        >
+          {isPrivate ? (
+            <EyeOff className="w-4 h-4 text-amber-400" />
+          ) : (
+            <Eye className="w-4 h-4 text-slate-300" />
+          )}
+        </button>
+
         {user?.subscription_tier === 'PRO' && (
           <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>

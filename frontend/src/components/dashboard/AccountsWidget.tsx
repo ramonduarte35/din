@@ -2,7 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Account } from '../../api/accounts';
 import { Card } from '../ui/Card';
-import { formatCurrency } from '../../lib/utils';
+import { AccountsWidgetSkeleton } from '../ui/Skeleton';
+import { usePrivacy } from '../../contexts/PrivacyContext';
 import {
   Landmark,
   CreditCard,
@@ -12,7 +13,6 @@ import {
   Coins,
   Building2,
   ChevronRight,
-  Plus,
   Star,
 } from 'lucide-react';
 
@@ -32,20 +32,10 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 export function AccountsWidget({ accounts, isLoading }: AccountsWidgetProps) {
+  const { maskValue } = usePrivacy();
+
   if (isLoading) {
-    return (
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="h-5 w-32 bg-slate-800 rounded animate-pulse" />
-          <div className="h-4 w-20 bg-slate-800 rounded animate-pulse" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 rounded-2xl bg-slate-900/60 border border-slate-800 animate-pulse" />
-          ))}
-        </div>
-      </div>
-    );
+    return <AccountsWidgetSkeleton />;
   }
 
   if (accounts.length === 0) {
@@ -53,7 +43,7 @@ export function AccountsWidget({ accounts, isLoading }: AccountsWidgetProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Landmark className="w-4 h-4 text-emerald-400" />
@@ -64,14 +54,14 @@ export function AccountsWidget({ accounts, isLoading }: AccountsWidgetProps) {
 
         <Link
           to="/accounts"
-          className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-0.5 transition-colors"
+          className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-0.5 transition-colors min-h-[44px] sm:min-h-0 items-center"
         >
           <span>Gerenciar Contas</span>
           <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {accounts.map((acc) => {
           const IconComp = ICON_MAP[acc.icon] || Landmark;
           const isNegative = (acc.current_balance || 0) < 0;
@@ -82,7 +72,7 @@ export function AccountsWidget({ accounts, isLoading }: AccountsWidgetProps) {
               to="/accounts"
               className="block group transition-transform active:scale-[0.99]"
             >
-              <Card className="p-3.5 bg-gradient-to-br from-slate-900/90 to-slate-950 border-slate-800 hover:border-slate-700 transition-all relative overflow-hidden shadow-md">
+              <Card className="p-3.5 bg-gradient-to-br from-[#0e1628] to-[#0a101f] border-slate-800/80 hover:border-slate-700 transition-all relative overflow-hidden shadow-lg hover:shadow-emerald-500/5">
                 {/* Accent bar */}
                 <div
                   className="absolute top-0 left-0 right-0 h-1"
@@ -92,7 +82,7 @@ export function AccountsWidget({ accounts, isLoading }: AccountsWidgetProps) {
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5">
                     <div
-                      className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform"
                       style={{
                         backgroundColor: `${acc.color || '#10b981'}20`,
                         color: acc.color || '#10b981',
@@ -127,11 +117,11 @@ export function AccountsWidget({ accounts, isLoading }: AccountsWidgetProps) {
                   <div className="text-right">
                     <span className="text-[10px] text-slate-500 block">Saldo</span>
                     <span
-                      className={`text-sm font-black tracking-tight ${
+                      className={`text-sm font-bold font-mono tracking-tight ${
                         isNegative ? 'text-rose-400' : 'text-emerald-400'
                       }`}
                     >
-                      {formatCurrency(acc.current_balance || 0)}
+                      {maskValue(acc.current_balance || 0)}
                     </span>
                   </div>
                 </div>
