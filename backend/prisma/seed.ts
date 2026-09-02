@@ -43,24 +43,43 @@ async function main() {
   }
   console.log(`✅ ${defaultCategories.length} categorias padrão sincronizadas.`);
 
-  // 2. Usuário Demo PRO para testes imediatos
-  const demoEmail = 'demo@din.app';
-  let demoUser = await prisma.user.findUnique({ where: { email: demoEmail } });
+  // 2. Administrador do Sistema (configurado via .env / ADMIN_EMAIL)
+  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@din.app').trim().toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD || 'din_admin_password_2026';
+  const password_hash = await bcrypt.hash(adminPassword, 10);
+
+  // Verifica se já existe o adminEmail ou migra o demo@din.app se existir
+  let demoUser = await prisma.user.findUnique({ where: { email: adminEmail } });
 
   if (!demoUser) {
-    const password_hash = await bcrypt.hash('123456', 10);
-    demoUser = await prisma.user.create({
-      data: {
-        name: 'Usuário Demonstração',
-        email: demoEmail,
-        password_hash,
-        phone_number: '5586999998888',
-        subscription_tier: SubscriptionTier.PRO,
-        role: 'ADMIN',
-      },
-    });
+    const legacyDemo = await prisma.user.findUnique({ where: { email: 'demo@din.app' } });
+    if (legacyDemo) {
+      demoUser = await prisma.user.update({
+        where: { id: legacyDemo.id },
+        data: {
+          email: adminEmail,
+          name: 'Administrador Din',
+          role: 'ADMIN',
+          subscription_tier: SubscriptionTier.PRO,
+          password_hash,
+        },
+      });
+      console.log(`✅ Conta legada atualizada para o Administrador: ${adminEmail}`);
+    } else {
+      demoUser = await prisma.user.create({
+        data: {
+          name: 'Administrador Din',
+          email: adminEmail,
+          password_hash,
+          phone_number: null,
+          subscription_tier: SubscriptionTier.PRO,
+          role: 'ADMIN',
+        },
+      });
+      console.log(`✅ Administrador criado: ${adminEmail}`);
+    }
 
-    // Buscar categorias para criar transações de exemplo
+    // Buscar categorias para criar transações de exemplo se for um novo usuário
     const categories = await prisma.category.findMany();
     const catSalary = categories.find((c) => c.name === 'Salário');
     const catFood = categories.find((c) => c.name === 'Alimentação');
@@ -137,13 +156,17 @@ async function main() {
         },
       });
     }
-    console.log(`✅ Usuário demo criado (${demoEmail} / 123456) com 6 transações de exemplo.`);
+    console.log(`✅ Administrador criado (${adminEmail}) com transações de exemplo.`);
   } else {
-    await prisma.user.update({
-      where: { email: demoEmail },
-      data: { role: 'ADMIN' },
+    demoUser = await prisma.user.update({
+      where: { id: demoUser.id },
+      data: {
+        role: 'ADMIN',
+        subscription_tier: SubscriptionTier.PRO,
+        password_hash,
+      },
     });
-    console.log(`✅ Usuário demo atualizado com permissão ADMIN.`);
+    console.log(`✅ Administrador ${adminEmail} atualizado com permissão ADMIN.`);
   }
 
   console.log('🎉 Seed finalizado com sucesso!');

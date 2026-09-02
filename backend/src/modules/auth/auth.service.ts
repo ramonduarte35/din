@@ -2,7 +2,8 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../../lib/prisma.js';
 import { RegisterInput, LoginInput } from './auth.schemas.js';
 import { normalizePhoneNumber } from '../../utils/phone.js';
-import { SubscriptionTier } from '@prisma/client';
+import { SubscriptionTier, Role } from '@prisma/client';
+import { env } from '../../config/env.js';
 
 export class AuthService {
   async register(data: RegisterInput) {
@@ -26,14 +27,16 @@ export class AuthService {
     }
 
     const password_hash = await bcrypt.hash(data.password, 10);
+    const isAdminEmail = data.email.trim().toLowerCase() === env.ADMIN_EMAIL.trim().toLowerCase();
 
     const user = await prisma.user.create({
       data: {
         name: data.name,
-        email: data.email,
+        email: data.email.trim().toLowerCase(),
         password_hash,
         phone_number: normalizedPhone,
-        subscription_tier: SubscriptionTier.PRO, // Concede Pro por padrão no cadastro para melhor experiência de teste
+        subscription_tier: SubscriptionTier.PRO,
+        role: isAdminEmail ? Role.ADMIN : Role.USER,
       },
       select: {
         id: true,
@@ -50,8 +53,9 @@ export class AuthService {
   }
 
   async login(data: LoginInput) {
+    const cleanEmail = data.email.trim().toLowerCase();
     const user = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: { email: cleanEmail },
     });
 
     if (!user) {
@@ -63,13 +67,23 @@ export class AuthService {
       throw { statusCode: 401, message: 'E-mail ou senha incorretos.' };
     }
 
+    // Se o email coincide com o ADMIN_EMAIL do .env mas o role ainda não era ADMIN, atualiza automaticamente
+    let currentRole = user.role;
+    if (cleanEmail === env.ADMIN_EMAIL.trim().toLowerCase() && currentRole !== Role.ADMIN) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { role: Role.ADMIN, subscription_tier: SubscriptionTier.PRO },
+      });
+      currentRole = Role.ADMIN;
+    }
+
     return {
       id: user.id,
       name: user.name,
       email: user.email,
       phone_number: user.phone_number,
       subscription_tier: user.subscription_tier,
-      role: user.role,
+      role: currentRole,
     };
   }
 }

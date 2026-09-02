@@ -145,6 +145,12 @@ PG_PORT=$(grep '^POSTGRES_PORT=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' "\r
 REDIS_PORT_VAL=$(grep '^REDIS_PORT=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' "\r\n' || true)
 [ -z "$REDIS_PORT_VAL" ] && REDIS_PORT_VAL="6381"
 
+ADMIN_EMAIL_VAL=$(grep '^ADMIN_EMAIL=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' "\r\n' || true)
+[ -z "$ADMIN_EMAIL_VAL" ] && ADMIN_EMAIL_VAL="admin@din.app"
+
+ADMIN_PASS_VAL=$(grep '^ADMIN_PASSWORD=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' "\r\n' || true)
+[ -z "$ADMIN_PASS_VAL" ] && ADMIN_PASS_VAL="din_admin_password_2026"
+
 # 5. Verificação de Conflitos de Portas no macOS
 check_port() {
     local port=$1
@@ -205,10 +211,9 @@ echo -e "${GREEN}${BOLD}══════════════════�
 echo -e "🌐 ${BOLD}Painel Web (Dashboard):${NC}    ${CYAN}http://localhost:${WEB_PORT}${NC}"
 echo -e "⚡ ${BOLD}Backend API Fastify:${NC}       ${CYAN}http://localhost:${API_PORT}/health${NC}"
 echo -e "📱 ${BOLD}Evolution Go Gateway:${NC}      ${CYAN}http://localhost:${EVO_PORT}${NC}"
-echo -e "\n👤 ${BOLD}Credenciais da Conta Demo PRO (Administrador):${NC}"
-echo -e "   E-mail:   ${CYAN}demo@din.app${NC}"
-echo -e "   Senha:    ${CYAN}123456${NC}"
-echo -e "   WhatsApp: ${CYAN}5586999998888${NC}"
+echo -e "\n👤 ${BOLD}Credenciais do Administrador do Sistema (.env):${NC}"
+echo -e "   E-mail:   ${CYAN}${ADMIN_EMAIL_VAL}${NC}"
+echo -e "   Senha:    ${CYAN}${ADMIN_PASS_VAL}${NC}"
 echo -e "\n💡 ${BOLD}Comandos Úteis no seu Mac:${NC}"
 echo -e "   - Ver logs em tempo real:   ${YELLOW}docker compose logs -f${NC}"
 echo -e "   - Parar todos os serviços:  ${YELLOW}./run-docker-macbook.sh --down${NC} ou ${YELLOW}docker compose down${NC}"

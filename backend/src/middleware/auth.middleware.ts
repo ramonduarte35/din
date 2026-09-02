@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { prisma } from '../lib/prisma.js';
+import { env } from '../config/env.js';
 
 export interface TokenPayload {
   userId: string;
@@ -60,11 +61,14 @@ export async function requireAdmin(request: FastifyRequest, reply: FastifyReply)
   await authenticate(request, reply);
   if (reply.sent) return;
 
-  if (request.currentUser?.role !== 'ADMIN') {
+  const isEmailAdmin = request.currentUser?.email.toLowerCase() === env.ADMIN_EMAIL.toLowerCase();
+  const isRoleAdmin = request.currentUser?.role === 'ADMIN';
+
+  if (!isEmailAdmin && !isRoleAdmin) {
     return reply.status(403).send({
       statusCode: 403,
       error: 'Forbidden',
-      message: 'Acesso restrito para administradores do sistema.',
+      message: 'Sem permissão. Acesso exclusivo para o administrador do sistema.',
     });
   }
 }

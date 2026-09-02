@@ -9,6 +9,7 @@ import { Transactions } from './pages/Transactions';
 import { Profile } from './pages/Profile';
 import { Simulator } from './pages/Simulator';
 import { AdminWhatsApp } from './pages/AdminWhatsApp';
+import { AccessDenied } from './pages/AccessDenied';
 import { NotFound } from './pages/NotFound';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -24,6 +25,28 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#080d1a] flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user?.role !== 'ADMIN') {
+    return <AccessDenied />;
   }
 
   return <>{children}</>;
@@ -83,7 +106,18 @@ export function App() {
             <Route path="transactions" element={<Transactions />} />
             <Route path="simulator" element={<Simulator />} />
             <Route path="profile" element={<Profile />} />
-            <Route path="admin/whatsapp" element={<AdminWhatsApp />} />
+            <Route
+              path="admin/whatsapp"
+              element={
+                <AdminRoute>
+                  <AdminWhatsApp />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="admin"
+              element={<Navigate to="/admin/whatsapp" replace />}
+            />
           </Route>
 
           {/* 404 Fallback */}
