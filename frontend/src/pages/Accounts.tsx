@@ -10,6 +10,8 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { formatCurrency } from '../lib/utils';
+import { useConfirm } from '../contexts/ConfirmContext';
+import { useToast } from '../contexts/ToastContext';
 import {
   Landmark,
   CreditCard,
@@ -45,13 +47,17 @@ export function Accounts() {
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  const confirm = useConfirm();
+  const toast = useToast();
+
   const loadAccounts = async () => {
     setIsLoading(true);
     try {
       const data = await getAccountsRequest();
       setAccounts(data);
     } catch (err) {
-      console.error('Erro ao carregar contas bancárias:', err);
+      console.error('Erro ao buscar contas:', err);
+      toast.error('Erro ao carregar contas bancárias.');
     } finally {
       setIsLoading(false);
     }
@@ -71,16 +77,24 @@ export function Accounts() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Deseja realmente excluir esta conta? As transações vinculadas a ela não serão apagadas.')) {
-      return;
-    }
-    setDeletingId(id);
+  const handleDelete = async (account: Account) => {
+    const ok = await confirm({
+      title: 'Excluir Conta Bancária',
+      message: `Deseja realmente excluir a conta "${account.name}"? As transações vinculadas a ela serão mantidas no extrato geral.`,
+      confirmText: 'Excluir Conta',
+      cancelText: 'Cancelar',
+      variant: 'danger',
+    });
+
+    if (!ok) return;
+
+    setDeletingId(account.id);
     try {
-      await deleteAccountRequest(id);
+      await deleteAccountRequest(account.id);
+      toast.success('Conta excluída com sucesso!');
       await loadAccounts();
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Falha ao excluir conta.');
+      toast.error('Falha ao excluir conta', err?.response?.data?.message);
     } finally {
       setDeletingId(null);
     }
@@ -89,9 +103,10 @@ export function Accounts() {
   const handleSetDefault = async (account: Account) => {
     try {
       await updateAccountRequest(account.id, { is_default: true });
+      toast.success('Conta Padrão Atualizada', `"${account.name}" agora é a sua conta bancária principal.`);
       await loadAccounts();
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Falha ao definir como padrão.');
+      toast.error('Falha ao definir como padrão', err?.response?.data?.message);
     }
   };
 
@@ -320,7 +335,7 @@ export function Accounts() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(account.id)}
+                      onClick={() => handleDelete(account)}
                       disabled={deletingId === account.id || accounts.length <= 1}
                       className="h-9 w-9 p-0 min-h-[44px] min-w-[44px] rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10"
                       title="Excluir Conta"

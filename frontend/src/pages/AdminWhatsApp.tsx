@@ -52,8 +52,12 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Input } from '../components/ui/Input';
 import { formatCurrency, formatPhone } from '../lib/utils';
+import { useConfirm } from '../contexts/ConfirmContext';
+import { useToast } from '../contexts/ToastContext';
 
 export function AdminWhatsApp() {
+  const confirm = useConfirm();
+  const toast = useToast();
   const [instances, setInstances] = useState<AdminWhatsAppInstance[]>([]);
   const [logs, setLogs] = useState<AdminWhatsAppLog[]>([]);
   const [activeTab, setActiveTab] = useState<'instances' | 'evolution' | 'logs'>('instances');
@@ -287,7 +291,15 @@ export function AdminWhatsApp() {
 
   // Actions on instance
   const handleRestart = async (id: string, name: string) => {
-    if (!confirm(`Deseja realmente reiniciar a conexão da instância "${name}"?`)) return;
+    const ok = await confirm({
+      title: 'Reiniciar Conexão WhatsApp',
+      message: `Deseja reiniciar a conexão da instância "${name}" com os servidores do WhatsApp?`,
+      confirmText: 'Sim, Reiniciar',
+      cancelText: 'Cancelar',
+      variant: 'warning',
+    });
+    if (!ok) return;
+
     try {
       await restartAdminInstance(id);
       showMessage('success', `Instância "${name}" reiniciada.`);
@@ -298,7 +310,15 @@ export function AdminWhatsApp() {
   };
 
   const handleLogout = async (id: string, name: string) => {
-    if (!confirm(`Deseja deslogar o WhatsApp da instância "${name}"?`)) return;
+    const ok = await confirm({
+      title: 'Desconectar WhatsApp',
+      message: `Deseja deslogar a sessão do WhatsApp da instância "${name}"? Será necessário escanear o QR Code novamente para reconectar.`,
+      confirmText: 'Desconectar Sessão',
+      cancelText: 'Cancelar',
+      variant: 'danger',
+    });
+    if (!ok) return;
+
     try {
       await logoutAdminInstance(id);
       showMessage('success', `Sessão deslogada com sucesso.`);
@@ -309,7 +329,15 @@ export function AdminWhatsApp() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Tem certeza que deseja EXCLUIR a instância "${name}"? Isso removerá a sessão do WhatsApp e o número do sistema.`)) return;
+    const ok = await confirm({
+      title: 'Excluir Instância WhatsApp',
+      message: `Tem certeza que deseja excluir permanentemente a instância "${name}"? Isso removerá a sessão do WhatsApp e o número vinculado no sistema.`,
+      confirmText: 'Excluir Instância',
+      cancelText: 'Cancelar',
+      variant: 'danger',
+    });
+    if (!ok) return;
+
     try {
       await deleteAdminInstance(id);
       showMessage('success', `Instância "${name}" removida com sucesso.`);

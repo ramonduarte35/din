@@ -30,6 +30,8 @@ import {
   Tag,
 } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
+import { useConfirm } from '../contexts/ConfirmContext';
+import { useToast } from '../contexts/ToastContext';
 
 export const Bills: React.FC = () => {
   const [bills, setBills] = useState<Bill[]>([]);
@@ -39,6 +41,9 @@ export const Bills: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
   const [year, setYear] = useState<number>(new Date().getFullYear());
+
+  const confirm = useConfirm();
+  const toast = useToast();
 
   // Modais
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -72,32 +77,51 @@ export const Bills: React.FC = () => {
       setSummary(summaryData);
     } catch (err) {
       console.error('Erro ao carregar contas a pagar:', err);
+      toast.error('Erro ao carregar contas a pagar.');
     } finally {
       setLoading(false);
     }
   }
 
   async function handleDelete(bill: Bill) {
-    if (confirm(`Deseja realmente excluir a conta "${bill.description}"?`)) {
-      try {
-        await deleteBill(bill.id);
-        loadData();
-      } catch (err) {
-        console.error('Erro ao excluir conta:', err);
-        alert('Erro ao excluir conta a pagar.');
-      }
+    const ok = await confirm({
+      title: 'Excluir Conta a Pagar',
+      message: `Deseja realmente excluir a conta "${bill.description}"? Esta ação removerá o compromisso financeiro do sistema.`,
+      confirmText: 'Excluir Conta',
+      cancelText: 'Cancelar',
+      variant: 'danger',
+    });
+
+    if (!ok) return;
+
+    try {
+      await deleteBill(bill.id);
+      toast.success('Conta excluída com sucesso!');
+      loadData();
+    } catch (err: any) {
+      console.error('Erro ao excluir conta:', err);
+      toast.error('Erro ao excluir conta', err?.response?.data?.message);
     }
   }
 
   async function handleUnpay(bill: Bill) {
-    if (confirm(`Deseja desfazer o pagamento da conta "${bill.description}"? O lançamento de despesa vinculado será removido.`)) {
-      try {
-        await unpayBill(bill.id);
-        loadData();
-      } catch (err) {
-        console.error('Erro ao desfazer pagamento:', err);
-        alert('Erro ao desfazer pagamento.');
-      }
+    const ok = await confirm({
+      title: 'Desfazer Pagamento',
+      message: `Deseja desfazer o pagamento da conta "${bill.description}"? O lançamento de despesa vinculado será removido e o saldo da conta recalculado.`,
+      confirmText: 'Sim, Desfazer',
+      cancelText: 'Cancelar',
+      variant: 'warning',
+    });
+
+    if (!ok) return;
+
+    try {
+      await unpayBill(bill.id);
+      toast.success('Pagamento Desfeito', 'A conta voltou ao status pendente e a despesa foi removida.');
+      loadData();
+    } catch (err: any) {
+      console.error('Erro ao desfazer pagamento:', err);
+      toast.error('Erro ao desfazer pagamento', err?.response?.data?.message);
     }
   }
 
@@ -105,6 +129,7 @@ export const Bills: React.FC = () => {
     if (bill.barcode) {
       navigator.clipboard.writeText(bill.barcode);
       setCopiedId(bill.id);
+      toast.success('Código Copiado!', 'Linha digitável / chave PIX copiada para a área de transferência.');
       setTimeout(() => setCopiedId(null), 2500);
     }
   }
