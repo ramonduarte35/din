@@ -1,21 +1,43 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { changePasswordRequest } from '../api/auth';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
-import { User, Phone, Mail, ShieldCheck, Sparkles, Check, MessageSquare, Info } from 'lucide-react';
+import {
+  User,
+  Phone,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+  Check,
+  MessageSquare,
+  Info,
+  Lock,
+  KeyRound,
+  AlertCircle,
+} from 'lucide-react';
 
 export function Profile() {
   const { user, updateProfile } = useAuth();
 
+  // Profile fields
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone_number || '');
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Password fields
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const handleSubmitProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setSuccessMessage(null);
@@ -35,6 +57,39 @@ export function Profile() {
     }
   };
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordSuccess(null);
+    setPasswordError(null);
+
+    if (newPassword.length < 6) {
+      setPasswordError('A nova senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError('A confirmação da nova senha não confere.');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const res = await changePasswordRequest({
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      setPasswordSuccess(res.message || 'Senha alterada com sucesso!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setTimeout(() => setPasswordSuccess(null), 4000);
+    } catch (err: any) {
+      setPasswordError(err?.response?.data?.message || 'Erro ao alterar senha. Verifique sua senha atual.');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-8 animate-fade-in">
       <div>
@@ -42,7 +97,7 @@ export function Profile() {
           Configurações de Perfil & WhatsApp
         </h1>
         <p className="text-xs text-slate-400 mt-0.5">
-          Gerencie suas informações cadastrais e o número de WhatsApp vinculado para uso da IA
+          Gerencie suas informações cadastrais, segurança da conta e WhatsApp vinculado
         </p>
       </div>
 
@@ -79,7 +134,7 @@ export function Profile() {
           </div>
         </Card>
 
-        {/* Formulário de Edição */}
+        {/* Formulário de Dados Cadastrais */}
         <Card className="md:col-span-2 space-y-5">
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight">Dados Cadastrais</h3>
@@ -88,7 +143,7 @@ export function Profile() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmitProfile} className="space-y-4">
             <Input
               label="Nome Completo"
               value={name}
@@ -122,19 +177,92 @@ export function Profile() {
             )}
 
             {errorMessage && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-medium">
-                {errorMessage}
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-medium flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{errorMessage}</span>
               </div>
             )}
 
             <div className="pt-2 flex justify-end">
-              <Button type="submit" variant="emerald" isLoading={isLoading}>
+              <Button type="submit" variant="emerald" isLoading={isLoading} className="min-h-[44px]">
                 Salvar Alterações
               </Button>
             </div>
           </form>
         </Card>
       </div>
+
+      {/* Card de Segurança & Troca de Senha */}
+      <Card className="space-y-5 border-slate-800">
+        <div>
+          <div className="flex items-center gap-2">
+            <KeyRound className="w-4 h-4 text-emerald-400" />
+            <h3 className="text-sm font-bold text-white tracking-tight">Segurança da Conta (Alterar Senha)</h3>
+          </div>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Mantenha sua conta protegida utilizando uma senha forte com no mínimo 6 caracteres.
+          </p>
+        </div>
+
+        <form onSubmit={handleChangePassword} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Input
+            label="Senha Atual"
+            type="password"
+            placeholder="Sua senha atual"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            icon={<Lock className="w-4 h-4" />}
+            required
+          />
+
+          <Input
+            label="Nova Senha"
+            type="password"
+            placeholder="Mínimo 6 dígitos"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            icon={<Lock className="w-4 h-4 text-emerald-400" />}
+            required
+          />
+
+          <Input
+            label="Confirmar Nova Senha"
+            type="password"
+            placeholder="Repita a nova senha"
+            value={confirmNewPassword}
+            onChange={(e) => setConfirmNewPassword(e.target.value)}
+            icon={<Lock className="w-4 h-4 text-emerald-400" />}
+            required
+          />
+
+          {passwordSuccess && (
+            <div className="sm:col-span-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-2">
+              <Check className="w-4 h-4 flex-shrink-0" />
+              <span>{passwordSuccess}</span>
+            </div>
+          )}
+
+          {passwordError && (
+            <div className="sm:col-span-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-medium flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{passwordError}</span>
+            </div>
+          )}
+
+          <div className="sm:col-span-3 flex justify-end pt-1">
+            <Button
+              type="submit"
+              variant="secondary"
+              isLoading={isChangingPassword}
+              disabled={!currentPassword || !newPassword || !confirmNewPassword}
+              className="min-h-[44px]"
+            >
+              <KeyRound className="w-4 h-4 mr-1.5" />
+              Atualizar Senha
+            </Button>
+          </div>
+        </form>
+      </Card>
 
       {/* Guia de Uso do WhatsApp */}
       <Card className="bg-gradient-to-r from-slate-900/80 to-[#0b1329] border-slate-800">
@@ -159,3 +287,4 @@ export function Profile() {
     </div>
   );
 }
+

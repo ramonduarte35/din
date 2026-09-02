@@ -100,6 +100,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - din-network
 
@@ -112,9 +118,11 @@ services:
     ports:
       - "${PORT_FRONTEND:-8000}:80"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks:
       - din-network
+
 
 volumes:
   postgres_data:

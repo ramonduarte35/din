@@ -127,9 +127,28 @@ export class TransactionsService {
 
   async createManual(userId: string, data: CreateTransactionInput) {
     let targetAccountId = data.account_id;
-    if (!targetAccountId) {
+    if (targetAccountId) {
+      const acc = await prisma.account.findFirst({
+        where: { id: targetAccountId, user_id: userId },
+      });
+      if (!acc) {
+        throw { statusCode: 400, message: 'Conta bancária informada não encontrada ou não pertence ao seu usuário.' };
+      }
+    } else {
       const defaultAcc = await this.getDefaultAccount(userId);
       targetAccountId = defaultAcc.id;
+    }
+
+    if (data.category_id) {
+      const cat = await prisma.category.findFirst({
+        where: {
+          id: data.category_id,
+          OR: [{ user_id: userId }, { user_id: null }],
+        },
+      });
+      if (!cat) {
+        throw { statusCode: 400, message: 'Categoria informada não encontrada ou inválida.' };
+      }
     }
 
     const transaction = await prisma.transaction.create({
@@ -164,6 +183,27 @@ export class TransactionsService {
       throw { statusCode: 404, message: 'Transação não encontrada.' };
     }
 
+    if (data.account_id) {
+      const acc = await prisma.account.findFirst({
+        where: { id: data.account_id, user_id: userId },
+      });
+      if (!acc) {
+        throw { statusCode: 400, message: 'Conta bancária informada não encontrada ou não pertence ao seu usuário.' };
+      }
+    }
+
+    if (data.category_id) {
+      const cat = await prisma.category.findFirst({
+        where: {
+          id: data.category_id,
+          OR: [{ user_id: userId }, { user_id: null }],
+        },
+      });
+      if (!cat) {
+        throw { statusCode: 400, message: 'Categoria informada não encontrada ou inválida.' };
+      }
+    }
+
     const updated = await prisma.transaction.update({
       where: { id: transactionId },
       data: {
@@ -185,6 +225,7 @@ export class TransactionsService {
       amount: Number(updated.amount),
     };
   }
+
 
   async delete(userId: string, transactionId: string) {
     const existing = await prisma.transaction.findUnique({

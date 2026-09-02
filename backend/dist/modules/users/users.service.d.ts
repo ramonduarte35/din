@@ -1,4 +1,4 @@
-import { UpdateProfileInput } from './users.schemas.js';
+import { UpdateProfileInput, ChangePasswordInput } from './users.schemas.js';
 export declare class UsersService {
     getProfile(userId: string): Promise<{
         name: string;
@@ -21,5 +21,8 @@ export declare class UsersService {
         subscription_tier: import("@prisma/client").$Enums.SubscriptionTier;
         role: import("@prisma/client").$Enums.Role;
         updated_at: Date;
+    }>;
+    changePassword(userId: string, data: ChangePasswordInput): Promise<{
+        message: string;
     }>;
 }

@@ -110,9 +110,28 @@ class TransactionsService {
     }
     async createManual(userId, data) {
         let targetAccountId = data.account_id;
-        if (!targetAccountId) {
+        if (targetAccountId) {
+            const acc = await prisma_js_1.prisma.account.findFirst({
+                where: { id: targetAccountId, user_id: userId },
+            });
+            if (!acc) {
+                throw { statusCode: 400, message: 'Conta bancária informada não encontrada ou não pertence ao seu usuário.' };
+            }
+        }
+        else {
             const defaultAcc = await this.getDefaultAccount(userId);
             targetAccountId = defaultAcc.id;
+        }
+        if (data.category_id) {
+            const cat = await prisma_js_1.prisma.category.findFirst({
+                where: {
+                    id: data.category_id,
+                    OR: [{ user_id: userId }, { user_id: null }],
+                },
+            });
+            if (!cat) {
+                throw { statusCode: 400, message: 'Categoria informada não encontrada ou inválida.' };
+            }
         }
         const transaction = await prisma_js_1.prisma.transaction.create({
             data: {
@@ -141,6 +160,25 @@ class TransactionsService {
         });
         if (!existing || existing.user_id !== userId) {
             throw { statusCode: 404, message: 'Transação não encontrada.' };
+        }
+        if (data.account_id) {
+            const acc = await prisma_js_1.prisma.account.findFirst({
+                where: { id: data.account_id, user_id: userId },
+            });
+            if (!acc) {
+                throw { statusCode: 400, message: 'Conta bancária informada não encontrada ou não pertence ao seu usuário.' };
+            }
+        }
+        if (data.category_id) {
+            const cat = await prisma_js_1.prisma.category.findFirst({
+                where: {
+                    id: data.category_id,
+                    OR: [{ user_id: userId }, { user_id: null }],
+                },
+            });
+            if (!cat) {
+                throw { statusCode: 400, message: 'Categoria informada não encontrada ou inválida.' };
+            }
         }
         const updated = await prisma_js_1.prisma.transaction.update({
             where: { id: transactionId },

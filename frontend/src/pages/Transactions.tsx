@@ -10,7 +10,7 @@ import { TransactionFiltersBar } from '../components/transactions/TransactionFil
 import { TransactionTable } from '../components/transactions/TransactionTable';
 import { TransactionModal } from '../components/transactions/TransactionModal';
 import { Button } from '../components/ui/Button';
-import { Plus } from 'lucide-react';
+import { Plus, Download } from 'lucide-react';
 import { useLayout } from '../components/layout/AppLayout';
 import { useConfirm } from '../contexts/ConfirmContext';
 import { useToast } from '../contexts/ToastContext';
@@ -103,6 +103,41 @@ export function Transactions() {
     }
   };
 
+  const handleExportCSV = () => {
+    if (transactions.length === 0) {
+      toast.error('Não há transações para exportar com os filtros atuais.');
+      return;
+    }
+
+    try {
+      const headers = ['Data', 'Descrição', 'Tipo', 'Valor (R$)', 'Categoria', 'Conta Bancária', 'Origem'];
+      const rows = transactions.map((t) => [
+        new Date(t.date).toLocaleDateString('pt-BR'),
+        `"${(t.description || '').replace(/"/g, '""')}"`,
+        t.type === 'INCOME' ? 'Receita' : 'Despesa',
+        t.amount.toFixed(2).replace('.', ','),
+        `"${t.category?.name || 'Sem Categoria'}"`,
+        `"${t.account?.name || 'Conta Principal'}"`,
+        t.origin === 'WHATSAPP_TEXT' ? 'WhatsApp' : 'Manual',
+      ]);
+
+      const csvContent = '\uFEFF' + [headers.join(';'), ...rows.map((e) => e.join(';'))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `extrato_din_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success('Extrato CSV exportado com sucesso!');
+    } catch (err) {
+      console.error('Erro ao exportar CSV:', err);
+      toast.error('Falha ao gerar arquivo CSV.');
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-8 animate-fade-in">
       {/* Header */}
@@ -116,15 +151,27 @@ export function Transactions() {
           </p>
         </div>
 
-        <Button
-          variant="emerald"
-          size="sm"
-          onClick={openNewTransactionModal}
-          className="self-start sm:self-auto h-10 px-4 min-h-[44px] shadow-lg shadow-emerald-500/20 font-semibold"
-        >
-          <Plus className="w-4 h-4 mr-1.5" />
-          Nova Transação
-        </Button>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleExportCSV}
+            className="h-10 px-3.5 min-h-[44px] text-xs font-semibold"
+          >
+            <Download className="w-4 h-4 mr-1.5 text-slate-300" />
+            Exportar CSV
+          </Button>
+
+          <Button
+            variant="emerald"
+            size="sm"
+            onClick={openNewTransactionModal}
+            className="h-10 px-4 min-h-[44px] shadow-lg shadow-emerald-500/20 font-semibold"
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
+            Nova Transação
+          </Button>
+        </div>
       </div>
 
       {/* Barra de Filtros */}
@@ -159,3 +206,4 @@ export function Transactions() {
     </div>
   );
 }
+

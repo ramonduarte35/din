@@ -7,4 +7,5 @@ const usersController = new users_controller_js_1.UsersController();
 async function usersRoutes(app) {
     app.get('/me', { preHandler: [auth_middleware_js_1.authenticate] }, usersController.getProfile);
     app.put('/profile', { preHandler: [auth_middleware_js_1.authenticate] }, usersController.updateProfile);
+    app.post('/change-password', { preHandler: [auth_middleware_js_1.authenticate] }, usersController.changePassword);
 }

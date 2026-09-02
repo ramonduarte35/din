@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BillsService = void 0;
 const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const prisma_js_1 = require("../../lib/prisma.js");
 class BillsService {
     /**
      * Criar uma nova conta a pagar
@@ -10,7 +10,7 @@ class BillsService {
     async createBill(userId, data) {
         // Se category_id fornecido, verificar se pertence ao usuário ou é global
         if (data.category_id) {
-            const cat = await prisma.category.findFirst({
+            const cat = await prisma_js_1.prisma.category.findFirst({
                 where: {
                     id: data.category_id,
                     OR: [{ user_id: userId }, { user_id: null }],
@@ -22,7 +22,7 @@ class BillsService {
         }
         // Se account_id fornecido previamente, verificar se pertence ao usuário
         if (data.account_id) {
-            const acc = await prisma.account.findFirst({
+            const acc = await prisma_js_1.prisma.account.findFirst({
                 where: { id: data.account_id, user_id: userId },
             });
             if (!acc) {
@@ -30,7 +30,7 @@ class BillsService {
             }
         }
         const dueDate = new Date(data.due_date);
-        return await prisma.bill.create({
+        return await prisma_js_1.prisma.bill.create({
             data: {
                 user_id: userId,
                 description: data.description.trim(),
@@ -87,8 +87,8 @@ class BillsService {
             }
         }
         const [total, bills] = await Promise.all([
-            prisma.bill.count({ where }),
-            prisma.bill.findMany({
+            prisma_js_1.prisma.bill.count({ where }),
+            prisma_js_1.prisma.bill.findMany({
                 where,
                 skip,
                 take: limit,
@@ -140,7 +140,7 @@ class BillsService {
         const in7Days = new Date(today);
         in7Days.setDate(in7Days.getDate() + 7);
         in7Days.setHours(23, 59, 59, 999);
-        const allBills = await prisma.bill.findMany({
+        const allBills = await prisma_js_1.prisma.bill.findMany({
             where: {
                 user_id: userId,
                 OR: [
@@ -212,7 +212,7 @@ class BillsService {
      * Obter conta por ID
      */
     async getBillById(userId, id) {
-        const bill = await prisma.bill.findFirst({
+        const bill = await prisma_js_1.prisma.bill.findFirst({
             where: { id, user_id: userId },
             include: {
                 category: true,
@@ -241,14 +241,14 @@ class BillsService {
      * Atualizar conta a pagar
      */
     async updateBill(userId, id, data) {
-        const existing = await prisma.bill.findFirst({
+        const existing = await prisma_js_1.prisma.bill.findFirst({
             where: { id, user_id: userId },
         });
         if (!existing) {
             throw new Error('Conta a pagar não encontrada');
         }
         if (data.category_id) {
-            const cat = await prisma.category.findFirst({
+            const cat = await prisma_js_1.prisma.category.findFirst({
                 where: {
                     id: data.category_id,
                     OR: [{ user_id: userId }, { user_id: null }],
@@ -258,7 +258,7 @@ class BillsService {
                 throw new Error('Categoria inválida');
         }
         if (data.account_id) {
-            const acc = await prisma.account.findFirst({
+            const acc = await prisma_js_1.prisma.account.findFirst({
                 where: { id: data.account_id, user_id: userId },
             });
             if (!acc)
@@ -283,7 +283,7 @@ class BillsService {
             updateData.is_recurring = data.is_recurring;
         if (data.status !== undefined)
             updateData.status = data.status;
-        return await prisma.bill.update({
+        return await prisma_js_1.prisma.bill.update({
             where: { id },
             data: updateData,
             include: {
@@ -297,7 +297,7 @@ class BillsService {
      * Pagar conta: debita da conta bancária escolhida e gera a transação de despesa
      */
     async payBill(userId, id, data) {
-        const bill = await prisma.bill.findFirst({
+        const bill = await prisma_js_1.prisma.bill.findFirst({
             where: { id, user_id: userId },
             include: { category: true },
         });
@@ -308,7 +308,7 @@ class BillsService {
             throw new Error('Esta conta já foi marcada como paga');
         }
         // Validar conta bancária de débito
-        const account = await prisma.account.findFirst({
+        const account = await prisma_js_1.prisma.account.findFirst({
             where: { id: data.account_id, user_id: userId },
         });
         if (!account) {
@@ -317,7 +317,7 @@ class BillsService {
         const paidDate = data.paid_date ? new Date(data.paid_date) : new Date();
         const paidAmount = data.amount ? new client_1.Prisma.Decimal(data.amount) : bill.amount;
         // Executar transação de forma atômica no banco
-        return await prisma.$transaction(async (tx) => {
+        return await prisma_js_1.prisma.$transaction(async (tx) => {
             // 1. Criar transação de despesa na conta bancária selecionada
             const transaction = await tx.transaction.create({
                 data: {
@@ -367,7 +367,7 @@ class BillsService {
      * Desfazer pagamento: restaura para PENDING e exclui a transação de despesa criada
      */
     async unpayBill(userId, id) {
-        const bill = await prisma.bill.findFirst({
+        const bill = await prisma_js_1.prisma.bill.findFirst({
             where: { id, user_id: userId },
         });
         if (!bill) {
@@ -376,7 +376,7 @@ class BillsService {
         if (bill.status !== client_1.BillStatus.PAID) {
             throw new Error('Esta conta não está marcada como paga');
         }
-        return await prisma.$transaction(async (tx) => {
+        return await prisma_js_1.prisma.$transaction(async (tx) => {
             // Se houver transação vinculada, remover
             if (bill.transaction_id) {
                 await tx.transaction.delete({
@@ -405,13 +405,13 @@ class BillsService {
      * Excluir conta a pagar
      */
     async deleteBill(userId, id) {
-        const bill = await prisma.bill.findFirst({
+        const bill = await prisma_js_1.prisma.bill.findFirst({
             where: { id, user_id: userId },
         });
         if (!bill) {
             throw new Error('Conta a pagar não encontrada');
         }
-        return await prisma.$transaction(async (tx) => {
+        return await prisma_js_1.prisma.$transaction(async (tx) => {
             if (bill.transaction_id) {
                 await tx.transaction.delete({
                     where: { id: bill.transaction_id },

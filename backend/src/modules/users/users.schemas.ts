@@ -5,4 +5,11 @@ export const updateProfileSchema = z.object({
   phone_number: z.string().optional().nullable(),
 });
 
+export const changePasswordSchema = z.object({
+  current_password: z.string().min(1, 'Senha atual é obrigatória'),
+  new_password: z.string().min(6, 'Nova senha deve ter no mínimo 6 caracteres'),
+});
+
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+

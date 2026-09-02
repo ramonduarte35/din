@@ -7,12 +7,14 @@ exports.env = void 0;
 const zod_1 = require("zod");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
+const defaultDbUrl = process.env.DATABASE_URL ||
+    `postgresql://${process.env.POSTGRES_USER || 'postgres'}:${process.env.POSTGRES_PASSWORD || 'postgres'}@localhost:${process.env.POSTGRES_PORT || '5434'}/${process.env.POSTGRES_DB || 'din'}?schema=public`;
 const envSchema = zod_1.z.object({
     PORT: zod_1.z.coerce.number().default(3000),
     NODE_ENV: zod_1.z.enum(['development', 'production', 'test']).default('development'),
-    DATABASE_URL: zod_1.z.string().min(1, 'DATABASE_URL é obrigatória'),
+    DATABASE_URL: zod_1.z.string().default(defaultDbUrl),
     REDIS_URL: zod_1.z.string().default('redis://redis:6379'),
-    JWT_SECRET: zod_1.z.string().min(8, 'JWT_SECRET deve ter no mínimo 8 caracteres'),
+    JWT_SECRET: zod_1.z.string().min(8, 'JWT_SECRET deve ter no mínimo 8 caracteres').default('din_jwt_secret_key_default_2026'),
     ADMIN_EMAIL: zod_1.z.string().email().default('admin@din.app'),
     ADMIN_PASSWORD: zod_1.z.string().default('din_admin_password_2026'),
     OPENAI_API_KEY: zod_1.z.string().optional().default(''),
@@ -27,3 +29,4 @@ if (!_env.success) {
     process.exit(1);
 }
 exports.env = _env.data;
+process.env.DATABASE_URL = exports.env.DATABASE_URL;

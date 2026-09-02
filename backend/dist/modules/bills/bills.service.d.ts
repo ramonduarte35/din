@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { CreateBillInput, UpdateBillInput, PayBillInput, ListBillsQueryInput } from './bills.schemas';
+import { CreateBillInput, UpdateBillInput, PayBillInput, ListBillsQueryInput } from './bills.schemas.js';
 export declare class BillsService {
     /**
      * Criar uma nova conta a pagar

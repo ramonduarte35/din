@@ -174,8 +174,10 @@ model Bill {
 
   @@index([user_id, due_date])
   @@index([user_id, status])
+  @@index([user_id, status, due_date])
   @@map("bills")
 }
+
 
 model WhatsAppLog {
   id                      String            @id @default(uuid())

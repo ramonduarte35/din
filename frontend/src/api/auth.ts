@@ -44,3 +44,12 @@ export async function updateProfileRequest(payload: {
   const { data } = await api.put<{ message: string; user: User }>('/users/profile', payload);
   return data;
 }
+
+export async function changePasswordRequest(payload: {
+  current_password: string;
+  new_password: string;
+}): Promise<{ message: string }> {
+  const { data } = await api.post<{ message: string }>('/users/change-password', payload);
+  return data;
+}
+

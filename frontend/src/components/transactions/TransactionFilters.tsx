@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Filter, X, Calendar } from 'lucide-react';
+import { Search, Filter, X, Calendar, Clock } from 'lucide-react';
 import { TransactionFilters, TransactionType, TransactionOrigin } from '../../api/transactions';
 import { Category } from '../../api/categories';
 import { Button } from '../ui/Button';
@@ -25,8 +25,74 @@ export function TransactionFiltersBar({
     !!filters.start_date ||
     !!filters.end_date;
 
+  const setQuickRange = (preset: 'today' | '7days' | 'this_month' | 'last_month' | 'all') => {
+    const now = new Date();
+    const todayISO = now.toISOString().split('T')[0];
+
+    if (preset === 'today') {
+      onChange({ ...filters, start_date: todayISO, end_date: todayISO, page: 1 });
+    } else if (preset === '7days') {
+      const d7 = new Date();
+      d7.setDate(d7.getDate() - 7);
+      onChange({ ...filters, start_date: d7.toISOString().split('T')[0], end_date: todayISO, page: 1 });
+    } else if (preset === 'this_month') {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+      onChange({ ...filters, start_date: start, end_date: end, page: 1 });
+    } else if (preset === 'last_month') {
+      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
+      const end = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
+      onChange({ ...filters, start_date: start, end_date: end, page: 1 });
+    } else if (preset === 'all') {
+      onChange({ ...filters, start_date: undefined, end_date: undefined, page: 1 });
+    }
+  };
+
   return (
     <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md space-y-3">
+      {/* Chips de Seleção Rápida */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+        <span className="text-slate-400 font-medium mr-1 flex items-center gap-1 flex-shrink-0">
+          <Clock className="w-3.5 h-3.5" />
+          Atalhos:
+        </span>
+        <button
+          type="button"
+          onClick={() => setQuickRange('today')}
+          className="px-2.5 py-1 rounded-lg bg-slate-800/70 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors flex-shrink-0"
+        >
+          Hoje
+        </button>
+        <button
+          type="button"
+          onClick={() => setQuickRange('7days')}
+          className="px-2.5 py-1 rounded-lg bg-slate-800/70 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors flex-shrink-0"
+        >
+          Últimos 7 dias
+        </button>
+        <button
+          type="button"
+          onClick={() => setQuickRange('this_month')}
+          className="px-2.5 py-1 rounded-lg bg-slate-800/70 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors flex-shrink-0"
+        >
+          Este Mês
+        </button>
+        <button
+          type="button"
+          onClick={() => setQuickRange('last_month')}
+          className="px-2.5 py-1 rounded-lg bg-slate-800/70 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors flex-shrink-0"
+        >
+          Mês Anterior
+        </button>
+        <button
+          type="button"
+          onClick={() => setQuickRange('all')}
+          className="px-2.5 py-1 rounded-lg bg-slate-800/70 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors flex-shrink-0"
+        >
+          Todo Período
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {/* Busca por texto */}
         <div className="relative lg:col-span-2">
@@ -36,7 +102,7 @@ export function TransactionFiltersBar({
             placeholder="Buscar por descrição..."
             value={filters.search || ''}
             onChange={(e) => onChange({ ...filters, search: e.target.value, page: 1 })}
-            className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
           />
         </div>
 
@@ -51,7 +117,7 @@ export function TransactionFiltersBar({
                 page: 1,
               })
             }
-            className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
           >
             <option value="">Todos os Tipos</option>
             <option value="EXPENSE">🔴 Apenas Despesas</option>
@@ -70,7 +136,7 @@ export function TransactionFiltersBar({
                 page: 1,
               })
             }
-            className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
           >
             <option value="">Todas as Origens</option>
             <option value="WHATSAPP_TEXT">📱 WhatsApp (IA)</option>
@@ -89,7 +155,7 @@ export function TransactionFiltersBar({
                 page: 1,
               })
             }
-            className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
           >
             <option value="">Todas as Categorias</option>
             {categories.map((c) => (
@@ -138,3 +204,4 @@ export function TransactionFiltersBar({
     </div>
   );
 }
+

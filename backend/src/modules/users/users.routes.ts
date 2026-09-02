@@ -7,4 +7,6 @@ const usersController = new UsersController();
 export async function usersRoutes(app: FastifyInstance) {
   app.get('/me', { preHandler: [authenticate] }, usersController.getProfile);
   app.put('/profile', { preHandler: [authenticate] }, usersController.updateProfile);
+  app.post('/change-password', { preHandler: [authenticate] }, usersController.changePassword);
 }
+

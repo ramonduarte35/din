@@ -1,5 +1,6 @@
+import bcrypt from 'bcryptjs';
 import { prisma } from '../../lib/prisma.js';
-import { UpdateProfileInput } from './users.schemas.js';
+import { UpdateProfileInput, ChangePasswordInput } from './users.schemas.js';
 import { normalizePhoneNumber } from '../../utils/phone.js';
 
 export class UsersService {
@@ -73,4 +74,34 @@ export class UsersService {
 
     return updatedUser;
   }
+
+  async changePassword(userId: string, data: ChangePasswordInput) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw { statusCode: 404, message: 'Usuário não encontrado.' };
+    }
+
+    const passwordMatch = await bcrypt.compare(data.current_password, user.password_hash);
+    if (!passwordMatch) {
+      throw { statusCode: 400, message: 'A senha atual fornecida está incorreta.' };
+    }
+
+    const isSamePassword = await bcrypt.compare(data.new_password, user.password_hash);
+    if (isSamePassword) {
+      throw { statusCode: 400, message: 'A nova senha deve ser diferente da senha atual.' };
+    }
+
+    const password_hash = await bcrypt.hash(data.new_password, 10);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password_hash },
+    });
+
+    return { message: 'Senha alterada com sucesso!' };
+  }
 }
+

@@ -1,7 +1,7 @@
-import { PrismaClient, BillStatus, TransactionType, TransactionOrigin, Prisma } from '@prisma/client';
-import { CreateBillInput, UpdateBillInput, PayBillInput, ListBillsQueryInput } from './bills.schemas';
+import { BillStatus, TransactionType, TransactionOrigin, Prisma } from '@prisma/client';
+import { CreateBillInput, UpdateBillInput, PayBillInput, ListBillsQueryInput } from './bills.schemas.js';
+import { prisma } from '../../lib/prisma.js';
 
-const prisma = new PrismaClient();
 
 export class BillsService {
   /**

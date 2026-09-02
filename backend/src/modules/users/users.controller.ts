@@ -1,18 +1,19 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { UsersService } from './users.service.js';
-import { updateProfileSchema } from './users.schemas.js';
+import { updateProfileSchema, changePasswordSchema } from './users.schemas.js';
+import { getUserId } from '../../middleware/auth.middleware.js';
 
 const usersService = new UsersService();
 
 export class UsersController {
   async getProfile(request: FastifyRequest, reply: FastifyReply) {
-    const userId = request.userPayload!.userId;
+    const userId = getUserId(request);
     const profile = await usersService.getProfile(userId);
     return reply.send({ user: profile });
   }
 
   async updateProfile(request: FastifyRequest, reply: FastifyReply) {
-    const userId = request.userPayload!.userId;
+    const userId = getUserId(request);
     const body = updateProfileSchema.parse(request.body);
     const updated = await usersService.updateProfile(userId, body);
     return reply.send({
@@ -20,4 +21,12 @@ export class UsersController {
       user: updated,
     });
   }
+
+  async changePassword(request: FastifyRequest, reply: FastifyReply) {
+    const userId = getUserId(request);
+    const body = changePasswordSchema.parse(request.body);
+    const result = await usersService.changePassword(userId, body);
+    return reply.send(result);
+  }
 }
+
