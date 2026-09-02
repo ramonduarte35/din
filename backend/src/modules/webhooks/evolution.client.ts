@@ -91,6 +91,21 @@ export class EvolutionClient {
     }
   }
 
+  async activateLicense(code: string): Promise<{ success: boolean; message?: string; error?: string; details?: any }> {
+    try {
+      const url = `${this.baseUrl}/license/activate`;
+      const response = await axios.get(url, {
+        params: { code: code.trim() },
+        headers: this.getHeaders(),
+        timeout: 10000,
+      });
+      return { success: true, message: 'Licença ativada com sucesso!', details: response.data };
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.details || err?.response?.data?.error || err?.message || 'Falha ao ativar a licença.';
+      return { success: false, error: errorMsg };
+    }
+  }
+
   async testConnection(): Promise<{
     is_online: boolean;
     base_url: string;

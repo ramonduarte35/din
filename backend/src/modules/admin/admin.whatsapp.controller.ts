@@ -75,6 +75,19 @@ export class AdminWhatsAppController {
     const testResult = await adminWhatsAppService.testEvolutionConnection();
     return reply.status(200).send(testResult);
   }
+
+  async activateEvolutionLicense(request: FastifyRequest, reply: FastifyReply) {
+    const { code } = request.body as { code?: string };
+    if (!code || !code.trim()) {
+      return reply.status(400).send({ message: 'O código de autorização (code) é obrigatório.' });
+    }
+    try {
+      const result = await adminWhatsAppService.activateEvolutionLicense(code);
+      return reply.status(200).send(result);
+    } catch (err: any) {
+      return reply.status(400).send({ message: err?.message || 'Falha ao ativar a licença.' });
+    }
+  }
 }
 
 export const adminWhatsAppController = new AdminWhatsAppController();

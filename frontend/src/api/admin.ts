@@ -133,3 +133,14 @@ export async function testEvolutionConnection(): Promise<EvolutionStatusResponse
   return data;
 }
 
+export async function activateEvolutionLicense(code: string): Promise<{
+  message: string;
+  status: EvolutionStatusResponse;
+}> {
+  const { data } = await api.post<{
+    message: string;
+    status: EvolutionStatusResponse;
+  }>('/admin/whatsapp/evolution/activate', { code });
+  return data;
+}
+

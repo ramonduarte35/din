@@ -283,6 +283,21 @@ export class AdminWhatsAppService {
   async testEvolutionConnection() {
     return await evolutionClient.testConnection();
   }
+
+  async activateEvolutionLicense(code: string) {
+    if (!code || !code.trim()) {
+      throw new Error('Código de autorização é obrigatório.');
+    }
+    const result = await evolutionClient.activateLicense(code.trim());
+    if (!result.success) {
+      throw new Error(result.error || 'Falha ao ativar a licença.');
+    }
+    const updatedStatus = await evolutionClient.testConnection();
+    return {
+      message: 'Licença do Evolution Go ativada com sucesso!',
+      status: updatedStatus,
+    };
+  }
 }
 
 export const adminWhatsAppService = new AdminWhatsAppService();

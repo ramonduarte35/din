@@ -43,10 +43,10 @@ import {
   logoutAdminInstance,
   updateAdminInstance,
   deleteAdminInstance,
-  fetchAdminLogs,
   fetchEvolutionStatus,
   fetchEvolutionLicense,
   testEvolutionConnection,
+  activateEvolutionLicense,
 } from '../api/admin';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -66,6 +66,8 @@ export function AdminWhatsApp() {
   const [isTestingEvolution, setIsTestingEvolution] = useState(false);
   const [isCheckingLicense, setIsCheckingLicense] = useState(false);
   const [copiedText, setCopiedText] = useState<string | null>(null);
+  const [authCode, setAuthCode] = useState('');
+  const [isActivatingCode, setIsActivatingCode] = useState(false);
 
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -166,6 +168,26 @@ export function AdminWhatsApp() {
       showMessage('error', 'Erro ao verificar licença do Evolution Go.');
     } finally {
       setIsCheckingLicense(false);
+    }
+  };
+
+  const handleActivateAuthCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authCode.trim()) {
+      showMessage('error', 'Por favor, insira o Authorization Code retornado pelo portal.');
+      return;
+    }
+    setIsActivatingCode(true);
+    try {
+      const res = await activateEvolutionLicense(authCode.trim());
+      showMessage('success', res.message || '🎉 Licença ativada com sucesso!');
+      setAuthCode('');
+      setEvolutionStatus(res.status);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Falha ao ativar o Authorization Code.';
+      showMessage('error', msg);
+    } finally {
+      setIsActivatingCode(false);
     }
   };
 
@@ -879,18 +901,82 @@ export function AdminWhatsApp() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-5 border-t border-slate-800/80 flex items-center justify-between gap-3">
+              <div className="mt-6 pt-5 border-t border-slate-800/80 flex flex-col sm:flex-row items-center gap-3">
                 <Button
                   size="sm"
                   onClick={handleTestEvolution}
                   disabled={isTestingEvolution}
-                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2"
+                  className="w-full sm:flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2"
                 >
                   <Activity className={`w-3.5 h-3.5 ${isTestingEvolution ? 'animate-spin' : ''}`} />
-                  <span>{isTestingEvolution ? 'Testando Conexão...' : 'Testar Conexão Completa do Gateway'}</span>
+                  <span>{isTestingEvolution ? 'Testando Conexão...' : 'Testar Conexão do Gateway'}</span>
                 </Button>
+
+                <a
+                  href="http://localhost:4000/manager/login"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition-all text-center"
+                  title="Abrir Evolution Go Manager no navegador"
+                >
+                  <span>Abrir Manager</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
               </div>
             </div>
+          </div>
+
+          {/* Card: Inserir Authorization Code */}
+          <div className="glass-card rounded-2xl border border-emerald-500/30 p-6 shadow-xl bg-gradient-to-br from-emerald-500/10 via-slate-900/80 to-[#0b1120]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-md">
+                <Key className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Inserir Authorization Code (Código de Autorização)</h3>
+                <p className="text-xs text-slate-300">Cole o código gerado no portal da Evolution Foundation para ativar o gateway imediatamente</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleActivateAuthCode} className="mt-5 space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-200 uppercase tracking-wider mb-1.5">
+                  Authorization Code
+                </label>
+                <div className="flex flex-col sm:flex-row items-stretch gap-2.5">
+                  <Input
+                    placeholder="Cole aqui o Authorization Code gerado no portal..."
+                    value={authCode}
+                    onChange={(e) => setAuthCode(e.target.value)}
+                    className="font-mono text-xs sm:text-xs"
+                    required
+                  />
+                  <Button
+                    type="submit"
+                    disabled={isActivatingCode || !authCode.trim()}
+                    isLoading={isActivatingCode}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs whitespace-nowrap px-6 h-10 flex-shrink-0"
+                  >
+                    <Check className="w-4 h-4 mr-1.5" />
+                    <span>Ativar Código</span>
+                  </Button>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px] text-slate-400 space-y-1">
+                <p className="font-semibold text-slate-300 flex items-center gap-1.5">
+                  <HelpCircle className="w-3.5 h-3.5 text-emerald-400" />
+                  Como obter o código:
+                </p>
+                <p className="leading-relaxed">
+                  1. Clique em <strong>"Registrar Licença Oficial"</strong> acima para abrir a página de ativação da Evolution Foundation.
+                  <br />
+                  2. Após confirmar seu e-mail no portal da Evolution, ele exibirá um <strong>Authorization Code</strong>.
+                  <br />
+                  3. Cole esse código no campo acima e clique em <strong>"Ativar Código"</strong>!
+                </p>
+              </div>
+            </form>
           </div>
 
           {/* Card 3: Guia Passo a Passo de Ativação */}
