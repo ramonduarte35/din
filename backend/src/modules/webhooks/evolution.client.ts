@@ -159,12 +159,12 @@ export class EvolutionClient {
 
   async fetchInstances(): Promise<any[]> {
     try {
-      const url = `${this.baseUrl}/instance/fetchInstances`;
+      const url = `${this.baseUrl}/instance/all`;
       const response = await axios.get(url, {
         headers: this.getHeaders(),
         timeout: 8000,
       });
-      return Array.isArray(response.data) ? response.data : [];
+      return Array.isArray(response.data?.data) ? response.data.data : [];
     } catch (error: any) {
       console.error(`❌ [Evolution] Erro ao buscar instâncias:`, error?.response?.data || error?.message);
       return [];
@@ -174,30 +174,13 @@ export class EvolutionClient {
   async createInstance(instanceName: string) {
     try {
       const url = `${this.baseUrl}/instance/create`;
-      const webhookUrl = 'http://api:3000/api/v1/webhooks/evolution';
       const response = await axios.post(
         url,
         {
-          instanceName,
+          name: instanceName,
           token: instanceName,
-          qrcode: true,
-          integration: 'WHATSAPP-BAILEYS',
-          reject_call: false,
-          groupsIgnore: false,
+          client_name: 'Din',
           alwaysOnline: true,
-          readMessages: false,
-          readStatus: false,
-          webhook: {
-            enabled: true,
-            url: webhookUrl,
-            byEvents: false,
-            base64: true,
-            events: [
-              'QRCODE_UPDATED',
-              'CONNECTION_UPDATE',
-              'MESSAGES_UPSERT',
-            ],
-          },
         },
         {
           headers: this.getHeaders(),
@@ -206,46 +189,69 @@ export class EvolutionClient {
       );
       return response.data;
     } catch (error: any) {
-      if (error?.response?.status === 403 || error?.response?.data?.message?.includes('already in use')) {
+      if (error?.response?.data?.message?.includes('already exists') || error?.response?.data?.error?.includes('already')) {
         return { status: 'EXISTS' };
       }
-      console.error(`❌ [Evolution] Erro ao criar instância "${instanceName}":`, error?.response?.data || error?.message);
-      throw error;
+      console.warn(`[Evolution] Erro/Aviso ao criar instância "${instanceName}":`, error?.response?.data || error?.message);
+      return { status: 'EXISTS' };
     }
   }
 
   async connectInstance(instanceName: string) {
     try {
-      const url = `${this.baseUrl}/instance/connect/${encodeURIComponent(instanceName)}`;
-      const response = await axios.get(url, {
-        headers: this.getHeaders(),
+      // 1. Garantir que a instância existe no Evolution Go
+      await this.createInstance(instanceName);
+
+      // 2. Iniciar conexão com webhook
+      const connectUrl = `${this.baseUrl}/instance/connect`;
+      const webhookUrl = 'http://api:3000/api/v1/webhooks/evolution';
+      
+      try {
+        await axios.post(
+          connectUrl,
+          { webhookUrl },
+          {
+            headers: { apikey: instanceName },
+            timeout: 10000,
+          }
+        );
+      } catch (connErr) {
+        // Pode já estar conectando
+      }
+
+      // 3. Obter QR Code
+      const qrUrl = `${this.baseUrl}/instance/qr`;
+      const qrRes = await axios.get(qrUrl, {
+        headers: { apikey: instanceName },
         timeout: 10000,
       });
-      return response.data;
+
+      const qrcode = qrRes.data?.data?.qrcode || qrRes.data?.qrcode;
+      const code = qrRes.data?.data?.code || qrRes.data?.code;
+
+      return {
+        base64: qrcode,
+        code,
+        qrcode: { base64: qrcode },
+      };
     } catch (error: any) {
-      try {
-        const qrUrl = `${this.baseUrl}/instance/qr?name=${encodeURIComponent(instanceName)}`;
-        const qrRes = await axios.get(qrUrl, {
-          headers: this.getHeaders(),
-          timeout: 10000,
-        });
-        return qrRes.data;
-      } catch {
-        console.error(`❌ [Evolution] Erro ao conectar instância "${instanceName}":`, error?.response?.data || error?.message);
-        throw error;
-      }
+      console.error(`❌ [Evolution] Erro ao conectar instância "${instanceName}":`, error?.response?.data || error?.message);
+      throw error;
     }
   }
 
   async getConnectionState(instanceName: string): Promise<{ state: string }> {
     try {
-      const url = `${this.baseUrl}/instance/connectionState/${instanceName}`;
+      const url = `${this.baseUrl}/instance/info/${encodeURIComponent(instanceName)}`;
       const response = await axios.get(url, {
         headers: this.getHeaders(),
         timeout: 6000,
       });
-      const state = response.data?.instance?.state || response.data?.state || 'close';
-      return { state };
+      const data = response.data?.data;
+      if (data?.connected === true || data?.status === 'open') {
+        return { state: 'open' };
+      }
+      return { state: 'close' };
     } catch (error: any) {
       return { state: 'close' };
     }
@@ -253,12 +259,8 @@ export class EvolutionClient {
 
   async restartInstance(instanceName: string) {
     try {
-      const url = `${this.baseUrl}/instance/restart/${instanceName}`;
-      const response = await axios.post(url, {}, {
-        headers: this.getHeaders(),
-        timeout: 10000,
-      });
-      return response.data;
+      // No Evolution Go reconectar chama connect
+      return await this.connectInstance(instanceName);
     } catch (error: any) {
       console.error(`❌ [Evolution] Erro ao reiniciar instância "${instanceName}":`, error?.response?.data || error?.message);
       throw error;
@@ -267,9 +269,9 @@ export class EvolutionClient {
 
   async logoutInstance(instanceName: string) {
     try {
-      const url = `${this.baseUrl}/instance/logout/${instanceName}`;
+      const url = `${this.baseUrl}/instance/logout`;
       const response = await axios.delete(url, {
-        headers: this.getHeaders(),
+        headers: { apikey: instanceName },
         timeout: 10000,
       });
       return response.data;
@@ -281,7 +283,7 @@ export class EvolutionClient {
 
   async deleteInstance(instanceName: string) {
     try {
-      const url = `${this.baseUrl}/instance/delete/${instanceName}`;
+      const url = `${this.baseUrl}/instance/delete/${encodeURIComponent(instanceName)}`;
       const response = await axios.delete(url, {
         headers: this.getHeaders(),
         timeout: 10000,
