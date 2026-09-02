@@ -1032,7 +1032,7 @@ export function AdminWhatsApp() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/80 backdrop-blur-md" onClick={handleCloseQrModal} />
 
-          <div className="relative w-full max-w-md bg-[#0b1120] border border-slate-700/80 rounded-3xl p-6 shadow-2xl z-10 animate-slide-up text-center">
+          <div className="relative w-full max-w-md bg-[#0b1120] border border-slate-700/80 rounded-3xl p-4 sm:p-6 shadow-2xl z-10 animate-slide-up text-center max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div className="flex items-center gap-2">
@@ -1044,21 +1044,21 @@ export function AdminWhatsApp() {
                   <p className="text-[11px] text-slate-400">{selectedInstance?.label}</p>
                 </div>
               </div>
-              <button onClick={handleCloseQrModal} className="text-slate-400 hover:text-white">
+              <button onClick={handleCloseQrModal} className="p-1 rounded-lg text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* QR Content */}
-            <div className="py-6 flex flex-col items-center justify-center">
+            <div className="py-4 sm:py-6 flex flex-col items-center justify-center">
               {qrLoading ? (
-                <div className="w-64 h-64 flex flex-col items-center justify-center bg-slate-900 rounded-2xl border border-slate-800">
+                <div className="w-56 h-56 sm:w-64 sm:h-64 flex flex-col items-center justify-center bg-slate-900 rounded-2xl border border-slate-800">
                   <div className="w-10 h-10 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin" />
                   <p className="text-xs text-slate-400 mt-4">Gerando QR Code no Evolution Go...</p>
                 </div>
               ) : qrCodeData?.base64 ? (
                 <div className="relative group">
-                  <div className="w-64 h-64 p-3 bg-white rounded-2xl shadow-xl flex items-center justify-center">
+                  <div className="w-56 h-56 sm:w-64 sm:h-64 p-3 bg-white rounded-2xl shadow-xl flex items-center justify-center">
                     <img
                       src={
                         qrCodeData.base64.startsWith('data:')
@@ -1084,7 +1084,7 @@ export function AdminWhatsApp() {
                   </p>
                 </div>
               ) : (
-                <div className="w-64 h-64 p-6 bg-slate-900/90 rounded-2xl border border-slate-800 flex flex-col items-center justify-center text-center">
+                <div className="w-56 h-56 sm:w-64 sm:h-64 p-6 bg-slate-900/90 rounded-2xl border border-slate-800 flex flex-col items-center justify-center text-center">
                   <div className="w-10 h-10 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin" />
                   <p className="text-xs font-bold text-white mt-4">Iniciando sessão do WhatsApp...</p>
                   <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
@@ -1122,7 +1122,7 @@ export function AdminWhatsApp() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsCreateModalOpen(false)} />
 
-          <div className="relative w-full max-w-md bg-[#0b1120] border border-slate-700/80 rounded-3xl p-6 shadow-2xl z-10 animate-slide-up">
+          <div className="relative w-full max-w-md bg-[#0b1120] border border-slate-700/80 rounded-3xl p-4 sm:p-6 shadow-2xl z-10 animate-slide-up max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
@@ -1130,7 +1130,7 @@ export function AdminWhatsApp() {
                 </div>
                 <h3 className="text-base font-bold text-white">Criar Nova Instância WhatsApp</h3>
               </div>
-              <button onClick={() => setIsCreateModalOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setIsCreateModalOpen(false)} className="p-1 rounded-lg text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1205,7 +1205,7 @@ export function AdminWhatsApp() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsEditModalOpen(false)} />
 
-          <div className="relative w-full max-w-md bg-[#0b1120] border border-slate-700/80 rounded-3xl p-6 shadow-2xl z-10 animate-slide-up">
+          <div className="relative w-full max-w-md bg-[#0b1120] border border-slate-700/80 rounded-3xl p-4 sm:p-6 shadow-2xl z-10 animate-slide-up max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center">
@@ -1216,7 +1216,7 @@ export function AdminWhatsApp() {
                   <p className="text-[11px] text-slate-400 font-mono">{selectedInstance.instance_name}</p>
                 </div>
               </div>
-              <button onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setIsEditModalOpen(false)} className="p-1 rounded-lg text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>

@@ -24,7 +24,8 @@ export function Header({ onOpenMobileMenu, onOpenNewTransaction }: HeaderProps) 
       <div className="flex items-center gap-3">
         <button
           onClick={onOpenMobileMenu}
-          className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          aria-label="Abrir Menu de Navegação"
+          className="lg:hidden p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors flex items-center justify-center min-w-[44px] min-h-[44px]"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -48,7 +49,8 @@ export function Header({ onOpenMobileMenu, onOpenNewTransaction }: HeaderProps) 
           variant="emerald"
           size="sm"
           onClick={onOpenNewTransaction}
-          className="shadow-md"
+          className="shadow-md h-10 px-3 sm:px-4 min-w-[44px] min-h-[44px]"
+          aria-label="Nova Transação"
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">Nova Transação</span>

@@ -49,7 +49,7 @@ export function Modal({ isOpen, onClose, title, description, children, maxWidth 
       {/* Modal Dialog */}
       <div
         className={cn(
-          'relative w-full bg-[#0d1527] border border-slate-700/80 rounded-2xl shadow-2xl p-6 text-slate-100 z-10 animate-slide-up',
+          'relative w-full bg-[#0d1527] border border-slate-700/80 rounded-2xl shadow-2xl p-4 sm:p-6 text-slate-100 z-10 animate-slide-up max-h-[90vh] overflow-y-auto',
           maxWidths[maxWidth]
         )}
       >
