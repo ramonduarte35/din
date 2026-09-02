@@ -58,10 +58,15 @@ fi
 mkdir -p data/postgres data/redis data/evolution
 chmod +x docker/init-db.sh 2>/dev/null || true
 
-# 6. Build e Inicialização dos Containers
-echo -e "\n${CYAN}📦 Preparando dependências do backend...${NC}"
+# 6. Compilar Backend e Frontend para os containers
+echo -e "\n${CYAN}⚡ Compilando TypeScript do Backend e Frontend...${NC}"
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
 if command -v npm &> /dev/null; then
-    (cd backend && npm install --omit=dev --no-audit --no-fund)
+    npm --prefix backend run build
+    npm --prefix frontend run build
+    echo -e "${GREEN}✓ Backend e Frontend compilados com sucesso!${NC}"
 fi
 
 echo -e "\n${CYAN}🔨 Construindo imagens Docker nativas para ${ARCH} e iniciando containers...${NC}"
@@ -83,9 +88,9 @@ fi
 
 echo -e "\n${GREEN}✓ PostgreSQL está online e pronto para receber conexões!${NC}"
 
-# 8. Executar sincronização do banco de dados (Prisma db push)
-echo -e "\n${CYAN}🔄 Sincronizando schema do banco de dados (Prisma db push)...${NC}"
-docker compose exec -T api npx prisma db push --accept-data-loss
+# 8. Executar migrações do banco de dados (Prisma Migrations)
+echo -e "\n${CYAN}🔄 Aplicando migrações do banco de dados (Prisma migrate deploy)...${NC}"
+docker compose exec -T api npx prisma migrate deploy || docker compose exec -T api npx prisma db push --accept-data-loss
 
 # 9. Executar seed inicial de categorias e números de WhatsApp
 echo -e "\n${CYAN}🌱 Sincronizando categorias e números de WhatsApp oficiais...${NC}"
