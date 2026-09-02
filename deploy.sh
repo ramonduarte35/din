@@ -64,8 +64,8 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 if command -v npm &> /dev/null; then
-    npm --prefix backend run build
-    npm --prefix frontend run build
+    (cd backend && npm install --no-audit --no-fund && npx prisma generate && npm run build)
+    (cd frontend && npm install --no-audit --no-fund && npm run build)
     echo -e "${GREEN}✓ Backend e Frontend compilados com sucesso!${NC}"
 fi
 
