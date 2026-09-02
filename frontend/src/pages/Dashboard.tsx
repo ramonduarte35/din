@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SummaryCards } from '../components/dashboard/SummaryCards';
 import { AccountsWidget } from '../components/dashboard/AccountsWidget';
+import { BillsWidget } from '../components/dashboard/BillsWidget';
 import { CategoryChart } from '../components/dashboard/CategoryChart';
 import { MonthlyComparisonChart } from '../components/dashboard/MonthlyComparisonChart';
 import { WhatsAppNumbersCard } from '../components/dashboard/WhatsAppNumbersCard';
@@ -82,12 +83,15 @@ export function Dashboard() {
       {/* 2. Widget de Contas Bancárias & Saldos Separados */}
       <AccountsWidget accounts={accounts} isLoading={isLoading} />
 
-      {/* 3. WhatsApp Bot Official Numbers Widget */}
-      <WhatsAppNumbersCard
-        systemNumbers={systemNumbers}
-        isLoading={isLoading}
-        userPhone={user?.phone_number || null}
-      />
+      {/* 3. Contas a Pagar & WhatsApp Bot Numbers */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <BillsWidget />
+        <WhatsAppNumbersCard
+          systemNumbers={systemNumbers}
+          isLoading={isLoading}
+          userPhone={user?.phone_number || null}
+        />
+      </div>
 
       {/* 4. Gráficos Comparativos e Categorias */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

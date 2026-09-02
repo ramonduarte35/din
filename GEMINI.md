@@ -29,3 +29,11 @@ Este arquivo contém as diretrizes mandatórias de desenvolvimento para este rep
 - **Sempre que novos campos, tabelas, enums, índices ou relações forem criados ou alterados, a alteração DEVE ser feita obrigatoriamente através de migrations formais do Prisma (`npx prisma migrate dev --name <nome_da_migracao>`).**
 - O histórico de migrations em `backend/prisma/migrations/` é o controle de versão oficial do banco de dados para deploy e produção.
 - Nos scripts de deploy (`deploy.sh`, `run-docker.sh`, `run-docker-macbook.sh`), a sincronização de banco de dados deve sempre executar `prisma migrate deploy` para aplicar todas as migrations pendentes de forma segura, garantindo que as tabelas sejam atualizadas automaticamente a cada deploy.
+
+---
+
+## 🧹 4. Apenas Administrador do .env Pré-Injetado & Sem Usuários Demo/Fake
+- **O único usuário pré-injetado na inicialização do sistema é o Administrador configurado nas variáveis de ambiente do `.env` (`ADMIN_EMAIL` e `ADMIN_PASSWORD`).**
+- **NÃO SE DEVE injetar dados de usuários demo, transações fictícias ou contas fake via seeds ou migrations.**
+- Os seeds (`prisma/seed.ts`) e migrations devem conter única e exclusivamente as categorias globais padrão (`user_id: null`) e o usuário Administrador definido no `.env`.
+- Novos usuários devem se cadastrar de forma limpa e orgânica através da tela de cadastro (`/register`).

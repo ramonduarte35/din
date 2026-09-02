@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   ReceiptText,
   Landmark,
+  CalendarClock,
   Bot,
   User as UserIcon,
   LogOut,
@@ -33,6 +34,11 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
       to: '/transactions',
       label: 'Transações',
       icon: ReceiptText,
+    },
+    {
+      to: '/bills',
+      label: 'Contas a Pagar',
+      icon: CalendarClock,
     },
     {
       to: '/accounts',

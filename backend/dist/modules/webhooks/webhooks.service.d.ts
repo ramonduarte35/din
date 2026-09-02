@@ -1,23 +1,6 @@
 export declare class WebhooksService {
     processEvolutionMessage(payload: any): Promise<{
         status: string;
-        account: any;
-        balance: number;
-        income?: undefined;
-        expense?: undefined;
-        totalBalance?: undefined;
-    } | {
-        status: string;
-        income: number;
-        expense: number;
-        totalBalance: number;
-        account?: undefined;
-        balance?: undefined;
-    } | {
-        status: string;
-        count: number;
-    } | {
-        status: string;
     }>;
     /**
      * Extração com OpenAI (gpt-4o-mini com Structured Outputs via JSON Schema)
@@ -28,15 +11,27 @@ export declare class WebhooksService {
      */
     private findMatchingAccountName;
     /**
-     * Parser local inteligente com suporte a gírias brasileiras, bancos e regex (Fallback)
+     * Parser Local Resiliente de Fallback com suporte a regexes avançadas
      */
     private fallbackLocalParser;
     /**
-     * Responde à consulta de saldo (específico por conta ou geral consolidado)
+     * Trata o cadastro de uma nova conta a pagar via WhatsApp
+     */
+    private handleRegisterBill;
+    /**
+     * Trata a consulta de contas a pagar / boletos pendentes via WhatsApp
+     */
+    private handleQueryBills;
+    /**
+     * Trata a liquidação / pagamento de uma conta a pagar debitando da conta bancária
+     */
+    private handlePayBill;
+    /**
+     * Consulta de saldo por WhatsApp (com suporte a múltiplas contas)
      */
     private handleBalanceQuery;
     /**
-     * Registra uma ou mais transações e responde com confirmação formatada incluindo a conta de destino
+     * Registro de transações com direcionamento para a conta bancária correta
      */
     private handleTransactionsRegistration;
     /**

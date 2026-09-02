@@ -214,7 +214,7 @@ echo -e "\n${GREEN}✓ PostgreSQL pronto e saudável!${NC}"
 echo -e "\n${CYAN}🔄 Aplicando migrações do banco de dados (Prisma migrate deploy)...${NC}"
 docker compose exec -T api npx prisma migrate deploy || docker compose exec -T api npx prisma db push --accept-data-loss
 
-echo -e "\n${CYAN}🌱 Executando seed com dados iniciais e usuário demo...${NC}"
+echo -e "\n${CYAN}🌱 Sincronizando categorias globais padrão...${NC}"
 docker compose exec -T api npx tsx prisma/seed.ts
 
 # 10. Resumo de Acesso
@@ -224,9 +224,7 @@ echo -e "${GREEN}${BOLD}══════════════════�
 echo -e "🌐 ${BOLD}Painel Web (Dashboard):${NC}    ${CYAN}http://localhost:${WEB_PORT}${NC}"
 echo -e "⚡ ${BOLD}Backend API Fastify:${NC}       ${CYAN}http://localhost:${API_PORT}/health${NC}"
 echo -e "📱 ${BOLD}Evolution Go Gateway:${NC}      ${CYAN}http://localhost:${EVO_PORT}${NC}"
-echo -e "\n👤 ${BOLD}Credenciais do Administrador do Sistema (.env):${NC}"
-echo -e "   E-mail:   ${CYAN}${ADMIN_EMAIL_VAL}${NC}"
-echo -e "   Senha:    ${CYAN}${ADMIN_PASS_VAL}${NC}"
+echo -e "\n💡 ${BOLD}Primeiro Acesso:${NC} Acesse ${CYAN}http://localhost:${WEB_PORT}/register${NC} para criar sua conta."
 echo -e "\n💡 ${BOLD}Comandos Úteis no seu Mac:${NC}"
 echo -e "   - Ver logs em tempo real:   ${YELLOW}docker compose logs -f${NC}"
 echo -e "   - Parar todos os serviços:  ${YELLOW}./run-docker-macbook.sh --down${NC} ou ${YELLOW}docker compose down${NC}"

@@ -7,6 +7,7 @@ import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Transactions } from './pages/Transactions';
 import { Accounts } from './pages/Accounts';
+import { Bills } from './pages/Bills';
 import { Profile } from './pages/Profile';
 import { Simulator } from './pages/Simulator';
 import { AdminWhatsApp } from './pages/AdminWhatsApp';
@@ -105,6 +106,7 @@ export function App() {
           >
             <Route index element={<Dashboard />} />
             <Route path="transactions" element={<Transactions />} />
+            <Route path="bills" element={<Bills />} />
             <Route path="accounts" element={<Accounts />} />
             <Route path="simulator" element={<Simulator />} />
             <Route path="profile" element={<Profile />} />

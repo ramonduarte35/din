@@ -85,16 +85,20 @@ echo -e "\n${GREEN}✓ PostgreSQL pronto e saudável!${NC}"
 echo -e "\n${CYAN}🔄 Aplicando migrações do banco de dados (Prisma migrate deploy)...${NC}"
 docker compose exec -T api npx prisma migrate deploy || docker compose exec -T api npx prisma db push --accept-data-loss
 
-echo -e "\n${CYAN}🌱 Executando seed com dados iniciais e usuário demo...${NC}"
+echo -e "\n${CYAN}🌱 Sincronizando categorias globais padrão...${NC}"
 docker compose exec -T api npx tsx prisma/seed.ts
 
 # 7. Resumo de Acesso
 WEB_PORT=$(grep '^PORT_FRONTEND=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' "\r\n' || echo "8000")
 API_PORT=$(grep '^PORT_API=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' "\r\n' || echo "3001")
 EVO_PORT=$(grep '^PORT_EVOLUTION=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' "\r\n' || echo "4000")
+ADMIN_EMAIL_VAL=$(grep '^ADMIN_EMAIL=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' "\r\n' || echo "admin@din.app")
+ADMIN_PASS_VAL=$(grep '^ADMIN_PASSWORD=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' "\r\n' || echo "din_admin_password_2026")
 [ -z "$WEB_PORT" ] && WEB_PORT="8000"
 [ -z "$API_PORT" ] && API_PORT="3001"
 [ -z "$EVO_PORT" ] && EVO_PORT="4000"
+[ -z "$ADMIN_EMAIL_VAL" ] && ADMIN_EMAIL_VAL="admin@din.app"
+[ -z "$ADMIN_PASS_VAL" ] && ADMIN_PASS_VAL="din_admin_password_2026"
 
 echo -e "\n${GREEN}${BOLD}══════════════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}${BOLD}🎉 SISTEMA DIN INICIALIZADO COM SUCESSO!${NC}"
@@ -102,9 +106,8 @@ echo -e "${GREEN}${BOLD}══════════════════�
 echo -e "🌐 ${BOLD}Painel Web (Dashboard):${NC}    http://localhost:${WEB_PORT}"
 echo -e "⚡ ${BOLD}Backend API Fastify:${NC}       http://localhost:${API_PORT}/health"
 echo -e "📱 ${BOLD}Evolution Go Gateway:${NC}      http://localhost:${EVO_PORT}"
-echo -e "\n👤 ${BOLD}Credenciais da Conta Demo PRO:${NC}"
-echo -e "   E-mail:   ${CYAN}demo@din.app${NC}"
-echo -e "   Senha:    ${CYAN}123456${NC}"
-echo -e "   WhatsApp: ${CYAN}5586999998888${NC}"
+echo -e "\n👤 ${BOLD}Administrador do Sistema (.env):${NC}"
+echo -e "   E-mail:   ${CYAN}${ADMIN_EMAIL_VAL}${NC}"
+echo -e "   Senha:    ${CYAN}${ADMIN_PASS_VAL}${NC}"
 echo -e "\n💡 ${BOLD}Dica:${NC} Para ver os logs em tempo real, execute: ${YELLOW}docker compose logs -f${NC}"
 echo -e "${GREEN}${BOLD}══════════════════════════════════════════════════════════════════${NC}\n"

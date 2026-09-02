@@ -29,11 +29,6 @@ export function Login() {
     }
   };
 
-  const fillDemo = () => {
-    setEmail('demo@din.app');
-    setPassword('123456');
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-[#080d1a] bg-ambient-gradient relative overflow-hidden">
       {/* Decorative ambient orbs */}
@@ -56,15 +51,9 @@ export function Login() {
 
         {/* Card Form */}
         <div className="p-8 rounded-3xl bg-slate-900/70 border border-slate-800/80 backdrop-blur-2xl shadow-2xl space-y-6">
-          <div className="flex items-center justify-between">
+          <div>
             <h2 className="text-lg font-bold text-white">Acessar Conta</h2>
-            <button
-              type="button"
-              onClick={fillDemo}
-              className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-1 rounded-lg transition-colors"
-            >
-              Usar Conta Demo
-            </button>
+            <p className="text-xs text-slate-400 mt-0.5">Informe seu e-mail e senha para entrar</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

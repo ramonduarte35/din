@@ -56,7 +56,7 @@ Você pode executar o sistema de forma 100% automatizada utilizando os scripts p
 ```bash
 ./run-docker.sh
 ```
-> O script cuidará de tudo: verificação de dependências, criação de diretórios, subida dos containers com Docker Compose, espera pela saúde do PostgreSQL, execução automática das migrações do Prisma e Seed com usuário Demo.
+> O script cuidará de tudo: verificação de dependências, criação de diretórios, subida dos containers com Docker Compose, espera pela saúde do PostgreSQL e execução automática das migrações do Prisma.
 
 #### C. Deploy em Produção (Raspberry Pi 4/5 ARM64, VPS ou Servidor Cloud):
 ```bash
@@ -71,15 +71,20 @@ Você pode executar o sistema de forma 100% automatizada utilizando os scripts p
 
 ---
 
-## 🔑 4. Usuário de Demonstração (Seed)
+## 🔑 4. Acesso do Administrador e Cadastro
 
-Para testar imediatamente sem precisar criar uma conta do zero:
-- **E-mail:** `demo@din.app`
-- **Senha:** `123456`
-- **Telefone cadastrado:** `5586999998888`
+O sistema inicializa apenas com o usuário **Administrador** configurado no arquivo `.env`:
+
+- **E-mail do Admin:** Definido em `ADMIN_EMAIL` no `.env` (padrão: `admin@din.app`)
+- **Senha do Admin:** Definida em `ADMIN_PASSWORD` no `.env` (padrão: `din_admin_password_2026`)
 - **Plano:** `PRO`
 
-*(Você também pode criar uma nova conta na tela de cadastro do painel web a qualquer momento).*
+Novos usuários podem se cadastrar diretamente na tela de registro (`/register`) e começarão com suas contas limpas.
+
+Para promover qualquer outro usuário cadastrado a Administrador via terminal:
+```bash
+./make-admin.sh seu-email@exemplo.com
+```
 
 ---
 

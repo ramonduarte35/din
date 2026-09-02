@@ -62,3 +62,5 @@ export async function deleteAccountRequest(id: string): Promise<{ message: strin
   const response = await api.delete<{ message: string }>(`/accounts/${id}`);
   return response.data;
 }
+
+export const fetchAccounts = getAccountsRequest;

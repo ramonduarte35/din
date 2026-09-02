@@ -15,6 +15,7 @@ const categories_routes_js_1 = require("./modules/categories/categories.routes.j
 const system_numbers_routes_js_1 = require("./modules/system-numbers/system-numbers.routes.js");
 const transactions_routes_js_1 = require("./modules/transactions/transactions.routes.js");
 const accounts_routes_js_1 = require("./modules/accounts/accounts.routes.js");
+const bills_routes_js_1 = require("./modules/bills/bills.routes.js");
 const webhooks_routes_js_1 = require("./modules/webhooks/webhooks.routes.js");
 const admin_whatsapp_routes_js_1 = require("./modules/admin/admin.whatsapp.routes.js");
 function buildApp() {
@@ -52,6 +53,7 @@ function buildApp() {
         v1.register(users_routes_js_1.usersRoutes, { prefix: '/users' });
         v1.register(categories_routes_js_1.categoriesRoutes, { prefix: '/categories' });
         v1.register(accounts_routes_js_1.accountsRoutes, { prefix: '/accounts' });
+        v1.register(bills_routes_js_1.billsRoutes, { prefix: '/bills' });
         v1.register(system_numbers_routes_js_1.systemNumbersRoutes, { prefix: '/system-numbers' });
         v1.register(transactions_routes_js_1.transactionsRoutes, { prefix: '/transactions' });
         v1.register(webhooks_routes_js_1.webhooksRoutes, { prefix: '/webhooks' });

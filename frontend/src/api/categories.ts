@@ -28,3 +28,6 @@ export async function createCategoryRequest(category: {
 export async function deleteCategoryRequest(id: string): Promise<void> {
   await api.delete(`/categories/${id}`);
 }
+
+export const fetchCategories = getCategoriesRequest;
+
