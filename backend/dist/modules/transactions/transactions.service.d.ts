@@ -1,20 +1,30 @@
 import { CreateTransactionInput, UpdateTransactionInput, QueryTransactionsInput } from './transactions.schemas.js';
+import { Prisma } from '@prisma/client';
 export declare class TransactionsService {
+    private getDefaultAccount;
     list(userId: string, query: QueryTransactionsInput): Promise<{
         transactions: {
             amount: number;
+            account: {
+                type: import("@prisma/client").$Enums.AccountType;
+                name: string;
+                id: string;
+                color: string;
+                icon: string;
+            } | null;
             category: {
                 type: import("@prisma/client").$Enums.CategoryType;
                 name: string;
                 id: string;
-                icon: string;
                 color: string;
+                icon: string;
             } | null;
             type: import("@prisma/client").$Enums.TransactionType;
             id: string;
             created_at: Date;
             updated_at: Date;
             user_id: string;
+            account_id: string | null;
             category_id: string | null;
             description: string;
             date: Date;
@@ -31,20 +41,33 @@ export declare class TransactionsService {
     }>;
     createManual(userId: string, data: CreateTransactionInput): Promise<{
         amount: number;
+        account: {
+            type: import("@prisma/client").$Enums.AccountType;
+            name: string;
+            id: string;
+            created_at: Date;
+            updated_at: Date;
+            user_id: string;
+            color: string;
+            icon: string;
+            initial_balance: Prisma.Decimal;
+            is_default: boolean;
+        } | null;
         category: {
             type: import("@prisma/client").$Enums.CategoryType;
             name: string;
             id: string;
             created_at: Date;
             user_id: string | null;
-            icon: string;
             color: string;
+            icon: string;
         } | null;
         type: import("@prisma/client").$Enums.TransactionType;
         id: string;
         created_at: Date;
         updated_at: Date;
         user_id: string;
+        account_id: string | null;
         category_id: string | null;
         description: string;
         date: Date;
@@ -54,20 +77,33 @@ export declare class TransactionsService {
     }>;
     update(userId: string, transactionId: string, data: UpdateTransactionInput): Promise<{
         amount: number;
+        account: {
+            type: import("@prisma/client").$Enums.AccountType;
+            name: string;
+            id: string;
+            created_at: Date;
+            updated_at: Date;
+            user_id: string;
+            color: string;
+            icon: string;
+            initial_balance: Prisma.Decimal;
+            is_default: boolean;
+        } | null;
         category: {
             type: import("@prisma/client").$Enums.CategoryType;
             name: string;
             id: string;
             created_at: Date;
             user_id: string | null;
-            icon: string;
             color: string;
+            icon: string;
         } | null;
         type: import("@prisma/client").$Enums.TransactionType;
         id: string;
         created_at: Date;
         updated_at: Date;
         user_id: string;
+        account_id: string | null;
         category_id: string | null;
         description: string;
         date: Date;
@@ -109,17 +145,24 @@ export declare class TransactionsService {
         }[];
         recent_transactions: {
             amount: number;
+            account: {
+                name: string;
+                id: string;
+                color: string;
+                icon: string;
+            } | null;
             category: {
                 name: string;
                 id: string;
-                icon: string;
                 color: string;
+                icon: string;
             } | null;
             type: import("@prisma/client").$Enums.TransactionType;
             id: string;
             created_at: Date;
             updated_at: Date;
             user_id: string;
+            account_id: string | null;
             category_id: string | null;
             description: string;
             date: Date;

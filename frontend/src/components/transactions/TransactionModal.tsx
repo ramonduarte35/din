@@ -4,7 +4,8 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { createTransactionRequest, updateTransactionRequest, Transaction } from '../../api/transactions';
 import { getCategoriesRequest, Category } from '../../api/categories';
-import { TrendingUp, TrendingDown, Calendar, Tag, DollarSign, FileText } from 'lucide-react';
+import { getAccountsRequest, Account } from '../../api/accounts';
+import { TrendingUp, TrendingDown, Calendar, Tag, DollarSign, FileText, Landmark } from 'lucide-react';
 
 interface TransactionModalProps {
   isOpen: boolean;
@@ -19,20 +20,23 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
   const [type, setType] = useState<'EXPENSE' | 'INCOME'>('EXPENSE');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
+  const [accountId, setAccountId] = useState<string>('');
   const [categoryId, setCategoryId] = useState<string>('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      loadCategories();
+      loadData();
       if (transactionToEdit) {
         setType(transactionToEdit.type);
         setDescription(transactionToEdit.description);
         setAmount(transactionToEdit.amount.toString());
+        setAccountId(transactionToEdit.account_id || '');
         setCategoryId(transactionToEdit.category_id || '');
         setDate(new Date(transactionToEdit.date).toISOString().split('T')[0]);
       } else {
@@ -45,17 +49,27 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
     setType('EXPENSE');
     setDescription('');
     setAmount('');
+    setAccountId('');
     setCategoryId('');
     setDate(new Date().toISOString().split('T')[0]);
     setError(null);
   };
 
-  const loadCategories = async () => {
+  const loadData = async () => {
     try {
-      const data = await getCategoriesRequest();
-      setCategories(data);
+      const [cats, accs] = await Promise.all([
+        getCategoriesRequest(),
+        getAccountsRequest(),
+      ]);
+      setCategories(cats);
+      setAccounts(accs);
+
+      if (!transactionToEdit && accs.length > 0) {
+        const defaultAcc = accs.find((a) => a.is_default) || accs[0];
+        setAccountId(defaultAcc.id);
+      }
     } catch (err) {
-      console.error('Erro ao carregar categorias:', err);
+      console.error('Erro ao carregar dados do formulário:', err);
     }
   };
 
@@ -84,6 +98,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
           description: description.trim(),
           amount: parsedAmount,
           type,
+          account_id: accountId || null,
           category_id: categoryId || null,
           date,
         });
@@ -92,6 +107,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
           description: description.trim(),
           amount: parsedAmount,
           type,
+          account_id: accountId || null,
           category_id: categoryId || null,
           date,
         });
@@ -117,16 +133,16 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
           : 'Adicione uma nova receita ou despesa manual à sua conta'
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
         {/* Toggle Tipo: Despesa vs Receita */}
-        <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800">
+        <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800 min-h-[44px]">
           <button
             type="button"
             onClick={() => {
               setType('EXPENSE');
               setCategoryId('');
             }}
-            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all min-h-[44px] ${
               type === 'EXPENSE'
                 ? 'bg-rose-500 text-white shadow-md shadow-rose-500/25'
                 : 'text-slate-400 hover:text-slate-200'
@@ -141,7 +157,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
               setType('INCOME');
               setCategoryId('');
             }}
-            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all min-h-[44px] ${
               type === 'INCOME'
                 ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25'
                 : 'text-slate-400 hover:text-slate-200'
@@ -160,6 +176,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
           onChange={(e) => setDescription(e.target.value)}
           icon={<FileText className="w-4 h-4" />}
           required
+          className="h-11 text-sm bg-slate-900/80 border-slate-800"
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -174,6 +191,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
             onChange={(e) => setAmount(e.target.value)}
             icon={<DollarSign className="w-4 h-4" />}
             required
+            className="h-11 text-sm bg-slate-900/80 border-slate-800"
           />
 
           {/* Data */}
@@ -184,7 +202,31 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
             onChange={(e) => setDate(e.target.value)}
             icon={<Calendar className="w-4 h-4" />}
             required
+            className="h-11 text-sm bg-slate-900/80 border-slate-800"
           />
+        </div>
+
+        {/* Conta Bancária / Carteira */}
+        <div className="space-y-1.5 text-left">
+          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">
+            Conta Bancária / Carteira
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <Landmark className="w-4 h-4" />
+            </div>
+            <select
+              value={accountId}
+              onChange={(e) => setAccountId(e.target.value)}
+              className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 text-slate-100 text-sm pl-10 pr-3.5 py-2.5 transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 min-h-[44px]"
+            >
+              {accounts.map((acc) => (
+                <option key={acc.id} value={acc.id}>
+                  {acc.name} {acc.is_default ? '(Padrão)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Categoria */}
@@ -199,7 +241,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 text-slate-100 text-sm pl-10 pr-3.5 py-2.5 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500"
+              className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 text-slate-100 text-sm pl-10 pr-3.5 py-2.5 transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 min-h-[44px]"
             >
               <option value="">Selecione uma categoria (opcional)</option>
               {filteredCategories.map((cat) => (
@@ -214,13 +256,14 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
         {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
 
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-          <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
+          <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading} className="min-h-[44px]">
             Cancelar
           </Button>
           <Button
             type="submit"
             variant={type === 'EXPENSE' ? 'danger' : 'emerald'}
             isLoading={isLoading}
+            className="min-h-[44px] px-6"
           >
             {isEditing ? 'Salvar Alterações' : 'Adicionar Transação'}
           </Button>

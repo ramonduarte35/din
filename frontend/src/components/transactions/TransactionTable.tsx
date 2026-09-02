@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ReceiptText,
+  Landmark,
 } from 'lucide-react';
 
 interface TransactionTableProps {
@@ -69,6 +70,7 @@ export function TransactionTable({
             <tr>
               <th className="py-3.5 px-4">Tipo & Data</th>
               <th className="py-3.5 px-4">Descrição</th>
+              <th className="py-3.5 px-4">Conta Bancária</th>
               <th className="py-3.5 px-4">Categoria</th>
               <th className="py-3.5 px-4">Origem</th>
               <th className="py-3.5 px-4 text-right">Valor</th>
@@ -110,6 +112,25 @@ export function TransactionTable({
                       <p className="text-[10px] text-slate-400 italic truncate" title={tx.raw_message}>
                         "{tx.raw_message}"
                       </p>
+                    )}
+                  </td>
+
+                  {/* Conta Bancária */}
+                  <td className="py-3.5 px-4 whitespace-nowrap">
+                    {tx.account ? (
+                      <span
+                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border"
+                        style={{
+                          color: tx.account.color || '#10b981',
+                          backgroundColor: `${tx.account.color || '#10b981'}15`,
+                          borderColor: `${tx.account.color || '#10b981'}30`,
+                        }}
+                      >
+                        <Landmark className="w-3 h-3" />
+                        {tx.account.name}
+                      </span>
+                    ) : (
+                      <span className="text-slate-500 text-[11px]">Conta Padrão</span>
                     )}
                   </td>
 
@@ -166,14 +187,14 @@ export function TransactionTable({
                       <button
                         onClick={() => onEdit(tx)}
                         title="Editar transação"
-                        className="p-1.5 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => onDelete(tx.id)}
                         title="Excluir transação"
-                        className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -186,7 +207,7 @@ export function TransactionTable({
         </table>
       </div>
 
-      {/* Visualização em Cards (Mobile) */}
+      {/* Visualização em Cards (Mobile First) */}
       <div className="md:hidden space-y-2.5">
         {transactions.map((tx) => {
           const isIncome = tx.type === 'INCOME';
@@ -195,12 +216,12 @@ export function TransactionTable({
           return (
             <div
               key={tx.id}
-              className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between space-y-2.5"
+              className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between space-y-2.5 shadow-md"
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
                   <div
-                    className={`p-1.5 rounded-lg ${
+                    className={`p-2 rounded-xl ${
                       isIncome
                         ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                         : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
@@ -223,45 +244,61 @@ export function TransactionTable({
                 </span>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[10px]">
-                <div className="flex items-center gap-1.5">
-                  {tx.category && (
-                    <span
-                      className="px-2 py-0.5 rounded-full font-semibold border"
-                      style={{
-                        color: tx.category.color,
-                        backgroundColor: `${tx.category.color}15`,
-                        borderColor: `${tx.category.color}30`,
-                      }}
-                    >
-                      {tx.category.name}
-                    </span>
-                  )}
-                  {isWhatsApp ? (
-                    <Badge variant="whatsapp" className="text-[9px] py-0 px-1.5">
-                      WhatsApp
-                    </Badge>
-                  ) : (
-                    <Badge variant="manual" className="text-[9px] py-0 px-1.5">
-                      Manual
-                    </Badge>
-                  )}
-                </div>
+              {/* Badges de Conta e Categoria */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[10px]">
+                {tx.account && (
+                  <span
+                    className="px-2 py-0.5 rounded-full font-semibold border flex items-center gap-1"
+                    style={{
+                      color: tx.account.color || '#10b981',
+                      backgroundColor: `${tx.account.color || '#10b981'}15`,
+                      borderColor: `${tx.account.color || '#10b981'}30`,
+                    }}
+                  >
+                    <Landmark className="w-2.5 h-2.5" />
+                    {tx.account.name}
+                  </span>
+                )}
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => onEdit(tx)}
-                    className="p-1 text-slate-400 hover:text-indigo-400"
+                {tx.category && (
+                  <span
+                    className="px-2 py-0.5 rounded-full font-semibold border"
+                    style={{
+                      color: tx.category.color,
+                      backgroundColor: `${tx.category.color}15`,
+                      borderColor: `${tx.category.color}30`,
+                    }}
                   >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => onDelete(tx.id)}
-                    className="p-1 text-slate-400 hover:text-rose-400"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                    {tx.category.name}
+                  </span>
+                )}
+
+                {isWhatsApp ? (
+                  <Badge variant="whatsapp" className="text-[9px] py-0 px-1.5">
+                    WhatsApp
+                  </Badge>
+                ) : (
+                  <Badge variant="manual" className="text-[9px] py-0 px-1.5">
+                    Manual
+                  </Badge>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800/80">
+                <button
+                  onClick={() => onEdit(tx)}
+                  className="p-2 text-slate-400 hover:text-indigo-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  title="Editar"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => onDelete(tx.id)}
+                  className="p-2 text-slate-400 hover:text-rose-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  title="Excluir"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </div>
           );
@@ -270,7 +307,7 @@ export function TransactionTable({
 
       {/* Paginação */}
       {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between px-2 pt-2 text-xs text-slate-400">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 pt-2 text-xs text-slate-400">
           <p>
             Página <span className="font-bold text-slate-200">{pagination.page}</span> de{' '}
             <span className="font-bold text-slate-200">{pagination.totalPages}</span> ({pagination.total}{' '}
@@ -283,7 +320,7 @@ export function TransactionTable({
               size="sm"
               disabled={pagination.page <= 1}
               onClick={() => onPageChange(pagination.page - 1)}
-              className="h-8 px-2.5"
+              className="h-10 px-3 min-h-[44px]"
             >
               <ChevronLeft className="w-4 h-4 mr-0.5" />
               Anterior
@@ -293,7 +330,7 @@ export function TransactionTable({
               size="sm"
               disabled={pagination.page >= pagination.totalPages}
               onClick={() => onPageChange(pagination.page + 1)}
-              className="h-8 px-2.5"
+              className="h-10 px-3 min-h-[44px]"
             >
               Próxima
               <ChevronRight className="w-4 h-4 ml-0.5" />

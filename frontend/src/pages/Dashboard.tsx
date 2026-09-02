@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { SummaryCards } from '../components/dashboard/SummaryCards';
+import { AccountsWidget } from '../components/dashboard/AccountsWidget';
 import { CategoryChart } from '../components/dashboard/CategoryChart';
 import { MonthlyComparisonChart } from '../components/dashboard/MonthlyComparisonChart';
 import { WhatsAppNumbersCard } from '../components/dashboard/WhatsAppNumbersCard';
 import { RecentTransactionsCard } from '../components/dashboard/RecentTransactionsCard';
 import { getTransactionsSummaryRequest, TransactionsSummary } from '../api/transactions';
 import { getSystemNumbersRequest, SystemWhatsAppNumber } from '../api/system-numbers';
+import { getAccountsRequest, Account } from '../api/accounts';
 import { useAuth } from '../contexts/AuthContext';
 import { useLayout } from '../components/layout/AppLayout';
 import { Sparkles, RefreshCw } from 'lucide-react';
@@ -17,6 +19,7 @@ export function Dashboard() {
 
   const [summary, setSummary] = useState<TransactionsSummary | null>(null);
   const [systemNumbers, setSystemNumbers] = useState<SystemWhatsAppNumber[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -25,12 +28,14 @@ export function Dashboard() {
     else setIsRefreshing(true);
 
     try {
-      const [sumRes, numRes] = await Promise.all([
+      const [sumRes, numRes, accsRes] = await Promise.all([
         getTransactionsSummaryRequest(),
         getSystemNumbersRequest(),
+        getAccountsRequest(),
       ]);
       setSummary(sumRes);
       setSystemNumbers(numRes);
+      setAccounts(accsRes);
     } catch (err) {
       console.error('Erro ao carregar dados do dashboard:', err);
     } finally {
@@ -55,7 +60,7 @@ export function Dashboard() {
             </span>
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            Acompanhe o fluxo de caixa, relatórios de gastos e assistente WhatsApp
+            Acompanhe o fluxo de caixa, saldos por conta e assistente WhatsApp
           </p>
         </div>
 
@@ -64,24 +69,27 @@ export function Dashboard() {
           size="sm"
           onClick={() => loadData(false)}
           isLoading={isRefreshing}
-          className="self-start sm:self-auto h-8 text-xs"
+          className="self-start sm:self-auto h-9 min-h-[44px] text-xs px-3"
         >
-          <RefreshCw className={`w-3.5 h-3.5 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
           Atualizar Dados
         </Button>
       </div>
 
-      {/* 1. Cards de Resumo / KPIs */}
+      {/* 1. Cards de Resumo / KPIs Gerais */}
       <SummaryCards summary={summary} isLoading={isLoading} />
 
-      {/* 2. WhatsApp Bot Official Numbers Widget */}
+      {/* 2. Widget de Contas Bancárias & Saldos Separados */}
+      <AccountsWidget accounts={accounts} isLoading={isLoading} />
+
+      {/* 3. WhatsApp Bot Official Numbers Widget */}
       <WhatsAppNumbersCard
         systemNumbers={systemNumbers}
         isLoading={isLoading}
         userPhone={user?.phone_number || null}
       />
 
-      {/* 3. Gráficos Comparativos e Categorias */}
+      {/* 4. Gráficos Comparativos e Categorias */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MonthlyComparisonChart
           data={summary?.monthly_history || []}
@@ -93,7 +101,7 @@ export function Dashboard() {
         />
       </div>
 
-      {/* 4. Transações Recentes */}
+      {/* 5. Transações Recentes */}
       <div className="grid grid-cols-1 gap-6">
         <RecentTransactionsCard
           transactions={summary?.recent_transactions || []}

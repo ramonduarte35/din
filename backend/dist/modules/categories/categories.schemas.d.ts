@@ -10,12 +10,12 @@ export declare const createCategorySchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     type: "INCOME" | "EXPENSE";
     name: string;
-    icon: string;
     color: string;
+    icon: string;
 }, {
     type: "INCOME" | "EXPENSE";
     name: string;
-    icon?: string | undefined;
     color?: string | undefined;
+    icon?: string | undefined;
 }>;
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>;

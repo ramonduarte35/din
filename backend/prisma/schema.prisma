@@ -34,6 +34,15 @@ enum Role {
   ADMIN
 }
 
+enum AccountType {
+  CHECKING
+  SAVINGS
+  INVESTMENT
+  CREDIT_CARD
+  CASH
+  OTHER
+}
+
 enum WhatsAppLogStatus {
   SUCCESS
   USER_NOT_FOUND
@@ -52,10 +61,30 @@ model User {
   created_at        DateTime         @default(now())
   updated_at        DateTime         @updatedAt
 
+  accounts          Account[]
   categories        Category[]
   transactions      Transaction[]
 
   @@map("users")
+}
+
+model Account {
+  id              String      @id @default(uuid())
+  user_id         String
+  name            String
+  type            AccountType @default(CHECKING)
+  color           String      @default("#10b981")
+  icon            String      @default("Landmark")
+  initial_balance Decimal     @default(0) @db.Decimal(12, 2)
+  is_default      Boolean     @default(false)
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+
+  user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([user_id])
+  @@map("accounts")
 }
 
 model SystemWhatsAppNumber {
@@ -88,6 +117,7 @@ model Category {
 model Transaction {
   id                 String            @id @default(uuid())
   user_id            String
+  account_id         String?
   category_id        String?
   description        String
   amount             Decimal           @db.Decimal(12, 2)
@@ -100,10 +130,12 @@ model Transaction {
   updated_at         DateTime          @updatedAt
 
   user     User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  account  Account?  @relation(fields: [account_id], references: [id], onDelete: SetNull)
   category Category? @relation(fields: [category_id], references: [id], onDelete: SetNull)
 
   @@index([user_id, date])
   @@index([user_id, type])
+  @@index([user_id, account_id])
   @@map("transactions")
 }
 

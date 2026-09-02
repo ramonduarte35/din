@@ -148,15 +148,52 @@ async function main() {
       },
     ];
 
+    // Garantir contas bancárias para o usuário
+    let bbAccount = await prisma.account.findFirst({
+      where: { user_id: demoUser.id, name: 'Banco do Brasil' },
+    });
+    if (!bbAccount) {
+      bbAccount = await prisma.account.create({
+        data: {
+          user_id: demoUser.id,
+          name: 'Banco do Brasil',
+          type: 'CHECKING',
+          color: '#facc15',
+          icon: 'Landmark',
+          initial_balance: 1000,
+          is_default: true,
+        },
+      });
+    }
+
+    let nuAccount = await prisma.account.findFirst({
+      where: { user_id: demoUser.id, name: 'Nubank' },
+    });
+    if (!nuAccount) {
+      nuAccount = await prisma.account.create({
+        data: {
+          user_id: demoUser.id,
+          name: 'Nubank',
+          type: 'CHECKING',
+          color: '#8b5cf6',
+          icon: 'CreditCard',
+          initial_balance: 500,
+          is_default: false,
+        },
+      });
+    }
+
     for (const t of demoTransactions) {
+      const isBB = t.description.includes('Salário') || t.description.includes('Aluguel');
       await prisma.transaction.create({
         data: {
           ...t,
           user_id: demoUser.id,
+          account_id: isBB ? bbAccount.id : nuAccount.id,
         },
       });
     }
-    console.log(`✅ Administrador criado (${adminEmail}) com transações de exemplo.`);
+    console.log(`✅ Administrador criado (${adminEmail}) com transações e contas bancárias (Banco do Brasil e Nubank).`);
   } else {
     demoUser = await prisma.user.update({
       where: { id: demoUser.id },
@@ -166,6 +203,34 @@ async function main() {
         password_hash,
       },
     });
+
+    // Garantir contas para usuário existente
+    const userAccs = await prisma.account.findMany({ where: { user_id: demoUser.id } });
+    if (userAccs.length === 0) {
+      await prisma.account.create({
+        data: {
+          user_id: demoUser.id,
+          name: 'Banco do Brasil',
+          type: 'CHECKING',
+          color: '#facc15',
+          icon: 'Landmark',
+          initial_balance: 1000,
+          is_default: true,
+        },
+      });
+      await prisma.account.create({
+        data: {
+          user_id: demoUser.id,
+          name: 'Nubank',
+          type: 'CHECKING',
+          color: '#8b5cf6',
+          icon: 'CreditCard',
+          initial_balance: 500,
+          is_default: false,
+        },
+      });
+      console.log(`✅ Contas Banco do Brasil e Nubank criadas para ${adminEmail}.`);
+    }
     console.log(`✅ Administrador ${adminEmail} atualizado com permissão ADMIN.`);
   }
 

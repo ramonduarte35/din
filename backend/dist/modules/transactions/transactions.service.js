@@ -4,6 +4,31 @@ exports.TransactionsService = void 0;
 const prisma_js_1 = require("../../lib/prisma.js");
 const client_1 = require("@prisma/client");
 class TransactionsService {
+    async getDefaultAccount(userId) {
+        let account = await prisma_js_1.prisma.account.findFirst({
+            where: { user_id: userId, is_default: true },
+        });
+        if (!account) {
+            account = await prisma_js_1.prisma.account.findFirst({
+                where: { user_id: userId },
+                orderBy: { created_at: 'asc' },
+            });
+        }
+        if (!account) {
+            account = await prisma_js_1.prisma.account.create({
+                data: {
+                    user_id: userId,
+                    name: 'Conta Principal',
+                    type: client_1.AccountType.CHECKING,
+                    color: '#10b981',
+                    icon: 'Landmark',
+                    initial_balance: 0,
+                    is_default: true,
+                },
+            });
+        }
+        return account;
+    }
     async list(userId, query) {
         const page = Math.max(1, query.page || 1);
         const limit = Math.min(100, Math.max(1, query.limit || 20));
@@ -16,6 +41,9 @@ class TransactionsService {
         }
         if (query.category_id) {
             where.category_id = query.category_id;
+        }
+        if (query.account_id) {
+            where.account_id = query.account_id;
         }
         if (query.origin) {
             where.origin = query.origin;
@@ -52,6 +80,15 @@ class TransactionsService {
                             type: true,
                         },
                     },
+                    account: {
+                        select: {
+                            id: true,
+                            name: true,
+                            type: true,
+                            color: true,
+                            icon: true,
+                        },
+                    },
                 },
                 orderBy: { date: 'desc' },
                 skip,
@@ -72,18 +109,25 @@ class TransactionsService {
         };
     }
     async createManual(userId, data) {
+        let targetAccountId = data.account_id;
+        if (!targetAccountId) {
+            const defaultAcc = await this.getDefaultAccount(userId);
+            targetAccountId = defaultAcc.id;
+        }
         const transaction = await prisma_js_1.prisma.transaction.create({
             data: {
                 user_id: userId,
                 description: data.description,
                 amount: data.amount,
                 type: data.type,
+                account_id: targetAccountId,
                 category_id: data.category_id || null,
                 date: data.date ? new Date(data.date) : new Date(),
                 origin: client_1.TransactionOrigin.MANUAL,
             },
             include: {
                 category: true,
+                account: true,
             },
         });
         return {
@@ -104,11 +148,13 @@ class TransactionsService {
                 description: data.description,
                 amount: data.amount,
                 type: data.type,
+                account_id: data.account_id !== undefined ? data.account_id : existing.account_id,
                 category_id: data.category_id !== undefined ? data.category_id : existing.category_id,
                 date: data.date ? new Date(data.date) : existing.date,
             },
             include: {
                 category: true,
+                account: true,
             },
         });
         return {
@@ -143,6 +189,7 @@ class TransactionsService {
             },
             include: {
                 category: true,
+                account: true,
             },
         });
         // Agregações do mês anterior
@@ -189,12 +236,20 @@ class TransactionsService {
             else
                 prevExpense += amount;
         }
-        // Saldo Total Geral Histórico do Usuário
-        const allUserTransactions = await prisma_js_1.prisma.transaction.findMany({
-            where: { user_id: userId },
-            select: { type: true, amount: true },
-        });
+        // Saldo Total Geral Histórico do Usuário (incluindo saldo inicial de todas as contas)
+        const [allUserTransactions, userAccounts] = await Promise.all([
+            prisma_js_1.prisma.transaction.findMany({
+                where: { user_id: userId },
+                select: { type: true, amount: true },
+            }),
+            prisma_js_1.prisma.account.findMany({
+                where: { user_id: userId },
+            }),
+        ]);
         let totalHistoricalBalance = 0;
+        for (const acc of userAccounts) {
+            totalHistoricalBalance += Number(acc.initial_balance);
+        }
         for (const t of allUserTransactions) {
             const amount = Number(t.amount);
             if (t.type === client_1.TransactionType.INCOME)
@@ -239,6 +294,9 @@ class TransactionsService {
             where: { user_id: userId },
             include: {
                 category: {
+                    select: { id: true, name: true, icon: true, color: true },
+                },
+                account: {
                     select: { id: true, name: true, icon: true, color: true },
                 },
             },

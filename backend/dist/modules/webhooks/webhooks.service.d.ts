@@ -1,9 +1,18 @@
 export declare class WebhooksService {
     processEvolutionMessage(payload: any): Promise<{
         status: string;
+        account: any;
+        balance: number;
+        income?: undefined;
+        expense?: undefined;
+        totalBalance?: undefined;
+    } | {
+        status: string;
         income: number;
         expense: number;
-        balance: number;
+        totalBalance: number;
+        account?: undefined;
+        balance?: undefined;
     } | {
         status: string;
         count: number;
@@ -15,15 +24,19 @@ export declare class WebhooksService {
      */
     private extractWithAI;
     /**
-     * Parser local inteligente com suporte a gírias brasileiras e regex (Fallback)
+     * Helper para localizar conta correspondente por texto
+     */
+    private findMatchingAccountName;
+    /**
+     * Parser local inteligente com suporte a gírias brasileiras, bancos e regex (Fallback)
      */
     private fallbackLocalParser;
     /**
-     * Responde à consulta de saldo
+     * Responde à consulta de saldo (específico por conta ou geral consolidado)
      */
     private handleBalanceQuery;
     /**
-     * Registra uma ou mais transações e responde com confirmação formatada
+     * Registra uma ou mais transações e responde com confirmação formatada incluindo a conta de destino
      */
     private handleTransactionsRegistration;
     /**

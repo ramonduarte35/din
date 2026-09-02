@@ -22,3 +22,10 @@ Este arquivo contém as diretrizes mandatórias de desenvolvimento para este rep
   3. **Sanitização de Dados:** Validação de entradas com schemas Zod e queries seguras parametrizadas pelo Prisma.
   4. **Segurança de Containers:** Arquivos `.env` e chaves confidenciais excluídos via `.dockerignore` e `.gitignore`.
 - **Relatório Obrigatório:** Sempre incluir o checklist de segurança resumido na resposta final da demanda.
+
+---
+
+## 🗄️ 3. Evolução de Banco de Dados Obrigatória via Migrations
+- **Sempre que novos campos, tabelas, enums, índices ou relações forem criados ou alterados, a alteração DEVE ser feita obrigatoriamente através de migrations formais do Prisma (`npx prisma migrate dev --name <nome_da_migracao>`).**
+- O histórico de migrations em `backend/prisma/migrations/` é o controle de versão oficial do banco de dados para deploy e produção.
+- Nos scripts de deploy (`run-docker.sh`, `run-docker-macbook.sh`), a sincronização de banco de dados deve sempre executar `prisma migrate deploy` para aplicar todas as migrations pendentes de forma segura, garantindo que as tabelas sejam atualizadas automaticamente a cada deploy.

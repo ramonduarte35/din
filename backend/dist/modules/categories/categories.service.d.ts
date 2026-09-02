@@ -6,8 +6,8 @@ export declare class CategoriesService {
         id: string;
         created_at: Date;
         user_id: string | null;
-        icon: string;
         color: string;
+        icon: string;
     }[]>;
     createCategory(userId: string, data: CreateCategoryInput): Promise<{
         type: import("@prisma/client").$Enums.CategoryType;
@@ -15,8 +15,8 @@ export declare class CategoriesService {
         id: string;
         created_at: Date;
         user_id: string | null;
-        icon: string;
         color: string;
+        icon: string;
     }>;
     deleteCategory(userId: string, categoryId: string): Promise<{
         message: string;

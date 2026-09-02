@@ -6,18 +6,21 @@ export declare const createTransactionSchema: z.ZodObject<{
         INCOME: "INCOME";
         EXPENSE: "EXPENSE";
     }>;
+    account_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     category_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     date: z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodDate]>>;
 }, "strip", z.ZodTypeAny, {
     type: "INCOME" | "EXPENSE";
     description: string;
     amount: number;
+    account_id?: string | null | undefined;
     category_id?: string | null | undefined;
     date?: string | Date | undefined;
 }, {
     type: "INCOME" | "EXPENSE";
     description: string;
     amount: number;
+    account_id?: string | null | undefined;
     category_id?: string | null | undefined;
     date?: string | Date | undefined;
 }>;
@@ -28,16 +31,19 @@ export declare const updateTransactionSchema: z.ZodObject<{
         INCOME: "INCOME";
         EXPENSE: "EXPENSE";
     }>>;
+    account_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     category_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     date: z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodDate]>>;
 }, "strip", z.ZodTypeAny, {
     type?: "INCOME" | "EXPENSE" | undefined;
+    account_id?: string | null | undefined;
     category_id?: string | null | undefined;
     description?: string | undefined;
     amount?: number | undefined;
     date?: string | Date | undefined;
 }, {
     type?: "INCOME" | "EXPENSE" | undefined;
+    account_id?: string | null | undefined;
     category_id?: string | null | undefined;
     description?: string | undefined;
     amount?: number | undefined;
@@ -50,6 +56,7 @@ export declare const queryTransactionsSchema: z.ZodObject<{
         INCOME: "INCOME";
         EXPENSE: "EXPENSE";
     }>>;
+    account_id: z.ZodOptional<z.ZodString>;
     category_id: z.ZodOptional<z.ZodString>;
     origin: z.ZodOptional<z.ZodNativeEnum<{
         MANUAL: "MANUAL";
@@ -64,6 +71,7 @@ export declare const queryTransactionsSchema: z.ZodObject<{
     limit: number;
     type?: "INCOME" | "EXPENSE" | undefined;
     search?: string | undefined;
+    account_id?: string | undefined;
     category_id?: string | undefined;
     origin?: "MANUAL" | "WHATSAPP_TEXT" | "WHATSAPP_AUDIO" | undefined;
     start_date?: string | undefined;
@@ -71,6 +79,7 @@ export declare const queryTransactionsSchema: z.ZodObject<{
 }, {
     type?: "INCOME" | "EXPENSE" | undefined;
     search?: string | undefined;
+    account_id?: string | undefined;
     category_id?: string | undefined;
     origin?: "MANUAL" | "WHATSAPP_TEXT" | "WHATSAPP_AUDIO" | undefined;
     start_date?: string | undefined;

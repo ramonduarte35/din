@@ -228,14 +228,33 @@ class WebhooksService {
             await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, replyMsg);
             return { status: 'pro_required' };
         }
-        // 3. Processamento de Linguagem Natural / IA
+        // 3. Buscar contas bancárias do usuário (com provisionamento automático de conta padrão)
+        let userAccounts = await prisma_js_1.prisma.account.findMany({
+            where: { user_id: user.id },
+            orderBy: [{ is_default: 'desc' }, { created_at: 'asc' }],
+        });
+        if (userAccounts.length === 0) {
+            const defaultAcc = await prisma_js_1.prisma.account.create({
+                data: {
+                    user_id: user.id,
+                    name: 'Conta Principal',
+                    type: client_1.AccountType.CHECKING,
+                    color: '#10b981',
+                    icon: 'Landmark',
+                    initial_balance: 0,
+                    is_default: true,
+                },
+            });
+            userAccounts = [defaultAcc];
+        }
+        // 4. Processamento de Linguagem Natural / IA com suporte a múltiplas contas
         let extraction;
         try {
-            extraction = await this.extractWithAI(trimmedText);
+            extraction = await this.extractWithAI(trimmedText, userAccounts);
         }
         catch (aiError) {
             console.error('❌ [Webhook] Erro no pipeline de IA:', aiError);
-            extraction = this.fallbackLocalParser(trimmedText);
+            extraction = this.fallbackLocalParser(trimmedText, userAccounts);
         }
         console.log('🤖 [Webhook] Resultado da Extração:', JSON.stringify(extraction, null, 2));
         // Salvar Log
@@ -250,28 +269,31 @@ class WebhooksService {
                 openai_response_payload: extraction,
             },
         });
-        // 4. Executar Ação Baseada na Intenção
+        // 5. Executar Ação Baseada na Intenção
         // Cenário A: Consulta de Saldo / Resumo
         if (extraction.intent === 'balance_query') {
-            return this.handleBalanceQuery(user, instance, remoteJid);
+            return this.handleBalanceQuery(user, instance, remoteJid, userAccounts, extraction.query_account);
         }
-        // Cenário B: Registro de Transação(ões)
+        // Cenário B: Registro de Transação(ões) com direcionamento para a conta bancária correta
         if (extraction.intent === 'transaction' && extraction.transactions && extraction.transactions.length > 0) {
-            return this.handleTransactionsRegistration(user, instance, remoteJid, extraction.transactions, trimmedText);
+            return this.handleTransactionsRegistration(user, instance, remoteJid, extraction.transactions, trimmedText, userAccounts);
         }
         // Cenário C: Mensagem Não Reconhecida / Ajuda
-        return this.handleUnknownMessage(user, instance, remoteJid);
+        return this.handleUnknownMessage(user, instance, remoteJid, userAccounts);
     }
     /**
      * Extração com OpenAI (gpt-4o-mini com Structured Outputs via JSON Schema)
      */
-    async extractWithAI(text) {
+    async extractWithAI(text, userAccounts) {
         if (!(0, openai_js_1.hasOpenAIConfigured)() || !openai_js_1.openai) {
             console.log('ℹ️ [AI] OpenAI API Key não configurada. Usando parser local inteligente.');
-            return this.fallbackLocalParser(text);
+            return this.fallbackLocalParser(text, userAccounts);
         }
         const todayISO = new Date().toISOString().split('T')[0];
-        const systemPrompt = `Você é o assistente financeiro inteligente do Din. Sua função é extrair com precisão transações financeiras ou intenções de consulta de mensagens em linguagem natural em português brasileiro.\n\n` +
+        const accountsListFormatted = userAccounts.map((a) => `- "${a.name}" (tipo: ${a.type})`).join('\n');
+        const systemPrompt = `Você é o assistente financeiro inteligente do Din. Sua função é extrair com extrema precisão transações financeiras, contas de destino ou intenções de consulta de mensagens em linguagem natural em português brasileiro.\n\n` +
+            `Contas bancárias/carteiras cadastradas pelo usuário:\n` +
+            `${accountsListFormatted}\n\n` +
             `Gírias financeiras brasileiras:\n` +
             `- "conto", "pila", "pau", "reais", "mangos" = R$ 1,00 cada\n` +
             `- "barão", "milão", "pau" (em contexto de mil) = R$ 1.000,00\n` +
@@ -280,20 +302,25 @@ class WebhooksService {
             `- Alimentação, Moradia, Transporte, Saúde, Lazer & Cultura, Educação, Vestuário, Assinaturas & Serviços, Outros (Despesas)\n` +
             `- Salário, Investimentos, Freelance & Extras, Vendas & Reembolsos, Outros (Receitas)\n\n` +
             `Data atual de referência: ${todayISO}.\n\n` +
+            `Instruções de Contas Bancárias:\n` +
+            `- Se o usuário mencionar ou der a entender uma conta/banco (ex: "no banco do brasil", "no bb", "no nubank", "na conta inter", "no itaú", "na carteira", "em dinheiro"), extraia em "suggested_account" o nome exato ou mais compatível com a conta do usuário.\n` +
+            `- Se não for mencionado nenhum banco, deixe "suggested_account" omitido ou nulo.\n\n` +
             `Identifique a intenção:\n` +
-            `- "balance_query": Quando o usuário pergunta sobre saldo, gastos do mês, extrato, quanto gastou hoje, etc.\n` +
+            `- "balance_query": Quando o usuário pergunta sobre saldo, extrato, quanto gastou, quanto tem em uma conta específica (ex: "saldo do nubank", "quanto tenho no banco do brasil") ou geral.\n` +
             `- "transaction": Quando o usuário descreve uma ou mais receitas ou despesas.\n` +
             `- "unknown": Mensagens de cumprimento, dúvidas gerais ou sem sentido financeiro.\n\n` +
             `Retorne estritamente um JSON no formato:\n` +
             `{\n` +
             `  "intent": "transaction" | "balance_query" | "unknown",\n` +
             `  "query_period": "current_month" | "today" | "all_time",\n` +
+            `  "query_account": string (opcional, nome da conta se o usuário perguntou de uma específica),\n` +
             `  "transactions": [\n` +
             `    {\n` +
             `      "type": "INCOME" | "EXPENSE",\n` +
             `      "amount": number (positivo),\n` +
             `      "description": string (resumo conciso),\n` +
             `      "suggested_category": string,\n` +
+            `      "suggested_account": string (opcional, nome da conta identificada),\n` +
             `      "date": string (ISO date)\n` +
             `    }\n` +
             `  ]\n` +
@@ -312,11 +339,50 @@ class WebhooksService {
         return webhooks_schemas_js_1.aiExtractionResponseSchema.parse(parsedJson);
     }
     /**
-     * Parser local inteligente com suporte a gírias brasileiras e regex (Fallback)
+     * Helper para localizar conta correspondente por texto
      */
-    fallbackLocalParser(text) {
+    findMatchingAccountName(text, userAccounts) {
+        const lower = text.toLowerCase();
+        // 1. Match exato ou substring com nomes das contas cadastradas
+        for (const acc of userAccounts) {
+            const accNameLower = acc.name.toLowerCase();
+            if (lower.includes(accNameLower)) {
+                return acc.name;
+            }
+        }
+        // 2. Apelidos e sinônimos bancários comuns no Brasil
+        const bankSynonyms = {
+            'Banco do Brasil': ['banco do brasil', 'bb', 'bancodobrasil'],
+            Nubank: ['nubank', 'nu', 'roxinho', 'nu bank'],
+            Itaú: ['itau', 'itaú', 'iti'],
+            Bradesco: ['bradesco', 'next'],
+            Inter: ['inter', 'banco inter'],
+            Caixa: ['caixa', 'cef', 'caixa economica', 'caixa econômica'],
+            Santander: ['santander'],
+            'C6 Bank': ['c6', 'c6 bank', 'c6bank'],
+            Carteira: ['carteira', 'dinheiro', 'em maos', 'em mãos', 'especie', 'espécie'],
+        };
+        for (const [canonicalName, aliases] of Object.entries(bankSynonyms)) {
+            for (const alias of aliases) {
+                if (new RegExp(`\\b${alias}\\b`, 'i').test(lower)) {
+                    // Se o usuário tem uma conta que bate com o banco
+                    const found = userAccounts.find((a) => a.name.toLowerCase().includes(canonicalName.toLowerCase()) ||
+                        canonicalName.toLowerCase().includes(a.name.toLowerCase()) ||
+                        aliases.some((al) => a.name.toLowerCase().includes(al)));
+                    if (found)
+                        return found.name;
+                }
+            }
+        }
+        return undefined;
+    }
+    /**
+     * Parser local inteligente com suporte a gírias brasileiras, bancos e regex (Fallback)
+     */
+    fallbackLocalParser(text, userAccounts) {
         const lower = text.toLowerCase();
         const todayISO = new Date().toISOString().split('T')[0];
+        const detectedAccount = this.findMatchingAccountName(text, userAccounts);
         // Checar intenção de consulta de saldo
         if (lower.includes('saldo') ||
             lower.includes('extrato') ||
@@ -327,10 +393,10 @@ class WebhooksService {
             return {
                 intent: 'balance_query',
                 query_period: 'current_month',
+                query_account: detectedAccount,
             };
         }
         // Multi-transações ou transação única via regex
-        // Padrões como: "lanchei e gastei 20 conto", "recebi 1600 de salario", "gastei 50 na padaria"
         const transactions = [];
         // Mapeamento de multiplicadores de gírias
         let textToParse = lower
@@ -347,7 +413,10 @@ class WebhooksService {
             lower.includes('salário') ||
             lower.includes('rendeu') ||
             lower.includes('vendi') ||
-            lower.includes('pix recebido');
+            lower.includes('pix recebido') ||
+            lower.includes('caiu o salário') ||
+            lower.includes('caiu o salario') ||
+            lower.includes('caiu');
         // Expressão regular para extrair quantias
         const amountMatch = textToParse.match(/(?:r\$|reais|conto|pila|pau|mangos)?\s*(\d+(?:[.,]\d{1,2})?)\s*(?:reais|conto|pila|pau|mangos)?/i);
         if (amountMatch) {
@@ -438,6 +507,7 @@ class WebhooksService {
                     amount,
                     description,
                     suggested_category,
+                    suggested_account: detectedAccount,
                     date: todayISO,
                 });
                 return {
@@ -451,28 +521,12 @@ class WebhooksService {
         };
     }
     /**
-     * Responde à consulta de saldo
+     * Responde à consulta de saldo (específico por conta ou geral consolidado)
      */
-    async handleBalanceQuery(user, instance, remoteJid) {
+    async handleBalanceQuery(user, instance, remoteJid, userAccounts, queryAccountName) {
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-        const monthTransactions = await prisma_js_1.prisma.transaction.findMany({
-            where: {
-                user_id: user.id,
-                date: { gte: startOfMonth, lte: endOfMonth },
-            },
-        });
-        let income = 0;
-        let expense = 0;
-        for (const t of monthTransactions) {
-            const val = Number(t.amount);
-            if (t.type === client_1.TransactionType.INCOME)
-                income += val;
-            else
-                expense += val;
-        }
-        const balance = income - expense;
         const monthNames = [
             'Janeiro',
             'Fevereiro',
@@ -488,38 +542,136 @@ class WebhooksService {
             'Dezembro',
         ];
         const currentMonthName = monthNames[now.getMonth()];
+        // 1. Caso o usuário queira consultar o saldo de uma conta bancária específica
+        let targetAccount = null;
+        if (queryAccountName) {
+            const qLower = queryAccountName.toLowerCase();
+            targetAccount = userAccounts.find((a) => a.name.toLowerCase().includes(qLower) ||
+                qLower.includes(a.name.toLowerCase()));
+        }
+        if (targetAccount) {
+            const [allTx, monthTx] = await Promise.all([
+                prisma_js_1.prisma.transaction.findMany({
+                    where: { user_id: user.id, account_id: targetAccount.id },
+                    select: { type: true, amount: true },
+                }),
+                prisma_js_1.prisma.transaction.findMany({
+                    where: {
+                        user_id: user.id,
+                        account_id: targetAccount.id,
+                        date: { gte: startOfMonth, lte: endOfMonth },
+                    },
+                    select: { type: true, amount: true },
+                }),
+            ]);
+            let totalIncome = 0;
+            let totalExpense = 0;
+            for (const t of allTx) {
+                const val = Number(t.amount);
+                if (t.type === client_1.TransactionType.INCOME)
+                    totalIncome += val;
+                else
+                    totalExpense += val;
+            }
+            let mIncome = 0;
+            let mExpense = 0;
+            for (const t of monthTx) {
+                const val = Number(t.amount);
+                if (t.type === client_1.TransactionType.INCOME)
+                    mIncome += val;
+                else
+                    mExpense += val;
+            }
+            const currentBalance = Number(targetAccount.initial_balance) + totalIncome - totalExpense;
+            const replyMsg = `🏦 *Balanço da Conta: ${targetAccount.name}*\n` +
+                `Olá, *${user.name}*! Aqui está a posição da sua conta no Din:\n\n` +
+                `💰 *Saldo Atual:* *${(0, currency_js_1.formatBRL)(currentBalance)}*\n` +
+                `━━━━━━━━━━━━━━━━━━\n` +
+                `📅 *Mês de ${currentMonthName}/${now.getFullYear()}:*\n` +
+                `🟢 *Receitas:* ${(0, currency_js_1.formatBRL)(mIncome)}\n` +
+                `🔴 *Despesas:* ${(0, currency_js_1.formatBRL)(mExpense)}\n` +
+                `📝 *Lançamentos no Mês:* ${monthTx.length}\n\n` +
+                `🌐 _Acesse seu painel web para ver extrato completo._`;
+            await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, replyMsg);
+            return { status: 'account_balance_sent', account: targetAccount.name, balance: currentBalance };
+        }
+        // 2. Consulta Geral Consolidada + Lista de Saldos por Conta
+        const monthTransactions = await prisma_js_1.prisma.transaction.findMany({
+            where: {
+                user_id: user.id,
+                date: { gte: startOfMonth, lte: endOfMonth },
+            },
+            select: { type: true, amount: true, account_id: true },
+        });
+        let income = 0;
+        let expense = 0;
+        for (const t of monthTransactions) {
+            const val = Number(t.amount);
+            if (t.type === client_1.TransactionType.INCOME)
+                income += val;
+            else
+                expense += val;
+        }
+        // Calcular saldo atual de cada conta
+        const accountsBalances = await Promise.all(userAccounts.map(async (acc) => {
+            const txs = await prisma_js_1.prisma.transaction.findMany({
+                where: { user_id: user.id, account_id: acc.id },
+                select: { type: true, amount: true },
+            });
+            let accIncome = 0;
+            let accExpense = 0;
+            for (const t of txs) {
+                const val = Number(t.amount);
+                if (t.type === client_1.TransactionType.INCOME)
+                    accIncome += val;
+                else
+                    accExpense += val;
+            }
+            const bal = Number(acc.initial_balance) + accIncome - accExpense;
+            return {
+                name: acc.name,
+                balance: bal,
+                is_default: acc.is_default,
+            };
+        }));
+        const totalBalance = accountsBalances.reduce((acc, item) => acc + item.balance, 0);
+        const accountsListText = accountsBalances
+            .map((acc) => `• *${acc.name}:* ${(0, currency_js_1.formatBRL)(acc.balance)}${acc.is_default ? ' _(Padrão)_' : ''}`)
+            .join('\n');
         const replyMsg = `📊 *Resumo Financeiro - ${currentMonthName}/${now.getFullYear()}*\n` +
-            `Olá, *${user.name}*! Aqui está o seu balanço atual:\n\n` +
-            `🟢 *Receitas:* ${(0, currency_js_1.formatBRL)(income)}\n` +
-            `🔴 *Despesas:* ${(0, currency_js_1.formatBRL)(expense)}\n` +
+            `Olá, *${user.name}*! Aqui está o seu balanço geral:\n\n` +
+            `💰 *Saldo Total Consolidado:* *${(0, currency_js_1.formatBRL)(totalBalance)}*\n` +
+            `🟢 *Receitas do Mês:* ${(0, currency_js_1.formatBRL)(income)}\n` +
+            `🔴 *Despesas do Mês:* ${(0, currency_js_1.formatBRL)(expense)}\n` +
             `━━━━━━━━━━━━━━━━━━\n` +
-            `💰 *Saldo Líquido:* *${(0, currency_js_1.formatBRL)(balance)}*\n\n` +
-            `📝 *Total de Lançamentos:* ${monthTransactions.length}\n` +
-            `🌐 _Acesse seu painel web para ver gráficos e relatórios detalhados._`;
+            `🏦 *Saldos por Conta Bancária:*\n` +
+            `${accountsListText}\n\n` +
+            `📝 *Total de Lançamentos no Mês:* ${monthTransactions.length}\n` +
+            `💡 _Dica: Pergunte "qual o saldo do nubank?" para ver uma conta isolada._`;
         await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, replyMsg);
-        return { status: 'balance_sent', income, expense, balance };
+        return { status: 'balance_sent', income, expense, totalBalance };
     }
     /**
-     * Registra uma ou mais transações e responde com confirmação formatada
+     * Registra uma ou mais transações e responde com confirmação formatada incluindo a conta de destino
      */
-    async handleTransactionsRegistration(user, instance, remoteJid, transactions, rawText) {
+    async handleTransactionsRegistration(user, instance, remoteJid, transactions, rawText, userAccounts) {
         // Buscar categorias do usuário ou globais
         const userCategories = await prisma_js_1.prisma.category.findMany({
             where: {
                 OR: [{ user_id: null }, { user_id: user.id }],
             },
         });
+        const defaultAccount = userAccounts.find((a) => a.is_default) || userAccounts[0];
         const registeredItems = [];
         for (const item of transactions) {
             const type = item.type === 'INCOME' ? client_1.TransactionType.INCOME : client_1.TransactionType.EXPENSE;
             const categoryType = type === client_1.TransactionType.INCOME ? client_1.CategoryType.INCOME : client_1.CategoryType.EXPENSE;
-            // Localizar categoria similar
+            // 1. Localizar Categoria
             let category = userCategories.find((c) => c.type === categoryType &&
                 c.name.toLowerCase().includes(item.suggested_category.toLowerCase()));
             if (!category) {
                 category = userCategories.find((c) => c.type === categoryType);
             }
-            // Se ainda não existir nenhuma categoria, cria uma para o usuário
             if (!category) {
                 category = await prisma_js_1.prisma.category.create({
                     data: {
@@ -531,10 +683,30 @@ class WebhooksService {
                     },
                 });
             }
+            // 2. Localizar Conta Bancária de Destino
+            let targetAccount = defaultAccount;
+            if (item.suggested_account) {
+                const sLower = item.suggested_account.toLowerCase();
+                const found = userAccounts.find((a) => a.name.toLowerCase().includes(sLower) ||
+                    sLower.includes(a.name.toLowerCase()));
+                if (found) {
+                    targetAccount = found;
+                }
+                else {
+                    // Tentar sinônimos
+                    const matchFromSynonym = this.findMatchingAccountName(item.suggested_account, userAccounts);
+                    if (matchFromSynonym) {
+                        const foundSyn = userAccounts.find((a) => a.name === matchFromSynonym);
+                        if (foundSyn)
+                            targetAccount = foundSyn;
+                    }
+                }
+            }
             const txDate = item.date ? new Date(item.date) : new Date();
             const createdTx = await prisma_js_1.prisma.transaction.create({
                 data: {
                     user_id: user.id,
+                    account_id: targetAccount.id,
                     category_id: category.id,
                     description: item.description || 'Transação WhatsApp',
                     amount: item.amount,
@@ -545,35 +717,54 @@ class WebhooksService {
                     raw_message: rawText,
                 },
             });
+            // Calcular saldo atualizado desta conta após o registro
+            const accountTxs = await prisma_js_1.prisma.transaction.findMany({
+                where: { user_id: user.id, account_id: targetAccount.id },
+                select: { type: true, amount: true },
+            });
+            let accIncome = 0;
+            let accExpense = 0;
+            for (const t of accountTxs) {
+                const amt = Number(t.amount);
+                if (t.type === client_1.TransactionType.INCOME)
+                    accIncome += amt;
+                else
+                    accExpense += amt;
+            }
+            const updatedAccBalance = Number(targetAccount.initial_balance) + accIncome - accExpense;
             const typeLabel = type === client_1.TransactionType.INCOME ? '🟢 Receita' : '🔴 Despesa';
             registeredItems.push(`📌 *Tipo:* ${typeLabel}\n` +
                 `📝 *Descrição:* ${createdTx.description}\n` +
                 `💵 *Valor:* ${(0, currency_js_1.formatBRL)(Number(createdTx.amount))}\n` +
-                `🏷️ *Categoria:* ${category.name}`);
+                `🏷️ *Categoria:* ${category.name}\n` +
+                `🏦 *Conta:* ${targetAccount.name}\n` +
+                `💰 *Saldo da Conta:* ${(0, currency_js_1.formatBRL)(updatedAccBalance)}`);
         }
         const title = transactions.length > 1
             ? `✅ *${transactions.length} transações registradas com sucesso no Din!*`
             : `✅ *Registrado com sucesso no Din!*`;
         const replyMsg = `${title}\n\n` +
             registeredItems.join('\n\n─────────────\n\n') +
-            `\n\n💡 _Dica: Digite "qual meu saldo?" a qualquer momento para ver o resumo do mês._`;
+            `\n\n💡 _Dica: Digite "qual meu saldo?" para ver o balanço de todas as suas contas._`;
         await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, replyMsg);
         return { status: 'transactions_created', count: transactions.length };
     }
     /**
      * Responde com guia de uso amigável
      */
-    async handleUnknownMessage(user, instance, remoteJid) {
+    async handleUnknownMessage(user, instance, remoteJid, userAccounts) {
+        const accountsExample = userAccounts.map((a) => a.name).slice(0, 2).join(' e ');
         const replyMsg = `🤖 *Assistente Financeiro Din*\n` +
             `Olá, *${user.name}*! Não consegui identificar uma transação na sua mensagem.\n\n` +
-            `*Como registrar gastos e ganhos:*\n` +
-            `• 🍔 *"Lanchei e gastei 20 conto"*\n` +
+            `*Como registrar gastos e ganhos em suas contas:*\n` +
+            `• 💵 *"Recebi 4 mil de salário no Banco do Brasil"*\n` +
+            `• 🍔 *"Gastei 25 de lanche no Nubank"*\n` +
             `• 🚗 *"Coloquei 150 de gasolina no posto"*\n` +
-            `• 💵 *"Recebi 1800 de salário"*\n` +
             `• 🛒 *"Gastei 50 de mercado e 15 na padaria"*\n\n` +
-            `*Como consultar seu saldo:*\n` +
-            `• 📊 *"Qual meu saldo do mês?"*\n` +
-            `• 📈 *"Quanto gastei hoje?"*`;
+            `*Como consultar seus saldos:*\n` +
+            `• 📊 *"Qual meu saldo geral?"*\n` +
+            `• 🏦 *"Qual o saldo do ${userAccounts[0]?.name || 'Banco'}?"*\n` +
+            `• 📈 *"Quanto gastei este mês?"*`;
         await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, replyMsg);
         return { status: 'unknown_message_handled' };
     }

@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   ReceiptText,
+  Landmark,
   Bot,
   User as UserIcon,
   LogOut,
@@ -32,6 +33,11 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
       to: '/transactions',
       label: 'Transações',
       icon: ReceiptText,
+    },
+    {
+      to: '/accounts',
+      label: 'Contas & Bancos',
+      icon: Landmark,
     },
     {
       to: '/simulator',

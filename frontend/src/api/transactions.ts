@@ -1,5 +1,6 @@
 import { api } from './client';
 import { Category } from './categories';
+import { Account } from './accounts';
 
 export type TransactionType = 'INCOME' | 'EXPENSE';
 export type TransactionOrigin = 'MANUAL' | 'WHATSAPP_TEXT' | 'WHATSAPP_AUDIO';
@@ -7,6 +8,7 @@ export type TransactionOrigin = 'MANUAL' | 'WHATSAPP_TEXT' | 'WHATSAPP_AUDIO';
 export interface Transaction {
   id: string;
   user_id: string;
+  account_id?: string | null;
   category_id: string | null;
   description: string;
   amount: number;
@@ -17,6 +19,7 @@ export interface Transaction {
   raw_message: string | null;
   created_at: string;
   category?: Category | null;
+  account?: Account | null;
 }
 
 export interface TransactionsListResponse {
@@ -71,6 +74,7 @@ export interface TransactionFilters {
   start_date?: string;
   end_date?: string;
   type?: TransactionType;
+  account_id?: string;
   category_id?: string;
   origin?: TransactionOrigin;
   search?: string;
@@ -87,6 +91,7 @@ export async function createTransactionRequest(payload: {
   description: string;
   amount: number;
   type: TransactionType;
+  account_id?: string | null;
   category_id?: string | null;
   date?: string;
 }): Promise<{ transaction: Transaction }> {
@@ -100,6 +105,7 @@ export async function updateTransactionRequest(
     description: string;
     amount: number;
     type: TransactionType;
+    account_id?: string | null;
     category_id?: string | null;
     date?: string;
   }>

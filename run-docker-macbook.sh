@@ -176,7 +176,18 @@ check_port "$REDIS_PORT_VAL" "Redis"
 mkdir -p data/postgres data/redis data/evolution
 chmod +x docker/init-db.sh 2>/dev/null || true
 
-# 7. Construir e inicializar containers
+# 7. Compilar Backend e Frontend para os containers
+echo -e "\n${CYAN}⚡ Compilando TypeScript do Backend e Frontend...${NC}"
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+if command -v npm &> /dev/null; then
+    npm --prefix backend run build
+    npm --prefix frontend run build
+    echo -e "${GREEN}✓ Backend e Frontend compilados com sucesso!${NC}"
+fi
+
+# 8. Construir e inicializar containers
 echo -e "\n${CYAN}📦 Construindo e inicializando containers (Docker Compose)...${NC}"
 docker compose down --remove-orphans
 docker compose up $REBUILD_FLAGS -d
@@ -197,9 +208,9 @@ if [ $RETRIES -eq 0 ]; then
 fi
 echo -e "\n${GREEN}✓ PostgreSQL pronto e saudável!${NC}"
 
-# 9. Executar sincronização do banco de dados (Prisma) e Seed
-echo -e "\n${CYAN}🔄 Sincronizando schema do banco de dados (Prisma db push)...${NC}"
-docker compose exec -T api npx prisma db push --accept-data-loss
+# 9. Executar migrações do banco de dados (Prisma Migrations) e Seed
+echo -e "\n${CYAN}🔄 Aplicando migrações do banco de dados (Prisma migrate deploy)...${NC}"
+docker compose exec -T api npx prisma migrate deploy || docker compose exec -T api npx prisma db push --accept-data-loss
 
 echo -e "\n${CYAN}🌱 Executando seed com dados iniciais e usuário demo...${NC}"
 docker compose exec -T api npx tsx prisma/seed.ts

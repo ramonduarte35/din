@@ -45,12 +45,13 @@ export function Simulator() {
   const [lastPayload, setLastPayload] = useState<any>(null);
 
   const predefinedExamples = [
-    'lanchei e gastei 20 conto',
-    'recebi 1600 de salario',
-    'gastei 50 de gasolina e 15 na padaria',
-    'qual meu saldo do mês?',
+    'recebi o salario de 4 mil no banco do brasil',
+    'gastei 50 de lanche no nubank',
+    'qual o saldo do banco do brasil?',
+    'qual o saldo do nubank?',
+    'qual meu saldo geral?',
     'coloquei 120 de combustível no posto',
-    'recebi 450 do freela de design',
+    'recebi 450 do freela de design no nubank',
   ];
 
   const handleSend = async (textToSend?: string) => {

@@ -9,6 +9,7 @@ import { usersRoutes } from './modules/users/users.routes.js';
 import { categoriesRoutes } from './modules/categories/categories.routes.js';
 import { systemNumbersRoutes } from './modules/system-numbers/system-numbers.routes.js';
 import { transactionsRoutes } from './modules/transactions/transactions.routes.js';
+import { accountsRoutes } from './modules/accounts/accounts.routes.js';
 import { webhooksRoutes } from './modules/webhooks/webhooks.routes.js';
 import { adminWhatsAppRoutes } from './modules/admin/admin.whatsapp.routes.js';
 
@@ -52,6 +53,7 @@ export function buildApp() {
       v1.register(authRoutes, { prefix: '/auth' });
       v1.register(usersRoutes, { prefix: '/users' });
       v1.register(categoriesRoutes, { prefix: '/categories' });
+      v1.register(accountsRoutes, { prefix: '/accounts' });
       v1.register(systemNumbersRoutes, { prefix: '/system-numbers' });
       v1.register(transactionsRoutes, { prefix: '/transactions' });
       v1.register(webhooksRoutes, { prefix: '/webhooks' });
