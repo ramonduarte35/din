@@ -75,16 +75,16 @@ export function Profile() {
     setIsChangingPassword(true);
     try {
       const res = await changePasswordRequest({
-        current_password: currentPassword,
+        current_password: user?.has_password ? currentPassword : undefined,
         new_password: newPassword,
       });
-      setPasswordSuccess(res.message || 'Senha alterada com sucesso!');
+      setPasswordSuccess(res.message || 'Senha atualizada com sucesso!');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmNewPassword('');
       setTimeout(() => setPasswordSuccess(null), 4000);
     } catch (err: any) {
-      setPasswordError(err?.response?.data?.message || 'Erro ao alterar senha. Verifique sua senha atual.');
+      setPasswordError(err?.response?.data?.message || 'Erro ao processar senha. Verifique seus dados.');
     } finally {
       setIsChangingPassword(false);
     }
@@ -105,16 +105,30 @@ export function Profile() {
         {/* Card Resumo do Plano e Status */}
         <Card className="md:col-span-1 space-y-4">
           <div className="text-center pb-4 border-b border-slate-800">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 font-black text-2xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20 mb-3 uppercase">
-              {user?.name ? user.name.slice(0, 2) : 'D'}
-            </div>
+            {user?.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt={user.name || 'Avatar'}
+                referrerPolicy="no-referrer"
+                className="w-16 h-16 rounded-2xl object-cover mx-auto shadow-lg shadow-emerald-500/20 mb-3 border-2 border-emerald-400/30"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 font-black text-2xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20 mb-3 uppercase">
+                {user?.name ? user.name.slice(0, 2) : 'D'}
+              </div>
+            )}
             <h3 className="font-bold text-base text-white">{user?.name}</h3>
             <p className="text-xs text-slate-400">{user?.email}</p>
 
-            <div className="mt-3">
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
               <Badge variant={user?.subscription_tier === 'PRO' ? 'pro' : 'free'} className="text-xs py-1 px-3">
                 {user?.subscription_tier === 'PRO' ? '⭐ Plano PRO Ativo' : 'Plano Gratuito'}
               </Badge>
+              {user?.google_id && (
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1">
+                  Google Conectado
+                </span>
+              )}
             </div>
           </div>
 
@@ -197,42 +211,50 @@ export function Profile() {
         <div>
           <div className="flex items-center gap-2">
             <KeyRound className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-sm font-bold text-white tracking-tight">Segurança da Conta (Alterar Senha)</h3>
+            <h3 className="text-sm font-bold text-white tracking-tight">
+              {user?.has_password ? 'Segurança da Conta (Alterar Senha)' : 'Segurança da Conta (Definir Senha de Acesso)'}
+            </h3>
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
-            Mantenha sua conta protegida utilizando uma senha forte com no mínimo 6 caracteres.
+            {user?.has_password
+              ? 'Mantenha sua conta protegida utilizando uma senha forte com no mínimo 6 caracteres.'
+              : 'Sua conta foi criada através do Google. Você pode definir uma senha para também poder entrar via e-mail e senha.'}
           </p>
         </div>
 
         <form onSubmit={handleChangePassword} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Input
-            label="Senha Atual"
-            type="password"
-            placeholder="Sua senha atual"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            icon={<Lock className="w-4 h-4" />}
-            required
-          />
+          {user?.has_password && (
+            <Input
+              label="Senha Atual"
+              type="password"
+              placeholder="Sua senha atual"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              icon={<Lock className="w-4 h-4" />}
+              required
+            />
+          )}
 
           <Input
-            label="Nova Senha"
+            label={user?.has_password ? 'Nova Senha' : 'Criar Senha'}
             type="password"
             placeholder="Mínimo 6 dígitos"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             icon={<Lock className="w-4 h-4 text-emerald-400" />}
             required
+            className={user?.has_password ? '' : 'sm:col-span-1'}
           />
 
           <Input
-            label="Confirmar Nova Senha"
+            label="Confirmar Senha"
             type="password"
             placeholder="Repita a nova senha"
             value={confirmNewPassword}
             onChange={(e) => setConfirmNewPassword(e.target.value)}
             icon={<Lock className="w-4 h-4 text-emerald-400" />}
             required
+            className={user?.has_password ? '' : 'sm:col-span-2'}
           />
 
           {passwordSuccess && (
@@ -254,11 +276,11 @@ export function Profile() {
               type="submit"
               variant="secondary"
               isLoading={isChangingPassword}
-              disabled={!currentPassword || !newPassword || !confirmNewPassword}
+              disabled={(user?.has_password && !currentPassword) || !newPassword || !confirmNewPassword}
               className="min-h-[44px]"
             >
               <KeyRound className="w-4 h-4 mr-1.5" />
-              Atualizar Senha
+              {user?.has_password ? 'Atualizar Senha' : 'Salvar Senha'}
             </Button>
           </div>
         </form>

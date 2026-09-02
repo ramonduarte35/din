@@ -1,13 +1,24 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, loginRequest, registerRequest, getProfileRequest, updateProfileRequest } from '../api/auth';
+import {
+  User,
+  loginRequest,
+  registerRequest,
+  googleLoginRequest,
+  getAuthConfigRequest,
+  getProfileRequest,
+  updateProfileRequest,
+} from '../api/auth';
+
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  googleClientId: string;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, phone_number?: string) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   updateProfile: (data: { name?: string; phone_number?: string | null }) => Promise<void>;
@@ -24,8 +35,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return localStorage.getItem('@din:token');
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [googleClientId, setGoogleClientId] = useState<string>(
+    import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
+  );
 
   useEffect(() => {
+    // Busca clientId em runtime caso não tenha sido embutido no build
+    async function loadConfig() {
+      try {
+        const config = await getAuthConfigRequest();
+        if (config.googleClientId) {
+          setGoogleClientId(config.googleClientId);
+        }
+      } catch (err) {
+        // Ignora caso API esteja inacessível no momento
+      }
+    }
+    loadConfig();
+
     async function loadUser() {
       const storedToken = localStorage.getItem('@din:token');
       if (storedToken) {
@@ -53,6 +80,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (name: string, email: string, password: string, phone_number?: string) => {
     const response = await registerRequest({ name, email, password, phone_number });
+    setToken(response.token);
+    setUser(response.user);
+    localStorage.setItem('@din:token', response.token);
+    localStorage.setItem('@din:user', JSON.stringify(response.user));
+  };
+
+  const loginWithGoogle = async (idToken: string) => {
+    const response = await googleLoginRequest(idToken);
     setToken(response.token);
     setUser(response.user);
     localStorage.setItem('@din:token', response.token);
@@ -89,8 +124,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token,
         isAuthenticated: !!user && !!token,
         isLoading,
+        googleClientId,
         login,
         register,
+        loginWithGoogle,
         logout,
         refreshUser,
         updateProfile,

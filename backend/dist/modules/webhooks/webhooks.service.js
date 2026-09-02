@@ -37,18 +37,57 @@ class WebhooksService {
             console.log(`📡 [Webhook] Atualização de conexão para "${instance}":`, data?.state || data?.status);
             return { status: 'connection_status_logged' };
         }
-        // Processamento de Mensagens Recebidas (MESSAGES_UPSERT)
-        const key = data?.key || {};
-        const fromMe = key?.fromMe ?? payload?.fromMe ?? false;
-        const chatJid = key?.remoteJid || payload?.remoteJid || data?.remoteJid || '';
-        const participant = key?.participant || data?.participant || payload?.participant || '';
-        const messageId = key?.id || payload?.id || data?.id || `msg_${Date.now()}`;
+        // Processamento de Mensagens Recebidas (MESSAGES_UPSERT / Message)
+        const info = data?.Info || data?.info || payload?.Info || payload?.info || {};
+        const key = data?.key || data?.Key || payload?.key || {};
+        const fromMe = key?.fromMe ??
+            key?.FromMe ??
+            info?.isFromMe ??
+            info?.IsFromMe ??
+            payload?.fromMe ??
+            payload?.FromMe ??
+            data?.fromMe ??
+            data?.FromMe ??
+            false;
+        const chatJid = key?.remoteJid ||
+            key?.RemoteJid ||
+            info?.chat ||
+            info?.Chat ||
+            info?.sender ||
+            info?.Sender ||
+            payload?.remoteJid ||
+            payload?.RemoteJid ||
+            data?.remoteJid ||
+            data?.RemoteJid ||
+            data?.sender ||
+            data?.from ||
+            payload?.sender ||
+            payload?.from ||
+            '';
+        const participant = key?.participant ||
+            key?.Participant ||
+            info?.participant ||
+            info?.Participant ||
+            data?.participant ||
+            payload?.participant ||
+            '';
+        const messageId = key?.id ||
+            key?.Id ||
+            info?.id ||
+            info?.ID ||
+            payload?.id ||
+            data?.id ||
+            `msg_${Date.now()}`;
         // REQUISITO ESTRITO DE SEGURANÇA E PRIVACIDADE:
         // O webhook deve ler APENAS mensagens diretas individuais enviadas para o número do Din.
         // Ignorar sumariamente mensagens de grupos, canais, status, transmissões (@g.us, @broadcast, @newsletter)
         // ou mensagens com múltiplos participantes/menções coletivas.
         const isGroupFlag = data?.isGroup === true ||
+            data?.IsGroup === true ||
+            info?.isGroup === true ||
+            info?.IsGroup === true ||
             payload?.isGroup === true ||
+            payload?.IsGroup === true ||
             data?.messageType === 'group' ||
             payload?.messageType === 'group';
         const isGroupMention = Boolean(participant) ||
@@ -89,17 +128,24 @@ class WebhooksService {
             console.warn('⚠️ [Redis] Erro ao checar deduplicação:', redisErr);
         }
         // Extrair texto da mensagem
-        const messageObj = data?.message || data?.Message || {};
+        const messageObj = data?.message || data?.Message || payload?.message || payload?.Message || {};
         const messageContent = (typeof messageObj === 'string' ? messageObj : null) ||
             messageObj?.conversation ||
             messageObj?.Conversation ||
             messageObj?.extendedTextMessage?.text ||
             messageObj?.ExtendedTextMessage?.Text ||
+            messageObj?.extendedTextMessage?.Text ||
             messageObj?.imageMessage?.caption ||
             messageObj?.ImageMessage?.Caption ||
             data?.text ||
+            data?.Text ||
             data?.body ||
+            data?.Body ||
             data?.content ||
+            data?.Content ||
+            payload?.text ||
+            payload?.body ||
+            payload?.content ||
             (typeof data === 'string' ? data : '') ||
             '';
         if (!messageContent || messageContent.trim() === '') {

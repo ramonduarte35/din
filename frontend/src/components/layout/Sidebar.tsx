@@ -181,9 +181,18 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
       <div className="pt-4 border-t border-slate-800/80 mt-auto">
         <div className="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-slate-200 uppercase flex-shrink-0">
-              {user?.name ? user.name.slice(0, 2) : 'D'}
-            </div>
+            {user?.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt={user.name || 'Avatar'}
+                referrerPolicy="no-referrer"
+                className="w-8 h-8 rounded-full object-cover border border-slate-700 flex-shrink-0"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-slate-200 uppercase flex-shrink-0">
+                {user?.name ? user.name.slice(0, 2) : 'D'}
+              </div>
+            )}
             <div className="overflow-hidden">
               <p className="text-xs font-semibold text-slate-200 truncate">{user?.name || 'Usuário'}</p>
               <div className="flex items-center gap-1.5 mt-0.5">

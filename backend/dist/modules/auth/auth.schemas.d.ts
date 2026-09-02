@@ -25,5 +25,13 @@ export declare const loginSchema: z.ZodObject<{
     email: string;
     password: string;
 }>;
+export declare const googleAuthSchema: z.ZodObject<{
+    idToken: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    idToken: string;
+}, {
+    idToken: string;
+}>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;

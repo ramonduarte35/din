@@ -214,7 +214,12 @@ export class EvolutionClient {
           connectUrl,
           {
             webhookUrl,
+            eventString: 'MESSAGE,QRCODE,CONNECTION',
+            events: ['MESSAGE', 'QRCODE', 'CONNECTION', 'MESSAGES_UPSERT', 'CONNECTION_UPDATE', 'QRCODE_UPDATED'],
             subscribe: [
+              'MESSAGE',
+              'QRCODE',
+              'CONNECTION',
               'MESSAGES_UPSERT',
               'CONNECTION_UPDATE',
               'QRCODE_UPDATED',
@@ -230,14 +235,31 @@ export class EvolutionClient {
       }
 
       // 3. Obter QR Code
-      const qrUrl = `${this.baseUrl}/instance/qr`;
-      const qrRes = await axios.get(qrUrl, {
-        headers: { apikey: instanceName },
-        timeout: 10000,
-      });
+      let qrcode: string | null = null;
+      let code: string | null = null;
 
-      const qrcode = qrRes.data?.data?.qrcode || qrRes.data?.qrcode;
-      const code = qrRes.data?.data?.code || qrRes.data?.code;
+      try {
+        const qrUrl = `${this.baseUrl}/instance/qr`;
+        const qrRes = await axios.get(qrUrl, {
+          headers: { apikey: instanceName },
+          timeout: 10000,
+        });
+
+        qrcode = qrRes.data?.data?.qrcode || qrRes.data?.qrcode || null;
+        code = qrRes.data?.data?.code || qrRes.data?.code || null;
+      } catch (qrErr: any) {
+        const errorText = qrErr?.response?.data?.error || qrErr?.response?.data?.message || qrErr?.message || '';
+        if (errorText.includes('already logged in') || errorText.includes('already')) {
+          console.log(`✅ [Evolution] Instância "${instanceName}" já está autenticada e conectada.`);
+          return {
+            base64: null,
+            code: null,
+            qrcode: { base64: null },
+            connected: true,
+          };
+        }
+        throw qrErr;
+      }
 
       return {
         base64: qrcode,
@@ -313,7 +335,12 @@ export class EvolutionClient {
         url,
         {
           webhookUrl,
+          eventString: 'MESSAGE,QRCODE,CONNECTION',
+          events: ['MESSAGE', 'QRCODE', 'CONNECTION', 'MESSAGES_UPSERT', 'CONNECTION_UPDATE', 'QRCODE_UPDATED'],
           subscribe: [
+            'MESSAGE',
+            'QRCODE',
+            'CONNECTION',
             'MESSAGES_UPSERT',
             'CONNECTION_UPDATE',
             'QRCODE_UPDATED',

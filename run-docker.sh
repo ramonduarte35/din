@@ -49,17 +49,30 @@ chmod +x docker/init-db.sh 2>/dev/null || true
 echo -e "\n${CYAN}⚡ Compilando TypeScript do Backend e Frontend...${NC}"
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+if [ -n "$SUDO_USER" ] && [ -d "/home/$SUDO_USER/.nvm" ]; then
+    export NVM_DIR="/home/$SUDO_USER/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+fi
+
+# Detecta qualquer binário do Node instalado via NVM no sistema
+for nvm_bin in /home/*/.nvm/versions/node/*/bin /root/.nvm/versions/node/*/bin; do
+    if [ -d "$nvm_bin" ]; then
+        export PATH="$nvm_bin:$PATH"
+        break
+    fi
+done
+
 export PRISMA_HIDE_UPDATE_MESSAGE=true
 export CHECKPOINT_DISABLE=1
-if [ -d "/home/ramon/.nvm/versions/node/v24.15.0/bin" ]; then
-    export PATH="/home/ramon/.nvm/versions/node/v24.15.0/bin:$PATH"
-fi
 
 if command -v npm &> /dev/null; then
     npm --prefix backend run build
     npm --prefix frontend run build
     echo -e "${GREEN}✓ Backend e Frontend compilados com sucesso!${NC}"
+else
+    echo -e "${YELLOW}⚠️  Aviso: npm não encontrado no ambiente do host. Reutilizando build existente.${NC}"
 fi
+
 
 # 5. Construir e inicializar containers
 echo -e "\n${CYAN}📦 Construindo e inicializando containers com Docker...${NC}"

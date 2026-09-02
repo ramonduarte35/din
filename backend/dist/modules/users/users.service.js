@@ -16,6 +16,9 @@ class UsersService {
                 name: true,
                 email: true,
                 phone_number: true,
+                avatar_url: true,
+                google_id: true,
+                password_hash: true,
                 subscription_tier: true,
                 role: true,
                 created_at: true,
@@ -30,7 +33,12 @@ class UsersService {
         if (!user) {
             throw { statusCode: 404, message: 'Usuário não encontrado.' };
         }
-        return user;
+        const hasPassword = Boolean(user.password_hash);
+        const { password_hash, ...userProfile } = user;
+        return {
+            ...userProfile,
+            has_password: hasPassword,
+        };
     }
     async updateProfile(userId, data) {
         let normalizedPhone = undefined;
@@ -65,12 +73,20 @@ class UsersService {
                 name: true,
                 email: true,
                 phone_number: true,
+                avatar_url: true,
+                google_id: true,
+                password_hash: true,
                 subscription_tier: true,
                 role: true,
                 updated_at: true,
             },
         });
-        return updatedUser;
+        const hasPassword = Boolean(updatedUser.password_hash);
+        const { password_hash, ...userProfile } = updatedUser;
+        return {
+            ...userProfile,
+            has_password: hasPassword,
+        };
     }
     async changePassword(userId, data) {
         const user = await prisma_js_1.prisma.user.findUnique({
@@ -79,20 +95,27 @@ class UsersService {
         if (!user) {
             throw { statusCode: 404, message: 'Usuário não encontrado.' };
         }
-        const passwordMatch = await bcryptjs_1.default.compare(data.current_password, user.password_hash);
-        if (!passwordMatch) {
-            throw { statusCode: 400, message: 'A senha atual fornecida está incorreta.' };
-        }
-        const isSamePassword = await bcryptjs_1.default.compare(data.new_password, user.password_hash);
-        if (isSamePassword) {
-            throw { statusCode: 400, message: 'A nova senha deve ser diferente da senha atual.' };
+        if (user.password_hash) {
+            if (!data.current_password) {
+                throw { statusCode: 400, message: 'A senha atual é obrigatória.' };
+            }
+            const passwordMatch = await bcryptjs_1.default.compare(data.current_password, user.password_hash);
+            if (!passwordMatch) {
+                throw { statusCode: 400, message: 'A senha atual fornecida está incorreta.' };
+            }
+            const isSamePassword = await bcryptjs_1.default.compare(data.new_password, user.password_hash);
+            if (isSamePassword) {
+                throw { statusCode: 400, message: 'A nova senha deve ser diferente da senha atual.' };
+            }
         }
         const password_hash = await bcryptjs_1.default.hash(data.new_password, 10);
         await prisma_js_1.prisma.user.update({
             where: { id: userId },
             data: { password_hash },
         });
-        return { message: 'Senha alterada com sucesso!' };
+        return {
+            message: user.password_hash ? 'Senha alterada com sucesso!' : 'Senha criada com sucesso!',
+        };
     }
 }
 exports.UsersService = UsersService;

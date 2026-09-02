@@ -48,21 +48,37 @@ export declare class EvolutionClient {
     fetchInstances(): Promise<any[]>;
     createInstance(instanceName: string): Promise<any>;
     connectInstance(instanceName: string): Promise<{
-        base64: any;
-        code: any;
+        base64: null;
+        code: null;
         qrcode: {
-            base64: any;
+            base64: null;
         };
+        connected: boolean;
+    } | {
+        base64: string | null;
+        code: string | null;
+        qrcode: {
+            base64: string | null;
+        };
+        connected?: undefined;
     }>;
     getConnectionState(instanceName: string): Promise<{
         state: string;
     }>;
     restartInstance(instanceName: string): Promise<{
-        base64: any;
-        code: any;
+        base64: null;
+        code: null;
         qrcode: {
-            base64: any;
+            base64: null;
         };
+        connected: boolean;
+    } | {
+        base64: string | null;
+        code: string | null;
+        qrcode: {
+            base64: string | null;
+        };
+        connected?: undefined;
     }>;
     logoutInstance(instanceName: string): Promise<any>;
     deleteInstance(instanceName: string): Promise<any>;

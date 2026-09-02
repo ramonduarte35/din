@@ -93,6 +93,8 @@ services:
       EVOLUTION_API_URL: ${EVOLUTION_API_URL:-http://evolution-go:4000}
       EVOLUTION_GLOBAL_API_KEY: ${EVOLUTION_GLOBAL_API_KEY:-din_evolution_global_key_2026}
       EVOLUTION_WEBHOOK_SECRET: ${EVOLUTION_WEBHOOK_SECRET:-din_webhook_secret_2026}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

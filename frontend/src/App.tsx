@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ConfirmProvider } from './contexts/ConfirmContext';
@@ -16,6 +17,15 @@ import { Simulator } from './pages/Simulator';
 import { AdminWhatsApp } from './pages/AdminWhatsApp';
 import { AccessDenied } from './pages/AccessDenied';
 import { NotFound } from './pages/NotFound';
+
+function GoogleOAuthWrapper({ children }: { children: React.ReactNode }) {
+  const { googleClientId } = useAuth();
+  return (
+    <GoogleOAuthProvider clientId={googleClientId || ''}>
+      {children}
+    </GoogleOAuthProvider>
+  );
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -78,67 +88,70 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
 export function App() {
   return (
     <AuthProvider>
-      <PrivacyProvider>
-        <ToastProvider>
-          <ConfirmProvider>
-            <BrowserRouter>
-              <Routes>
-                {/* Public Auth Routes */}
-                <Route
-                  path="/login"
-                  element={
-                    <PublicOnlyRoute>
-                      <Login />
-                    </PublicOnlyRoute>
-                  }
-                />
-                <Route
-                  path="/register"
-                  element={
-                    <PublicOnlyRoute>
-                      <Register />
-                    </PublicOnlyRoute>
-                  }
-                />
-
-                {/* Protected Application Layout */}
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <AppLayout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route index element={<Dashboard />} />
-                  <Route path="transactions" element={<Transactions />} />
-                  <Route path="bills" element={<Bills />} />
-                  <Route path="accounts" element={<Accounts />} />
-                  <Route path="simulator" element={<Simulator />} />
-                  <Route path="profile" element={<Profile />} />
+      <GoogleOAuthWrapper>
+        <PrivacyProvider>
+          <ToastProvider>
+            <ConfirmProvider>
+              <BrowserRouter>
+                <Routes>
+                  {/* Public Auth Routes */}
                   <Route
-                    path="admin/whatsapp"
+                    path="/login"
                     element={
-                      <AdminRoute>
-                        <AdminWhatsApp />
-                      </AdminRoute>
+                      <PublicOnlyRoute>
+                        <Login />
+                      </PublicOnlyRoute>
                     }
                   />
                   <Route
-                    path="admin"
-                    element={<Navigate to="/admin/whatsapp" replace />}
+                    path="/register"
+                    element={
+                      <PublicOnlyRoute>
+                        <Register />
+                      </PublicOnlyRoute>
+                    }
                   />
-                </Route>
 
-                {/* 404 Fallback */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </ConfirmProvider>
-        </ToastProvider>
-      </PrivacyProvider>
+                  {/* Protected Application Layout */}
+                  <Route
+                    path="/"
+                    element={
+                      <ProtectedRoute>
+                        <AppLayout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route index element={<Dashboard />} />
+                    <Route path="transactions" element={<Transactions />} />
+                    <Route path="bills" element={<Bills />} />
+                    <Route path="accounts" element={<Accounts />} />
+                    <Route path="simulator" element={<Simulator />} />
+                    <Route path="profile" element={<Profile />} />
+                    <Route
+                      path="admin/whatsapp"
+                      element={
+                        <AdminRoute>
+                          <AdminWhatsApp />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="admin"
+                      element={<Navigate to="/admin/whatsapp" replace />}
+                    />
+                  </Route>
+
+                  {/* 404 Fallback */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </ConfirmProvider>
+          </ToastProvider>
+        </PrivacyProvider>
+      </GoogleOAuthWrapper>
     </AuthProvider>
   );
 }
 
 export default App;
+

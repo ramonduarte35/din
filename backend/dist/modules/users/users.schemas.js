@@ -7,6 +7,6 @@ exports.updateProfileSchema = zod_1.z.object({
     phone_number: zod_1.z.string().optional().nullable(),
 });
 exports.changePasswordSchema = zod_1.z.object({
-    current_password: zod_1.z.string().min(1, 'Senha atual é obrigatória'),
+    current_password: zod_1.z.string().optional(),
     new_password: zod_1.z.string().min(6, 'Nova senha deve ter no mínimo 6 caracteres'),
 });

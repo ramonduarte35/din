@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { AuthService } from './auth.service.js';
-import { registerSchema, loginSchema } from './auth.schemas.js';
+import { registerSchema, loginSchema, googleAuthSchema } from './auth.schemas.js';
+import { env } from '../../config/env.js';
 
 const authService = new AuthService();
 
@@ -36,4 +37,28 @@ export class AuthController {
       token,
     });
   }
+
+  async googleLogin(request: FastifyRequest, reply: FastifyReply) {
+    const body = googleAuthSchema.parse(request.body);
+    const user = await authService.googleLogin(body.idToken);
+
+    const token = await reply.jwtSign({
+      userId: user.id,
+      email: user.email,
+    });
+
+    return reply.status(200).send({
+      message: 'Login com Google realizado com sucesso!',
+      user,
+      token,
+    });
+  }
+
+  async getConfig(request: FastifyRequest, reply: FastifyReply) {
+    return reply.status(200).send({
+      googleClientId: env.GOOGLE_CLIENT_ID || '',
+    });
+  }
 }
+
+

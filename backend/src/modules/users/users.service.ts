@@ -12,6 +12,9 @@ export class UsersService {
         name: true,
         email: true,
         phone_number: true,
+        avatar_url: true,
+        google_id: true,
+        password_hash: true,
         subscription_tier: true,
         role: true,
         created_at: true,
@@ -28,7 +31,13 @@ export class UsersService {
       throw { statusCode: 404, message: 'Usuário não encontrado.' };
     }
 
-    return user;
+    const hasPassword = Boolean(user.password_hash);
+    const { password_hash, ...userProfile } = user;
+
+    return {
+      ...userProfile,
+      has_password: hasPassword,
+    };
   }
 
   async updateProfile(userId: string, data: UpdateProfileInput) {
@@ -66,13 +75,22 @@ export class UsersService {
         name: true,
         email: true,
         phone_number: true,
+        avatar_url: true,
+        google_id: true,
+        password_hash: true,
         subscription_tier: true,
         role: true,
         updated_at: true,
       },
     });
 
-    return updatedUser;
+    const hasPassword = Boolean(updatedUser.password_hash);
+    const { password_hash, ...userProfile } = updatedUser;
+
+    return {
+      ...userProfile,
+      has_password: hasPassword,
+    };
   }
 
   async changePassword(userId: string, data: ChangePasswordInput) {
@@ -84,14 +102,20 @@ export class UsersService {
       throw { statusCode: 404, message: 'Usuário não encontrado.' };
     }
 
-    const passwordMatch = await bcrypt.compare(data.current_password, user.password_hash);
-    if (!passwordMatch) {
-      throw { statusCode: 400, message: 'A senha atual fornecida está incorreta.' };
-    }
+    if (user.password_hash) {
+      if (!data.current_password) {
+        throw { statusCode: 400, message: 'A senha atual é obrigatória.' };
+      }
 
-    const isSamePassword = await bcrypt.compare(data.new_password, user.password_hash);
-    if (isSamePassword) {
-      throw { statusCode: 400, message: 'A nova senha deve ser diferente da senha atual.' };
+      const passwordMatch = await bcrypt.compare(data.current_password, user.password_hash);
+      if (!passwordMatch) {
+        throw { statusCode: 400, message: 'A senha atual fornecida está incorreta.' };
+      }
+
+      const isSamePassword = await bcrypt.compare(data.new_password, user.password_hash);
+      if (isSamePassword) {
+        throw { statusCode: 400, message: 'A nova senha deve ser diferente da senha atual.' };
+      }
     }
 
     const password_hash = await bcrypt.hash(data.new_password, 10);
@@ -101,7 +125,9 @@ export class UsersService {
       data: { password_hash },
     });
 
-    return { message: 'Senha alterada com sucesso!' };
+    return {
+      message: user.password_hash ? 'Senha alterada com sucesso!' : 'Senha criada com sucesso!',
+    };
   }
 }
 

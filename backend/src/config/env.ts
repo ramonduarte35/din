@@ -20,6 +20,8 @@ const envSchema = z.object({
   EVOLUTION_API_URL: z.string().default('http://evolution-go:4000'),
   EVOLUTION_GLOBAL_API_KEY: z.string().default('din_evolution_global_key_2026'),
   EVOLUTION_WEBHOOK_SECRET: z.string().default('din_webhook_secret_2026'),
+  GOOGLE_CLIENT_ID: z.string().optional().default(''),
+  GOOGLE_CLIENT_SECRET: z.string().optional().default(''),
 });
 
 const _env = envSchema.safeParse(process.env);

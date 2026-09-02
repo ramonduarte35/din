@@ -5,6 +5,9 @@ export interface User {
   name: string;
   email: string;
   phone_number: string | null;
+  avatar_url?: string | null;
+  google_id?: string | null;
+  has_password?: boolean;
   subscription_tier: 'FREE' | 'PRO';
   role?: 'USER' | 'ADMIN';
   created_at?: string;
@@ -32,6 +35,11 @@ export async function registerRequest(userData: {
   return data;
 }
 
+export async function googleLoginRequest(idToken: string): Promise<AuthResponse> {
+  const { data } = await api.post<AuthResponse>('/auth/google', { idToken });
+  return data;
+}
+
 export async function getProfileRequest(): Promise<{ user: User }> {
   const { data } = await api.get<{ user: User }>('/users/me');
   return data;
@@ -46,10 +54,18 @@ export async function updateProfileRequest(payload: {
 }
 
 export async function changePasswordRequest(payload: {
-  current_password: string;
+  current_password?: string;
   new_password: string;
 }): Promise<{ message: string }> {
   const { data } = await api.post<{ message: string }>('/users/change-password', payload);
   return data;
 }
+
+export async function getAuthConfigRequest(): Promise<{ googleClientId: string }> {
+  const { data } = await api.get<{ googleClientId: string }>('/auth/config');
+  return data;
+}
+
+
+
 

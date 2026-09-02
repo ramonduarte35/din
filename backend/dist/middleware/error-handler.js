@@ -9,7 +9,7 @@ function errorHandler(error, request, reply) {
         return reply.status(400).send({
             statusCode: 400,
             error: 'Validation Error',
-            message: 'Dados enviados são inválidos.',
+            message: error.issues[0]?.message || 'Dados enviados são inválidos.',
             issues: error.issues.map((i) => ({
                 path: i.path.join('.'),
                 message: i.message,
@@ -34,19 +34,21 @@ function errorHandler(error, request, reply) {
             });
         }
     }
-    // Erro padrão Fastify com statusCode
-    if (error.statusCode) {
-        return reply.status(error.statusCode).send({
-            statusCode: error.statusCode,
-            error: error.name || 'Error',
-            message: error.message,
+    // Erro padrão Fastify ou objeto com statusCode
+    if (error?.statusCode) {
+        const statusCode = typeof error.statusCode === 'number' ? error.statusCode : 400;
+        return reply.status(statusCode).send({
+            statusCode,
+            error: error.error || error.name || 'Error',
+            message: error.message || 'Ocorreu um erro na requisição.',
         });
     }
     // Erro interno não tratado
     request.log.error(error);
+    console.error('❌ Erro não tratado:', error);
     return reply.status(500).send({
         statusCode: 500,
         error: 'Internal Server Error',
-        message: 'Ocorreu um erro interno no servidor.',
+        message: error?.message || 'Ocorreu um erro interno no servidor.',
     });
 }

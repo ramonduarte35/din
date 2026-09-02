@@ -10,14 +10,14 @@ export declare const updateProfileSchema: z.ZodObject<{
     phone_number?: string | null | undefined;
 }>;
 export declare const changePasswordSchema: z.ZodObject<{
-    current_password: z.ZodString;
+    current_password: z.ZodOptional<z.ZodString>;
     new_password: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    current_password: string;
     new_password: string;
+    current_password?: string | undefined;
 }, {
-    current_password: string;
     new_password: string;
+    current_password?: string | undefined;
 }>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

@@ -32,6 +32,14 @@ export function Header({ onOpenMobileMenu, onOpenNewTransaction }: HeaderProps) 
         >
           <Menu className="w-5 h-5" />
         </button>
+        {user?.avatar_url && (
+          <img
+            src={user.avatar_url}
+            alt={user.name || 'Avatar'}
+            referrerPolicy="no-referrer"
+            className="w-8 h-8 rounded-full object-cover border border-slate-700 hidden sm:block"
+          />
+        )}
         <div>
           <h2 className="text-sm font-semibold text-slate-200 capitalize">
             Olá, {user?.name ? user.name.split(' ')[0] : 'Bem-vindo'}! 👋

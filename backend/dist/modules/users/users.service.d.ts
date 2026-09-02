@@ -1,10 +1,13 @@
 import { UpdateProfileInput, ChangePasswordInput } from './users.schemas.js';
 export declare class UsersService {
     getProfile(userId: string): Promise<{
+        has_password: boolean;
         name: string;
         id: string;
         email: string;
         phone_number: string | null;
+        avatar_url: string | null;
+        google_id: string | null;
         subscription_tier: import("@prisma/client").$Enums.SubscriptionTier;
         role: import("@prisma/client").$Enums.Role;
         created_at: Date;
@@ -14,10 +17,13 @@ export declare class UsersService {
         };
     }>;
     updateProfile(userId: string, data: UpdateProfileInput): Promise<{
+        has_password: boolean;
         name: string;
         id: string;
         email: string;
         phone_number: string | null;
+        avatar_url: string | null;
+        google_id: string | null;
         subscription_tier: import("@prisma/client").$Enums.SubscriptionTier;
         role: import("@prisma/client").$Enums.Role;
         updated_at: Date;

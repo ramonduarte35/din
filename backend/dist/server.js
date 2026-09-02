@@ -4,6 +4,26 @@ const app_js_1 = require("./app.js");
 const env_js_1 = require("./config/env.js");
 const prisma_js_1 = require("./lib/prisma.js");
 const redis_js_1 = require("./lib/redis.js");
+const evolution_client_js_1 = require("./modules/webhooks/evolution.client.js");
+async function autoConnectWhatsAppInstances() {
+    try {
+        const instances = await prisma_js_1.prisma.systemWhatsAppNumber.findMany({
+            where: { is_active: true },
+        });
+        for (const inst of instances) {
+            try {
+                console.log(`📡 [WhatsApp] Verificando e conectando webhook da instância "${inst.instance_name}" no Evolution Go...`);
+                await evolution_client_js_1.evolutionClient.connectInstance(inst.instance_name);
+            }
+            catch (err) {
+                console.warn(`⚠️ [WhatsApp] Aviso ao conectar instância "${inst.instance_name}":`, err?.message);
+            }
+        }
+    }
+    catch (dbErr) {
+        console.warn('⚠️ [WhatsApp] Não foi possível verificar instâncias na inicialização:', dbErr?.message);
+    }
+}
 async function bootstrap() {
     const app = (0, app_js_1.buildApp)();
     try {
@@ -23,6 +43,8 @@ async function bootstrap() {
    Ambiente: ${env_js_1.env.NODE_ENV}
 ==================================================
     `);
+        // Conectar automaticamente instâncias do WhatsApp em background
+        autoConnectWhatsAppInstances();
         // Graceful shutdown
         const signals = ['SIGINT', 'SIGTERM'];
         for (const signal of signals) {
