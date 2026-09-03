@@ -6,7 +6,7 @@
 /* 🎨 PALETAS DE CORES & VARIÁVEIS DE TEMA DIN                         */
 /* ══════════════════════════════════════════════════════════════════ */
 
-/* 1. ESCURO PADRÃO (Emerald & Deep Navy/Slate) */
+/* 1. ESCURO PADRÃO (Emerald & Deep Navy/Slate - Intacto) */
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
@@ -34,7 +34,115 @@
   --scrollbar-thumb-hover: #334155;
 }
 
-/* 2. ROSA GLAMOUR (Sunset Rose & Velvet Berry) */
+/* 2. SMART CLASSIC (Blue / Executive Light) */
+[data-theme="classic"] {
+  color-scheme: light;
+  --bg-app: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-surface-secondary: #F1F5F9;
+  --bg-surface-elevated: #FFFFFF;
+  --bg-sidebar: #FFFFFF;
+  --bg-header: rgba(248, 250, 252, 0.92);
+  --bg-input: #F8FAFC;
+  --border-app: #E2E8F0;
+  --border-subtle: rgba(15, 23, 42, 0.06);
+  --border-focus: #1E40AF;
+  --text-main: #0F172A;
+  --text-muted: #64748B;
+  --text-subtle: #94A3B8;
+  --color-primary: #1E40AF;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-gradient: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  --color-primary-glow: rgba(30, 64, 175, 0.28);
+  --ambient-orb-1: rgba(30, 64, 175, 0.08);
+  --ambient-orb-2: rgba(59, 130, 246, 0.08);
+  --ambient-orb-3: rgba(16, 185, 129, 0.05);
+  --scrollbar-thumb: #CBD5E1;
+  --scrollbar-thumb-hover: #94A3B8;
+}
+
+/* 3. EMERALD GROWTH (Mint Green Light) */
+[data-theme="emerald"] {
+  color-scheme: light;
+  --bg-app: #F2F7F4;
+  --bg-surface: #FFFFFF;
+  --bg-surface-secondary: #E8F1EC;
+  --bg-surface-elevated: #FFFFFF;
+  --bg-sidebar: #FFFFFF;
+  --bg-header: rgba(242, 247, 244, 0.92);
+  --bg-input: #F2F7F4;
+  --border-app: #D2E3D8;
+  --border-subtle: rgba(6, 78, 59, 0.08);
+  --border-focus: #047857;
+  --text-main: #064E3B;
+  --text-muted: #52796F;
+  --text-subtle: #84A98C;
+  --color-primary: #047857;
+  --color-primary-hover: #065F46;
+  --color-primary-gradient: linear-gradient(135deg, #047857 0%, #10B981 100%);
+  --color-primary-glow: rgba(4, 120, 87, 0.25);
+  --ambient-orb-1: rgba(4, 120, 87, 0.08);
+  --ambient-orb-2: rgba(16, 185, 129, 0.08);
+  --ambient-orb-3: rgba(225, 29, 72, 0.04);
+  --scrollbar-thumb: #CADCD1;
+  --scrollbar-thumb-hover: #A5C4B1;
+}
+
+/* 4. MIDNIGHT EXECUTIVE (Cyber Blue & Indigo Dark) */
+[data-theme="midnight"] {
+  color-scheme: dark;
+  --bg-app: #0B0F19;
+  --bg-surface: #1E293B;
+  --bg-surface-secondary: #162032;
+  --bg-surface-elevated: #26354D;
+  --bg-sidebar: #101726;
+  --bg-header: rgba(11, 15, 25, 0.88);
+  --bg-input: #0B0F19;
+  --border-app: #334155;
+  --border-subtle: rgba(56, 189, 248, 0.12);
+  --border-focus: #38BDF8;
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  --text-subtle: #64748B;
+  --color-primary: #38BDF8;
+  --color-primary-hover: #0EA5E9;
+  --color-primary-gradient: linear-gradient(135deg, #38BDF8 0%, #818CF8 100%);
+  --color-primary-glow: rgba(56, 189, 248, 0.35);
+  --ambient-orb-1: rgba(56, 189, 248, 0.11);
+  --ambient-orb-2: rgba(129, 140, 248, 0.10);
+  --ambient-orb-3: rgba(52, 211, 153, 0.06);
+  --scrollbar-thumb: #334155;
+  --scrollbar-thumb-hover: #475569;
+}
+
+/* 5. MONOCHROME MINIMALIST (Clean Minimalist Amber / Warm Gray) */
+[data-theme="minimalist"] {
+  color-scheme: light;
+  --bg-app: #FAFAFA;
+  --bg-surface: #FFFFFF;
+  --bg-surface-secondary: #F4F4F5;
+  --bg-surface-elevated: #FFFFFF;
+  --bg-sidebar: #FFFFFF;
+  --bg-header: rgba(250, 250, 250, 0.92);
+  --bg-input: #FAFAFA;
+  --border-app: #E4E4E7;
+  --border-subtle: rgba(24, 24, 27, 0.06);
+  --border-focus: #18181B;
+  --text-main: #18181B;
+  --text-muted: #71717A;
+  --text-subtle: #A1A1AA;
+  --color-primary: #18181B;
+  --color-primary-hover: #27272A;
+  --color-primary-gradient: linear-gradient(135deg, #18181B 0%, #3F3F46 100%);
+  --color-primary-glow: rgba(24, 24, 27, 0.22);
+  --ambient-orb-1: rgba(24, 24, 27, 0.05);
+  --ambient-orb-2: rgba(217, 119, 6, 0.07);
+  --ambient-orb-3: rgba(22, 163, 74, 0.04);
+  --scrollbar-thumb: #D4D4D8;
+  --scrollbar-thumb-hover: #A1A1AA;
+}
+
+/* 6. ROSA GLAMOUR (Retrocompatibilidade) */
 [data-theme="rose"] {
   color-scheme: dark;
   --bg-app: #0f0714;
@@ -61,7 +169,7 @@
   --scrollbar-thumb-hover: #58216f;
 }
 
-/* 3. ROXO NEON (Cyber Violet & Mystic Purple) */
+/* 7. ROXO NEON (Retrocompatibilidade) */
 [data-theme="purple"] {
   color-scheme: dark;
   --bg-app: #090616;
@@ -88,7 +196,7 @@
   --scrollbar-thumb-hover: #48238d;
 }
 
-/* 4. BRANCO CLEAN (Clean Pearl White & Modern Slate) */
+/* 8. BRANCO CLEAN (Retrocompatibilidade) */
 [data-theme="light"] {
   color-scheme: light;
   --bg-app: #f8fafc;

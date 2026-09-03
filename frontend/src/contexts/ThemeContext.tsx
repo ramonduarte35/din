@@ -1,7 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 
-export type ThemeId = 'dark' | 'rose' | 'light' | 'purple';
+export type ThemeId =
+  | 'dark'
+  | 'classic'
+  | 'emerald'
+  | 'midnight'
+  | 'minimalist'
+  | 'rose'
+  | 'purple'
+  | 'light';
 
 export interface ThemeOption {
   id: ThemeId;
@@ -9,6 +17,7 @@ export interface ThemeOption {
   description: string;
   badge?: string;
   accentColor: string;
+  mode: 'dark' | 'light';
   preview: {
     bg: string;
     card: string;
@@ -21,9 +30,10 @@ export const AVAILABLE_THEMES: ThemeOption[] = [
   {
     id: 'dark',
     name: 'Escuro Padrão',
-    description: 'Verde Esmeralda & Deep Navy/Slate',
-    badge: 'Padrão Din',
+    description: 'Verde Esmeralda & Deep Navy (Padrão)',
+    badge: 'Padrão',
     accentColor: '#10b981',
+    mode: 'dark',
     preview: {
       bg: '#080d1a',
       card: '#0f172a',
@@ -32,11 +42,68 @@ export const AVAILABLE_THEMES: ThemeOption[] = [
     },
   },
   {
+    id: 'classic',
+    name: 'Smart Classic',
+    description: 'Azul Executivo & Fundo Claro',
+    badge: 'Executivo',
+    accentColor: '#1E40AF',
+    mode: 'light',
+    preview: {
+      bg: '#F8FAFC',
+      card: '#FFFFFF',
+      accent: '#1E40AF',
+      secondary: '#3B82F6',
+    },
+  },
+  {
+    id: 'emerald',
+    name: 'Emerald Growth',
+    description: 'Verde Esmeralda Fresco & Superfície Clara',
+    badge: 'Crescimento',
+    accentColor: '#047857',
+    mode: 'light',
+    preview: {
+      bg: '#F2F7F4',
+      card: '#FFFFFF',
+      accent: '#047857',
+      secondary: '#10B981',
+    },
+  },
+  {
+    id: 'midnight',
+    name: 'Midnight Executive',
+    description: 'Ciano Cyber & Índigo Noturno Profundo',
+    badge: 'Cyber Dark',
+    accentColor: '#38BDF8',
+    mode: 'dark',
+    preview: {
+      bg: '#0B0F19',
+      card: '#1E293B',
+      accent: '#38BDF8',
+      secondary: '#818CF8',
+    },
+  },
+  {
+    id: 'minimalist',
+    name: 'Monochrome Minimalist',
+    description: 'Monocromático Sofisticado & Detalhes Âmbar',
+    badge: 'Minimalista',
+    accentColor: '#18181B',
+    mode: 'light',
+    preview: {
+      bg: '#FAFAFA',
+      card: '#FFFFFF',
+      accent: '#18181B',
+      secondary: '#D97706',
+    },
+  },
+  {
     id: 'rose',
     name: 'Rosa Glamour',
-    description: 'Sunset Rose & Pink Velvet',
+    description: 'Sunset Rose & Velvet Berry',
     badge: 'Elegante',
     accentColor: '#f43f5e',
+    mode: 'dark',
     preview: {
       bg: '#0f0714',
       card: '#190d24',
@@ -50,6 +117,7 @@ export const AVAILABLE_THEMES: ThemeOption[] = [
     description: 'Cyber Violet & Mystic Purple',
     badge: 'Futurista',
     accentColor: '#8b5cf6',
+    mode: 'dark',
     preview: {
       bg: '#090616',
       card: '#130c29',
@@ -57,19 +125,17 @@ export const AVAILABLE_THEMES: ThemeOption[] = [
       secondary: '#a855f7',
     },
   },
-  {
-    id: 'light',
-    name: 'Branco Clean',
-    description: 'Branco Pérola & Modern Slate',
-    badge: 'Claro & Nítido',
-    accentColor: '#059669',
-    preview: {
-      bg: '#f8fafc',
-      card: '#ffffff',
-      accent: '#059669',
-      secondary: '#0284c7',
-    },
-  },
+];
+
+const VALID_THEME_IDS: ThemeId[] = [
+  'dark',
+  'classic',
+  'emerald',
+  'midnight',
+  'minimalist',
+  'rose',
+  'purple',
+  'light',
 ];
 
 interface ThemeContextType {
@@ -86,18 +152,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const [theme, setThemeState] = useState<ThemeId>(() => {
     const savedTheme = localStorage.getItem('@din:theme') as ThemeId | null;
-    if (savedTheme && ['dark', 'rose', 'light', 'purple'].includes(savedTheme)) {
+    if (savedTheme && VALID_THEME_IDS.includes(savedTheme)) {
       return savedTheme;
     }
     return 'dark';
   });
 
-  // Aplica o tema na tag <html> e controla a classe .dark
+  // Aplica o tema na tag <html> e controla a classe .dark / .light
   useEffect(() => {
     const root = document.documentElement;
     root.setAttribute('data-theme', theme);
 
-    if (theme === 'light') {
+    const isLightMode = ['classic', 'emerald', 'minimalist', 'light'].includes(theme);
+
+    if (isLightMode) {
       root.classList.remove('dark');
       root.classList.add('light');
     } else {
@@ -110,7 +178,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Sincroniza com o tema salvo no perfil do usuário ao carregar
   useEffect(() => {
-    if (user?.theme && ['dark', 'rose', 'light', 'purple'].includes(user.theme)) {
+    if (user?.theme && VALID_THEME_IDS.includes(user.theme as ThemeId)) {
       const userTheme = user.theme as ThemeId;
       if (userTheme !== theme) {
         setThemeState(userTheme);

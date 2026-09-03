@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const updateProfileSchema = z.object({
   name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres').optional(),
   phone_number: z.string().optional().nullable(),
-  theme: z.enum(['dark', 'rose', 'light', 'purple']).optional(),
+  theme: z.enum(['dark', 'classic', 'emerald', 'midnight', 'minimalist', 'rose', 'light', 'purple']).optional(),
 });
 
 export const changePasswordSchema = z.object({

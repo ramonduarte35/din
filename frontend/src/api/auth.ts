@@ -10,7 +10,7 @@ export interface User {
   has_password?: boolean;
   subscription_tier: 'FREE' | 'PRO';
   role?: 'USER' | 'ADMIN';
-  theme?: 'dark' | 'rose' | 'light' | 'purple' | string;
+  theme?: 'dark' | 'classic' | 'emerald' | 'midnight' | 'minimalist' | 'rose' | 'light' | 'purple' | string;
   created_at?: string;
   updated_at?: string;
 }

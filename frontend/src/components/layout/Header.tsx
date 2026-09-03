@@ -94,7 +94,7 @@ export function Header({ onOpenMobileMenu, onOpenNewTransaction }: HeaderProps) 
                     Paleta de Cores
                   </span>
                 </div>
-                <span className="text-[10px] font-semibold text-din-muted">4 Opções</span>
+                <span className="text-[10px] font-semibold text-din-muted">{themes.length} Opções</span>
               </div>
 
               <div className="space-y-1">
