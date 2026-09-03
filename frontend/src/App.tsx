@@ -79,7 +79,7 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 

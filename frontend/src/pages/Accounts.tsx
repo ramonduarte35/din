@@ -157,41 +157,41 @@ export function Accounts() {
 
       {/* Resumo Geral de Saldos */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-4 sm:p-5 bg-gradient-to-br from-[#0c1322] to-[#080e1b] border-slate-800/80 shadow-lg">
-          <span className="text-xs font-semibold text-slate-400 block mb-1">
+        <Card className="p-4 sm:p-5 bg-card border-border shadow-lg">
+          <span className="text-xs font-semibold text-din-muted block mb-1">
             Saldo Total Consolidado
           </span>
-          <div className="text-2xl font-black text-white font-mono tracking-tight">
+          <div className="text-2xl font-black text-din-text font-mono tracking-tight">
             {maskValue(totalConsolidatedBalance)}
           </div>
-          <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1 mt-1">
+          <span className="text-[11px] text-emerald-500 font-medium flex items-center gap-1 mt-1">
             <CheckCircle2 className="w-3 h-3" /> Somatório de todas as contas
           </span>
         </Card>
 
-        <Card className="p-4 sm:p-5 bg-gradient-to-br from-[#0c1322] to-[#080e1b] border-slate-800/80 shadow-lg">
-          <span className="text-xs font-semibold text-slate-400 block mb-1">
+        <Card className="p-4 sm:p-5 bg-card border-border shadow-lg">
+          <span className="text-xs font-semibold text-din-muted block mb-1">
             Total de Contas Ativas
           </span>
-          <div className="text-2xl font-black text-white font-mono tracking-tight">
+          <div className="text-2xl font-black text-din-text font-mono tracking-tight">
             {accounts.length}
           </div>
-          <span className="text-[11px] text-slate-400 block mt-1">
+          <span className="text-[11px] text-din-muted block mt-1">
             Bancos, carteiras e investimentos
           </span>
         </Card>
 
-        <Card className="p-4 sm:p-5 bg-gradient-to-br from-[#0c1322] to-[#080e1b] border-slate-800/80 shadow-lg">
-          <span className="text-xs font-semibold text-slate-400 block mb-1">
+        <Card className="p-4 sm:p-5 bg-card border-border shadow-lg">
+          <span className="text-xs font-semibold text-din-muted block mb-1">
             Conta Padrão do WhatsApp
           </span>
-          <div className="text-lg font-bold text-emerald-300 tracking-tight flex items-center gap-1.5 truncate">
+          <div className="text-lg font-bold text-din-primary tracking-tight flex items-center gap-1.5 truncate">
             <Star className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
             <span className="truncate">
               {accounts.find((a) => a.is_default)?.name || 'Nenhuma'}
             </span>
           </div>
-          <span className="text-[11px] text-slate-400 block mt-1">
+          <span className="text-[11px] text-din-muted block mt-1">
             Recebe lançamentos não categorizados
           </span>
         </Card>
@@ -218,7 +218,7 @@ export function Accounts() {
             return (
               <Card
                 key={account.id}
-                className="p-5 flex flex-col justify-between relative overflow-hidden group hover:border-slate-700 transition-all bg-[#0d1527] border-slate-800/90 shadow-lg rounded-3xl"
+                className="p-5 flex flex-col justify-between relative overflow-hidden group hover:border-din-primary/40 transition-all bg-card border-border shadow-lg rounded-3xl"
               >
                 {/* Linha superior com cor do banco */}
                 <div
@@ -243,7 +243,7 @@ export function Accounts() {
 
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-base text-white group-hover:text-emerald-400 transition-colors">
+                          <h3 className="font-bold text-base text-din-text group-hover:text-din-primary transition-colors">
                             {account.name}
                           </h3>
                           {account.is_default && (
@@ -253,7 +253,7 @@ export function Accounts() {
                           )}
                         </div>
 
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-din-muted">
                           {account.type === 'CHECKING'
                             ? 'Conta Corrente'
                             : account.type === 'SAVINGS'
@@ -269,13 +269,13 @@ export function Accounts() {
                   </div>
 
                   {/* Saldo Atual */}
-                  <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 mb-4">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                  <div className="p-3.5 rounded-2xl bg-card-secondary border border-border mb-4">
+                    <span className="text-[10px] font-bold text-din-muted uppercase tracking-wider block mb-0.5">
                       Saldo Disponível
                     </span>
                     <div
                       className={`text-xl sm:text-2xl font-black font-mono tracking-tight ${
-                        isNegative ? 'text-rose-400' : 'text-emerald-400'
+                        isNegative ? 'text-rose-500' : 'text-emerald-500'
                       }`}
                     >
                       {maskValue(account.current_balance || 0)}
@@ -284,12 +284,12 @@ export function Accounts() {
                 </div>
 
                 {/* Ações do Card */}
-                <div className="flex items-center justify-between pt-3 border-t border-slate-800/80">
+                <div className="flex items-center justify-between pt-3 border-t border-border">
                   <div>
                     {!account.is_default && (
                       <button
                         onClick={() => handleSetDefault(account)}
-                        className="text-xs font-semibold text-slate-400 hover:text-amber-300 flex items-center gap-1 transition-colors min-h-[44px] sm:min-h-0 items-center"
+                        className="text-xs font-semibold text-din-muted hover:text-amber-300 flex items-center gap-1 transition-colors min-h-[44px] sm:min-h-0 items-center"
                       >
                         <Star className="w-3.5 h-3.5" />
                         <span>Definir Padrão</span>
@@ -302,7 +302,7 @@ export function Accounts() {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleOpenEdit(account)}
-                      className="h-9 w-9 p-0 min-h-[44px] min-w-[44px] rounded-xl text-slate-400 hover:text-white"
+                      className="h-9 w-9 p-0 min-h-[44px] min-w-[44px] rounded-xl text-din-muted hover:text-din-text"
                       title="Editar Conta"
                     >
                       <Edit2 className="w-4 h-4" />
@@ -313,7 +313,7 @@ export function Accounts() {
                       size="sm"
                       onClick={() => handleDelete(account)}
                       disabled={deletingId === account.id || accounts.length <= 1}
-                      className="h-9 w-9 p-0 min-h-[44px] min-w-[44px] rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10"
+                      className="h-9 w-9 p-0 min-h-[44px] min-w-[44px] rounded-xl text-din-muted hover:text-rose-500 hover:bg-rose-500/10"
                       title="Excluir Conta"
                     >
                       <Trash2 className="w-4 h-4" />

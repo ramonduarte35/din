@@ -64,9 +64,9 @@ export function TransactionTable({
   return (
     <div className="space-y-4 animate-fade-in">
       {/* Visualização em Tabela (Desktop / Tablet) */}
-      <div className="hidden md:block overflow-x-auto rounded-3xl border border-slate-800/80 bg-[#0d1424]/90 backdrop-blur-md shadow-xl">
+      <div className="hidden md:block overflow-x-auto rounded-3xl border border-border bg-card backdrop-blur-md shadow-xl">
         <table className="w-full text-left text-xs">
-          <thead className="bg-slate-950/60 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-800/80">
+          <thead className="bg-card-secondary text-din-muted font-bold uppercase tracking-wider border-b border-border">
             <tr>
               <th className="py-4 px-4">Tipo & Data</th>
               <th className="py-4 px-4">Descrição</th>
@@ -77,28 +77,28 @@ export function TransactionTable({
               <th className="py-4 px-4 text-center">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60">
+          <tbody className="divide-y divide-border">
             {transactions.map((tx) => {
               const isIncome = tx.type === 'INCOME';
               const isWhatsApp = tx.origin.startsWith('WHATSAPP');
 
               return (
-                <tr key={tx.id} className="hover:bg-slate-800/40 transition-colors group">
+                <tr key={tx.id} className="hover:bg-card-hover transition-colors group">
                   {/* Tipo & Data */}
                   <td className="py-3.5 px-4 whitespace-nowrap">
                     <div className="flex items-center gap-2.5">
                       <div
                         className={`p-2 rounded-xl ${
                           isIncome
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                            : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                            ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                            : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                         }`}
                       >
                         {isIncome ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
                       </div>
                       <div>
-                        <span className="font-semibold text-slate-200 block">{formatDate(tx.date)}</span>
-                        <span className="text-[10px] text-slate-500 font-mono">
+                        <span className="font-semibold text-din-text block">{formatDate(tx.date)}</span>
+                        <span className="text-[10px] text-din-muted font-mono">
                           {new Date(tx.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
@@ -107,12 +107,12 @@ export function TransactionTable({
 
                   {/* Descrição */}
                   <td className="py-3.5 px-4">
-                    <span className="font-bold text-slate-100 block group-hover:text-white transition-colors">
+                    <span className="font-bold text-din-text block group-hover:text-din-primary transition-colors">
                       {tx.description}
                     </span>
                     {tx.raw_text && (
-                      <span className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5 max-w-xs truncate">
-                        <MessageSquare className="w-2.5 h-2.5 flex-shrink-0 text-slate-500" />
+                      <span className="text-[10px] text-din-muted flex items-center gap-1 mt-0.5 max-w-xs truncate">
+                        <MessageSquare className="w-2.5 h-2.5 flex-shrink-0 text-din-muted" />
                         "{tx.raw_text}"
                       </span>
                     )}
@@ -133,7 +133,7 @@ export function TransactionTable({
                         {tx.account.name}
                       </span>
                     ) : (
-                      <span className="text-slate-500 text-xs italic">Sem conta vinculada</span>
+                      <span className="text-din-muted text-xs italic">Sem conta vinculada</span>
                     )}
                   </td>
 
@@ -155,7 +155,7 @@ export function TransactionTable({
                         {tx.category.name}
                       </span>
                     ) : (
-                      <span className="text-slate-500 text-xs italic">Sem categoria</span>
+                      <span className="text-din-muted text-xs italic">Sem categoria</span>
                     )}
                   </td>
 
@@ -176,7 +176,7 @@ export function TransactionTable({
                   <td className="py-3.5 px-4 text-right whitespace-nowrap">
                     <span
                       className={`text-sm font-bold font-mono tracking-tight ${
-                        isIncome ? 'text-emerald-400' : 'text-rose-400'
+                        isIncome ? 'text-emerald-500' : 'text-rose-500'
                       }`}
                     >
                       {isIncome ? '+ ' : '- '}
@@ -189,14 +189,14 @@ export function TransactionTable({
                     <div className="flex items-center justify-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => onEdit(tx)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                        className="p-1.5 rounded-lg text-din-muted hover:text-din-text hover:bg-card-hover transition-colors"
                         title="Editar lançamento"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => onDelete(tx.id)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                        className="p-1.5 rounded-lg text-din-muted hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
                         title="Excluir lançamento"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -219,22 +219,22 @@ export function TransactionTable({
           return (
             <div
               key={tx.id}
-              className="p-4 rounded-3xl bg-[#0d1424] border border-slate-800/80 shadow-lg space-y-3"
+              className="p-4 rounded-3xl bg-card border border-border shadow-lg space-y-3"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
                   <div
                     className={`p-2 rounded-xl flex-shrink-0 ${
                       isIncome
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                        : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                        : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                     }`}
                   >
                     {isIncome ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm text-white">{tx.description}</h4>
-                    <span className="text-[11px] text-slate-400 font-medium">
+                    <h4 className="font-bold text-sm text-din-text">{tx.description}</h4>
+                    <span className="text-[11px] text-din-muted font-medium">
                       {formatDate(tx.date)}
                     </span>
                   </div>
@@ -242,7 +242,7 @@ export function TransactionTable({
 
                 <span
                   className={`text-base font-bold font-mono tracking-tight shrink-0 ${
-                    isIncome ? 'text-emerald-400' : 'text-rose-400'
+                    isIncome ? 'text-emerald-500' : 'text-rose-500'
                   }`}
                 >
                   {isIncome ? '+ ' : '- '}
@@ -251,8 +251,8 @@ export function TransactionTable({
               </div>
 
               {tx.raw_text && (
-                <p className="text-[11px] text-slate-400 bg-slate-900/60 p-2 rounded-xl border border-slate-800/60 flex items-center gap-1.5">
-                  <MessageSquare className="w-3 h-3 text-slate-500 shrink-0" />
+                <p className="text-[11px] text-din-muted bg-card-secondary p-2 rounded-xl border border-border flex items-center gap-1.5">
+                  <MessageSquare className="w-3 h-3 text-din-muted shrink-0" />
                   <span className="truncate">"{tx.raw_text}"</span>
                 </p>
               )}
@@ -296,17 +296,17 @@ export function TransactionTable({
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800/80">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
                 <button
                   onClick={() => onEdit(tx)}
-                  className="p-2 text-slate-400 hover:text-indigo-400 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:bg-slate-800 transition-colors"
+                  className="p-2 text-din-muted hover:text-din-primary min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:bg-card-hover transition-colors"
                   title="Editar"
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => onDelete(tx.id)}
-                  className="p-2 text-slate-400 hover:text-rose-400 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:bg-rose-500/10 transition-colors"
+                  className="p-2 text-din-muted hover:text-rose-500 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:bg-rose-500/10 transition-colors"
                   title="Excluir"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -319,10 +319,10 @@ export function TransactionTable({
 
       {/* Paginação */}
       {pagination.totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 pt-2 text-xs text-slate-400">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 pt-2 text-xs text-din-muted">
           <p>
-            Página <span className="font-bold text-slate-200">{pagination.page}</span> de{' '}
-            <span className="font-bold text-slate-200">{pagination.totalPages}</span> ({pagination.total}{' '}
+            Página <span className="font-bold text-din-text">{pagination.page}</span> de{' '}
+            <span className="font-bold text-din-text">{pagination.totalPages}</span> ({pagination.total}{' '}
             lançamentos)
           </p>
 

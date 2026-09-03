@@ -122,23 +122,23 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
         )}
 
         {/* Resumo da Conta a Pagar */}
-        <div className="p-3.5 bg-slate-800/80 border border-slate-700/60 rounded-2xl space-y-1.5">
-          <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">Conta a Liquidar</span>
+        <div className="p-3.5 bg-card-secondary border border-border rounded-2xl space-y-1.5">
+          <span className="text-xs text-din-muted font-medium uppercase tracking-wider">Conta a Liquidar</span>
           <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-white text-base truncate max-w-[200px] sm:max-w-xs">
+            <h4 className="font-semibold text-din-text text-base truncate max-w-[200px] sm:max-w-xs">
               {bill.description}
             </h4>
-            <span className="text-lg font-bold text-emerald-400">
+            <span className="text-lg font-bold text-emerald-500">
               {formatCurrency(bill.amount)}
             </span>
           </div>
-          <div className="flex items-center space-x-2 text-xs text-slate-400 pt-1">
-            <Calendar className="w-3.5 h-3.5 text-slate-500" />
+          <div className="flex items-center space-x-2 text-xs text-din-muted pt-1">
+            <Calendar className="w-3.5 h-3.5 text-din-muted" />
             <span>Vencimento: {new Date(bill.due_date).toLocaleDateString('pt-BR')}</span>
             {bill.category && (
               <>
                 <span>•</span>
-                <span className="text-slate-300">{bill.category.name}</span>
+                <span className="text-din-text">{bill.category.name}</span>
               </>
             )}
           </div>
@@ -146,14 +146,14 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
 
         {/* Seletor de Conta Bancária de Débito */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-200">
-            De qual conta esse valor vai sair? <span className="text-emerald-400">*</span>
+          <label className="block text-sm font-medium text-din-text">
+            De qual conta esse valor vai sair? <span className="text-din-primary">*</span>
           </label>
 
           {accountsLoading ? (
-            <div className="p-4 text-center text-sm text-slate-400">Carregando contas bancárias...</div>
+            <div className="p-4 text-center text-sm text-din-muted">Carregando contas bancárias...</div>
           ) : accounts.length === 0 ? (
-            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-300 text-xs">
+            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-500 text-xs">
               Nenhuma conta bancária encontrada. Cadastre uma conta antes de pagar.
             </div>
           ) : (
@@ -167,8 +167,8 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
                     onClick={() => setSelectedAccountId(acc.id)}
                     className={`flex items-center justify-between p-3 rounded-xl border text-left transition-all min-h-[56px] ${
                       isSelected
-                        ? 'bg-emerald-500/15 border-emerald-500 shadow-sm shadow-emerald-500/10 text-white ring-1 ring-emerald-500/30'
-                        : 'bg-slate-800/60 border-slate-700/60 text-slate-300 hover:bg-slate-800 hover:border-slate-600'
+                        ? 'bg-emerald-500/15 border-emerald-500 shadow-sm shadow-emerald-500/10 text-din-text ring-1 ring-emerald-500/30'
+                        : 'bg-card border-border text-din-text hover:bg-card-hover hover:border-din-primary/40'
                     }`}
                   >
                     <div className="flex items-center space-x-2.5 min-w-0 pr-2">
@@ -179,9 +179,9 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
                         {getAccountIcon(acc.icon)}
                       </div>
                       <div className="truncate">
-                        <p className="text-sm font-medium text-white truncate">{acc.name}</p>
-                        <p className="text-xs text-slate-400">
-                          Saldo: <span className={acc.current_balance < 0 ? 'text-red-400 font-medium' : 'text-slate-300'}>{formatCurrency(acc.current_balance)}</span>
+                        <p className="text-sm font-medium text-din-text truncate">{acc.name}</p>
+                        <p className="text-xs text-din-muted">
+                          Saldo: <span className={acc.current_balance < 0 ? 'text-red-400 font-medium' : 'text-din-text'}>{formatCurrency(acc.current_balance)}</span>
                         </p>
                       </div>
                     </div>
@@ -192,7 +192,7 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
                           <Check className="w-3.5 h-3.5 stroke-[3]" />
                         </div>
                       ) : (
-                        <div className="w-5 h-5 rounded-full border border-slate-600" />
+                        <div className="w-5 h-5 rounded-full border border-border" />
                       )}
                     </div>
                   </button>
@@ -205,7 +205,7 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
         {/* Campos de Data e Valor */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Data do Pagamento</label>
+            <label className="block text-xs font-medium text-din-text mb-1">Data do Pagamento</label>
             <Input
               type="date"
               value={paidDate}
@@ -215,7 +215,7 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Valor Pago (R$)</label>
+            <label className="block text-xs font-medium text-din-text mb-1">Valor Pago (R$)</label>
             <Input
               type="number"
               step="0.01"
@@ -229,8 +229,8 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
 
         {/* Aviso de impacto */}
         {selectedAccount && (
-          <div className="p-3 bg-slate-800/40 border border-slate-700/40 rounded-xl text-xs text-slate-400 flex items-center space-x-2">
-            <span className="text-emerald-400 font-semibold">ℹ️ Nota:</span>
+          <div className="p-3 bg-card-secondary border border-border rounded-xl text-xs text-din-muted flex items-center space-x-2">
+            <span className="text-din-primary font-semibold">ℹ️ Nota:</span>
             <span>
               Uma despesa de <strong>{formatCurrency(parseFloat(paidAmount) || bill.amount)}</strong> será lançada no <strong>{selectedAccount.name}</strong> e o saldo será atualizado.
             </span>

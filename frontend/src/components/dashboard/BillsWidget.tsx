@@ -39,20 +39,20 @@ export const BillsWidget: React.FC = () => {
 
   return (
     <>
-      <Card className="p-4 sm:p-5 border-slate-700/60 bg-gradient-to-br from-[#0c1322] via-[#0b1220] to-[#080e1b] backdrop-blur-md shadow-xl animate-fade-in">
+      <Card className="p-4 sm:p-5 border-border bg-card backdrop-blur-md shadow-xl animate-fade-in">
         <div className="flex items-center justify-between mb-3.5">
           <div className="flex items-center space-x-2.5">
             <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-md">
               <CalendarClock className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">Contas a Vencer</h3>
-              <p className="text-xs text-slate-400">Próximos compromissos e boletos</p>
+              <h3 className="text-sm sm:text-base font-bold text-din-text tracking-tight">Contas a Vencer</h3>
+              <p className="text-xs text-din-muted">Próximos compromissos e boletos</p>
             </div>
           </div>
           <Link
             to="/bills"
-            className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold flex items-center space-x-1 transition-colors min-h-[44px] sm:min-h-0 py-1 px-2"
+            className="text-xs text-din-primary hover:opacity-80 font-semibold flex items-center space-x-1 transition-colors min-h-[44px] sm:min-h-0 py-1 px-2"
           >
             <span>Ver todas</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -79,10 +79,10 @@ export const BillsWidget: React.FC = () => {
 
         {/* Lista de Contas que Vencem nos Próximos 7 Dias */}
         {upcomingBills.length === 0 ? (
-          <div className="p-4 text-center rounded-2xl bg-slate-900/50 border border-slate-800/60">
-            <CheckCircle2 className="w-6 h-6 text-emerald-400/80 mx-auto mb-1.5" />
-            <p className="text-xs text-slate-200 font-semibold">Tudo em dia para os próximos 7 dias!</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">Nenhuma conta pendente prestes a vencer.</p>
+          <div className="p-4 text-center rounded-2xl bg-card-secondary border border-border">
+            <CheckCircle2 className="w-6 h-6 text-emerald-500/80 mx-auto mb-1.5" />
+            <p className="text-xs text-din-text font-semibold">Tudo em dia para os próximos 7 dias!</p>
+            <p className="text-[11px] text-din-muted mt-0.5">Nenhuma conta pendente prestes a vencer.</p>
           </div>
         ) : (
           <div className="space-y-2.5">
@@ -103,24 +103,24 @@ export const BillsWidget: React.FC = () => {
                 badgeColor = 'bg-amber-500/20 text-amber-400 border-amber-500/30 font-medium';
               } else {
                 badgeText = `Em ${diffDays} dias`;
-                badgeColor = 'bg-slate-800/80 text-slate-300 border-slate-700/60 font-medium';
+                badgeColor = 'bg-card text-din-muted border-border font-medium';
               }
 
               return (
                 <div
                   key={bill.id}
-                  className="p-3 bg-slate-900/60 hover:bg-slate-850 border border-slate-800/80 rounded-2xl flex items-center justify-between transition-all duration-200 shadow-sm"
+                  className="p-3 bg-card-secondary hover:bg-card-hover border border-border rounded-2xl flex items-center justify-between transition-all duration-200 shadow-sm"
                 >
                   <div className="min-w-0 pr-2">
                     <div className="flex items-center space-x-2">
-                      <span className="font-semibold text-xs sm:text-sm text-white truncate max-w-[140px] sm:max-w-[200px]">
+                      <span className="font-semibold text-xs sm:text-sm text-din-text truncate max-w-[140px] sm:max-w-[200px]">
                         {bill.description}
                       </span>
                       <span className={`text-[10px] px-2 py-0.5 rounded-md border ${badgeColor}`}>
                         {badgeText}
                       </span>
                     </div>
-                    <p className="text-xs font-bold text-emerald-400 mt-0.5 font-mono">
+                    <p className="text-xs font-bold text-emerald-500 mt-0.5 font-mono">
                       {maskValue(bill.amount)}
                     </p>
                   </div>
@@ -128,7 +128,7 @@ export const BillsWidget: React.FC = () => {
                   <Button
                     size="sm"
                     onClick={() => setPayingBill(bill)}
-                    className="shrink-0 text-xs py-1.5 px-3 min-h-[44px] sm:min-h-[36px] bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1 font-bold"
+                    className="shrink-0 text-xs py-1.5 px-3 min-h-[44px] sm:min-h-[36px] bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-500 border border-emerald-500/30 flex items-center space-x-1 font-bold"
                   >
                     <Zap className="w-3.5 h-3.5" />
                     <span>Pagar</span>

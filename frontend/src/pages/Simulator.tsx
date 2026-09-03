@@ -123,19 +123,19 @@ export function Simulator() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Coluna Esquerda: Chat Simulator (7 cols) */}
-        <div className="lg:col-span-7 flex flex-col h-[600px] rounded-3xl bg-slate-950/80 border border-slate-800 shadow-2xl overflow-hidden">
+        <div className="lg:col-span-7 flex flex-col h-[600px] rounded-3xl bg-card border border-border shadow-2xl overflow-hidden">
           {/* Top Bar do Chat WhatsApp */}
-          <div className="p-4 bg-[#0b1120] border-b border-slate-800 flex items-center justify-between">
+          <div className="p-4 bg-card-secondary border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
                 <Bot className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
+                <h3 className="text-sm font-bold text-din-text flex items-center gap-1.5">
                   <span>Din Assistente IA</span>
                   <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" />
                 </h3>
-                <p className="text-[11px] text-slate-400 font-mono">
+                <p className="text-[11px] text-din-muted font-mono">
                   Remetente: {user?.phone_number || '5586999998888 (Demo)'}
                 </p>
               </div>
@@ -144,7 +144,7 @@ export function Simulator() {
             <select
               value={instance}
               onChange={(e) => setInstance(e.target.value)}
-              className="bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none"
+              className="bg-card border border-border text-din-text text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-din-primary"
             >
               {systemNumbers.length > 0 ? (
                 systemNumbers.map((num) => (
@@ -159,7 +159,7 @@ export function Simulator() {
           </div>
 
           {/* Área de Mensagens */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#080d1a] bg-ambient-gradient">
+          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-background bg-ambient-gradient">
             {chatHistory.map((msg) => (
               <div
                 key={msg.id}
@@ -170,26 +170,26 @@ export function Simulator() {
                 <div
                   className={`max-w-[85%] p-3.5 rounded-2xl text-xs whitespace-pre-wrap leading-relaxed shadow-md ${
                     msg.sender === 'user'
-                      ? 'bg-emerald-600 text-white rounded-br-none'
-                      : 'bg-slate-900/90 text-slate-200 border border-slate-800 rounded-bl-none'
+                      ? 'bg-din-primary text-white rounded-br-none'
+                      : 'bg-card-secondary text-din-text border border-border rounded-bl-none'
                   }`}
                 >
                   {msg.text}
                 </div>
-                <span className="text-[10px] text-slate-500 mt-1 px-1">{msg.timestamp}</span>
+                <span className="text-[10px] text-din-muted mt-1 px-1">{msg.timestamp}</span>
               </div>
             ))}
           </div>
 
           {/* Input de Envio */}
-          <div className="p-3 bg-[#0b1120] border-t border-slate-800 flex items-center gap-2">
+          <div className="p-3 bg-card-secondary border-t border-border flex items-center gap-2">
             <input
               type="text"
               placeholder="Digite uma mensagem em linguagem natural..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              className="flex-1 bg-card border border-border rounded-xl px-4 py-2.5 text-xs text-din-text placeholder:text-din-muted focus:outline-none focus:ring-2 focus:ring-din-primary/50"
             />
             <Button
               variant="emerald"

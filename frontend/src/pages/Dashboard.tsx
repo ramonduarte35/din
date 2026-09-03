@@ -54,13 +54,13 @@ export function Dashboard() {
       {/* Header com boas-vindas e botão de atualizar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-black text-din-text tracking-tight flex items-center gap-2">
             <span>Painel Financeiro</span>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-din-primary/10 text-din-primary border border-din-primary/20">
               Tempo Real
             </span>
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-din-muted mt-0.5">
             Acompanhe o fluxo de caixa, saldos por conta e assistente WhatsApp
           </p>
         </div>

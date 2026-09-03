@@ -137,8 +137,8 @@ export const BillModal: React.FC<BillModalProps> = ({
         )}
 
         <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1">
-            Descrição da Conta <span className="text-emerald-400">*</span>
+          <label className="block text-xs font-medium text-din-text mb-1">
+            Descrição da Conta <span className="text-din-primary">*</span>
           </label>
           <Input
             type="text"
@@ -152,8 +152,8 @@ export const BillModal: React.FC<BillModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
-              Valor (R$) <span className="text-emerald-400">*</span>
+            <label className="block text-xs font-medium text-din-text mb-1">
+              Valor (R$) <span className="text-din-primary">*</span>
             </label>
             <Input
               type="number"
@@ -167,8 +167,8 @@ export const BillModal: React.FC<BillModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
-              Data de Vencimento <span className="text-emerald-400">*</span>
+            <label className="block text-xs font-medium text-din-text mb-1">
+              Data de Vencimento <span className="text-din-primary">*</span>
             </label>
             <Input
               type="date"
@@ -182,11 +182,11 @@ export const BillModal: React.FC<BillModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Categoria</label>
+            <label className="block text-xs font-medium text-din-text mb-1">Categoria</label>
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 min-h-[44px]"
+              className="w-full bg-card border border-border rounded-xl px-3.5 py-2.5 text-sm text-din-text focus:outline-none focus:ring-2 focus:ring-din-primary/40 focus:border-din-primary min-h-[44px]"
             >
               <option value="">Selecione uma categoria...</option>
               {categories.map((cat) => (
@@ -198,11 +198,11 @@ export const BillModal: React.FC<BillModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Conta Prevista (Opcional)</label>
+            <label className="block text-xs font-medium text-din-text mb-1">Conta Prevista (Opcional)</label>
             <select
               value={accountId}
               onChange={(e) => setAccountId(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 min-h-[44px]"
+              className="w-full bg-card border border-border rounded-xl px-3.5 py-2.5 text-sm text-din-text focus:outline-none focus:ring-2 focus:ring-din-primary/40 focus:border-din-primary min-h-[44px]"
             >
               <option value="">Escolher no momento do pagamento...</option>
               {accounts.map((acc) => (
@@ -215,7 +215,7 @@ export const BillModal: React.FC<BillModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1">
+          <label className="block text-xs font-medium text-din-text mb-1">
             Código de Barras / Linha Digitável / Chave PIX (Opcional)
           </label>
           <Input
@@ -228,13 +228,13 @@ export const BillModal: React.FC<BillModalProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1">Observações (Opcional)</label>
+          <label className="block text-xs font-medium text-din-text mb-1">Observações (Opcional)</label>
           <textarea
             rows={2}
             placeholder="Informações adicionais sobre esta conta..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 resize-none"
+            className="w-full bg-card border border-border rounded-xl px-3.5 py-2.5 text-sm text-din-text focus:outline-none focus:ring-2 focus:ring-din-primary/40 focus:border-din-primary resize-none"
           />
         </div>
 

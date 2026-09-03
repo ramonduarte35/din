@@ -163,7 +163,7 @@ export function AccountModal({
 
         {/* Nome da Conta */}
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+          <label className="block text-xs font-semibold text-din-text mb-1.5">
             Nome da Conta / Banco *
           </label>
           <Input
@@ -171,13 +171,13 @@ export function AccountModal({
             onChange={(e) => setName(e.target.value)}
             placeholder="Ex: Nubank, Banco do Brasil, Itaú, Carteira"
             required
-            className="h-11 text-sm bg-slate-900/80 border-slate-800"
+            className="h-11 text-sm"
           />
         </div>
 
         {/* Tipo de Conta */}
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+          <label className="block text-xs font-semibold text-din-text mb-1.5">
             Tipo de Conta
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -188,12 +188,12 @@ export function AccountModal({
                 onClick={() => setType(opt.value)}
                 className={`p-2.5 rounded-xl border text-xs font-medium transition-all text-left min-h-[44px] flex items-center justify-between ${
                   type === opt.value
-                    ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
-                    : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700'
+                    ? 'border-din-primary bg-din-primary/10 text-din-primary'
+                    : 'border-border bg-card-secondary text-din-muted hover:border-din-primary/40'
                 }`}
               >
                 <span>{opt.label}</span>
-                {type === opt.value && <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
+                {type === opt.value && <Check className="w-3.5 h-3.5 text-din-primary shrink-0" />}
               </button>
             ))}
           </div>
@@ -201,7 +201,7 @@ export function AccountModal({
 
         {/* Saldo Inicial */}
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+          <label className="block text-xs font-semibold text-din-text mb-1.5">
             Saldo Inicial (R$)
           </label>
           <Input
@@ -210,16 +210,16 @@ export function AccountModal({
             value={initialBalance}
             onChange={(e) => setInitialBalance(e.target.value)}
             placeholder="0,00"
-            className="h-11 text-sm bg-slate-900/80 border-slate-800"
+            className="h-11 text-sm"
           />
-          <span className="text-[11px] text-slate-500 mt-1 block">
+          <span className="text-[11px] text-din-muted mt-1 block">
             Saldo que você já possui nesta conta antes dos lançamentos.
           </span>
         </div>
 
         {/* Cores */}
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+          <label className="block text-xs font-semibold text-din-text mb-1.5">
             Cor de Identificação
           </label>
           <div className="flex flex-wrap gap-2 items-center">
@@ -231,7 +231,7 @@ export function AccountModal({
                 onClick={() => setColor(p.color)}
                 style={{ backgroundColor: p.color }}
                 className={`w-8 h-8 rounded-full border-2 transition-transform min-h-[32px] min-w-[32px] flex items-center justify-center ${
-                  color === p.color ? 'border-white scale-110 shadow-lg' : 'border-transparent opacity-80 hover:opacity-100'
+                  color === p.color ? 'border-din-text scale-110 shadow-lg' : 'border-transparent opacity-80 hover:opacity-100'
                 }`}
               >
                 {color === p.color && <Check className="w-4 h-4 text-white drop-shadow" />}
@@ -242,7 +242,7 @@ export function AccountModal({
 
         {/* Ícones */}
         <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+          <label className="block text-xs font-semibold text-din-text mb-1.5">
             Ícone
           </label>
           <div className="flex flex-wrap gap-2">
@@ -256,8 +256,8 @@ export function AccountModal({
                   onClick={() => setIcon(item.name)}
                   className={`p-2 rounded-xl border text-xs font-medium transition-all flex items-center gap-1.5 min-h-[44px] px-3 ${
                     isSelected
-                      ? 'border-emerald-500 bg-emerald-500/15 text-emerald-300 shadow-sm'
-                      : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700'
+                      ? 'border-din-primary bg-din-primary/15 text-din-primary shadow-sm'
+                      : 'border-border bg-card-secondary text-din-muted hover:border-din-primary/40'
                   }`}
                 >
                   <IconComp className="w-4 h-4" />
@@ -269,19 +269,19 @@ export function AccountModal({
         </div>
 
         {/* Tornar Conta Padrão */}
-        <div className="pt-2 border-t border-slate-800/80">
-          <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-slate-800/40 transition-colors min-h-[44px]">
+        <div className="pt-2 border-t border-border">
+          <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-card-hover transition-colors min-h-[44px]">
             <input
               type="checkbox"
               checked={isDefault}
               onChange={(e) => setIsDefault(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-950"
+              className="w-4 h-4 rounded border-border bg-card text-din-primary focus:ring-din-primary"
             />
             <div>
-              <span className="text-xs font-semibold text-slate-200 block">
+              <span className="text-xs font-semibold text-din-text block">
                 Definir como Conta Padrão
               </span>
-              <span className="text-[11px] text-slate-400 block">
+              <span className="text-[11px] text-din-muted block">
                 Transações do WhatsApp sem banco especificado serão lançadas nesta conta.
               </span>
             </div>
@@ -289,7 +289,7 @@ export function AccountModal({
         </div>
 
         {/* Botões de Ação */}
-        <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
+        <div className="flex items-center justify-end gap-2 pt-4 border-t border-border">
           <Button
             type="button"
             variant="ghost"

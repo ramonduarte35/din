@@ -135,7 +135,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
     >
       <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
         {/* Toggle Tipo: Despesa vs Receita */}
-        <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800 min-h-[44px]">
+        <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-card-secondary border border-border min-h-[44px]">
           <button
             type="button"
             onClick={() => {
@@ -145,7 +145,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
             className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all min-h-[44px] ${
               type === 'EXPENSE'
                 ? 'bg-rose-500 text-white shadow-md shadow-rose-500/25'
-                : 'text-slate-400 hover:text-slate-200'
+                : 'text-din-muted hover:text-din-text'
             }`}
           >
             <TrendingDown className="w-4 h-4" />
@@ -160,7 +160,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
             className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all min-h-[44px] ${
               type === 'INCOME'
                 ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25'
-                : 'text-slate-400 hover:text-slate-200'
+                : 'text-din-muted hover:text-din-text'
             }`}
           >
             <TrendingUp className="w-4 h-4" />
@@ -176,7 +176,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
           onChange={(e) => setDescription(e.target.value)}
           icon={<FileText className="w-4 h-4" />}
           required
-          className="h-11 text-sm bg-slate-900/80 border-slate-800"
+          className="h-11 text-sm"
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -191,7 +191,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
             onChange={(e) => setAmount(e.target.value)}
             icon={<DollarSign className="w-4 h-4" />}
             required
-            className="h-11 text-sm bg-slate-900/80 border-slate-800"
+            className="h-11 text-sm"
           />
 
           {/* Data */}
@@ -202,23 +202,23 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
             onChange={(e) => setDate(e.target.value)}
             icon={<Calendar className="w-4 h-4" />}
             required
-            className="h-11 text-sm bg-slate-900/80 border-slate-800"
+            className="h-11 text-sm"
           />
         </div>
 
         {/* Conta Bancária / Carteira */}
         <div className="space-y-1.5 text-left">
-          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">
+          <label className="block text-xs font-semibold text-din-text uppercase tracking-wide">
             Conta Bancária / Carteira
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-din-muted">
               <Landmark className="w-4 h-4" />
             </div>
             <select
               value={accountId}
               onChange={(e) => setAccountId(e.target.value)}
-              className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 text-slate-100 text-sm pl-10 pr-3.5 py-2.5 transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 min-h-[44px]"
+              className="w-full rounded-xl bg-card border border-border text-din-text text-sm pl-10 pr-3.5 py-2.5 transition-all focus:outline-none focus:ring-2 focus:ring-din-primary/40 focus:border-din-primary min-h-[44px]"
             >
               {accounts.map((acc) => (
                 <option key={acc.id} value={acc.id}>
@@ -231,17 +231,17 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
 
         {/* Categoria */}
         <div className="space-y-1.5 text-left">
-          <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">
+          <label className="block text-xs font-semibold text-din-text uppercase tracking-wide">
             Categoria
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-din-muted">
               <Tag className="w-4 h-4" />
             </div>
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 text-slate-100 text-sm pl-10 pr-3.5 py-2.5 transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 min-h-[44px]"
+              className="w-full rounded-xl bg-card border border-border text-din-text text-sm pl-10 pr-3.5 py-2.5 transition-all focus:outline-none focus:ring-2 focus:ring-din-primary/40 focus:border-din-primary min-h-[44px]"
             >
               <option value="">Selecione uma categoria (opcional)</option>
               {filteredCategories.map((cat) => (
@@ -255,7 +255,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
 
         {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
 
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
           <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading} className="min-h-[44px]">
             Cancelar
           </Button>

@@ -167,24 +167,24 @@ export const Bills: React.FC = () => {
       {/* Cards de Métricas / KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {/* Total a Pagar / Pendente */}
-        <Card className="p-4 sm:p-5 border-slate-700/60 bg-[#0c1322] flex items-center justify-between shadow-lg">
+        <Card className="p-4 sm:p-5 border-border bg-card flex items-center justify-between shadow-lg">
           <div>
-            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">A Pagar no Mês</span>
-            <p className="text-xl sm:text-2xl font-bold font-mono text-amber-400 mt-1">
+            <span className="text-xs text-din-muted font-semibold uppercase tracking-wider">A Pagar no Mês</span>
+            <p className="text-xl sm:text-2xl font-bold font-mono text-amber-500 mt-1">
               {maskValue(summary?.total_pending?.amount || 0)}
             </p>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-din-muted mt-0.5">
               {summary?.total_pending?.count || 0} {summary?.total_pending?.count === 1 ? 'conta pendente' : 'contas pendentes'}
             </p>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-md">
+          <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-md">
             <Clock className="w-5 h-5" />
           </div>
         </Card>
 
         {/* Total Atrasado / Vencido */}
         <Card className={`p-4 sm:p-5 border flex items-center justify-between shadow-lg ${
-          (summary?.total_overdue?.count || 0) > 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-[#0c1322] border-slate-700/60'
+          (summary?.total_overdue?.count || 0) > 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-card border-border'
         }`}>
           <div>
             <span className="text-xs text-red-400 font-semibold uppercase tracking-wider">Contas Vencidas</span>
@@ -201,24 +201,24 @@ export const Bills: React.FC = () => {
         </Card>
 
         {/* Total Pago */}
-        <Card className="p-4 sm:p-5 border-slate-700/60 bg-[#0c1322] flex items-center justify-between shadow-lg">
+        <Card className="p-4 sm:p-5 border-border bg-card flex items-center justify-between shadow-lg">
           <div>
-            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Pago no Mês</span>
-            <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-400 mt-1">
+            <span className="text-xs text-din-muted font-semibold uppercase tracking-wider">Total Pago no Mês</span>
+            <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-500 mt-1">
               {maskValue(summary?.total_paid?.amount || 0)}
             </p>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-din-muted mt-0.5">
               {summary?.total_paid?.count || 0} {summary?.total_paid?.count === 1 ? 'conta liquidada' : 'contas liquidadas'}
             </p>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-md">
+          <div className="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shadow-md">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </Card>
       </div>
 
       {/* Filtros e Abas */}
-      <Card className="p-3 sm:p-4 border-slate-700/60 bg-[#0c1322] space-y-3 shadow-lg">
+      <Card className="p-3 sm:p-4 border-border bg-card space-y-3 shadow-lg">
         <div className="flex flex-col sm:flex-row gap-2.5 sm:items-center justify-between">
           {/* Abas Rápidas */}
           <div className="flex items-center overflow-x-auto no-scrollbar space-x-1.5 pb-1 sm:pb-0">
@@ -233,8 +233,8 @@ export const Bills: React.FC = () => {
                 onClick={() => setActiveTab(tab.key)}
                 className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 min-h-[44px] sm:min-h-[40px] ${
                   activeTab === tab.key
-                    ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20'
-                    : 'bg-slate-850 text-slate-300 hover:bg-slate-800'
+                    ? 'bg-din-primary text-white font-bold shadow-md shadow-din-primary/20'
+                    : 'bg-card-secondary text-din-muted hover:text-din-text hover:bg-card-hover'
                 }`}
               >
                 {tab.label}
@@ -245,7 +245,7 @@ export const Bills: React.FC = () => {
           {/* Busca e Período */}
           <div className="flex items-center space-x-2 min-w-0">
             <div className="relative flex-1 sm:w-56">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-din-muted absolute left-3 top-1/2 -translate-y-1/2" />
               <Input
                 type="text"
                 placeholder="Buscar conta..."
@@ -258,7 +258,7 @@ export const Bills: React.FC = () => {
             <select
               value={month}
               onChange={(e) => setMonth(parseInt(e.target.value, 10))}
-              className="bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 min-h-[44px] sm:min-h-[40px]"
+              className="bg-card-secondary border border-border rounded-xl px-3 py-2 text-xs text-din-text focus:outline-none focus:ring-1 focus:ring-din-primary min-h-[44px] sm:min-h-[40px]"
             >
               {[
                 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
@@ -320,7 +320,7 @@ export const Bills: React.FC = () => {
               badgeStyle = 'bg-amber-500/15 text-amber-300 border-amber-500/30';
             } else {
               badgeText = `Vence em ${diffDays} dias`;
-              badgeStyle = 'bg-slate-800 text-slate-300 border-slate-700';
+              badgeStyle = 'bg-card-secondary text-din-muted border-border';
             }
 
             return (
@@ -328,10 +328,10 @@ export const Bills: React.FC = () => {
                 key={bill.id}
                 className={`p-4 border transition-all rounded-3xl shadow-lg ${
                   isOverdue
-                    ? 'border-red-500/40 bg-gradient-to-r from-red-500/10 via-[#0d1424] to-[#0c1322]'
+                    ? 'border-red-500/40 bg-red-500/10'
                     : isPaid
-                    ? 'border-slate-800/80 bg-[#0c1322]/60 opacity-85'
-                    : 'border-slate-700/80 bg-[#0d1424] hover:border-slate-600'
+                    ? 'border-border bg-card/60 opacity-80'
+                    : 'border-border bg-card hover:border-din-primary/40'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -346,7 +346,7 @@ export const Bills: React.FC = () => {
 
                     <div className="min-w-0 space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="font-bold text-white text-sm sm:text-base truncate max-w-[200px] sm:max-w-md">
+                        <h4 className="font-bold text-din-text text-sm sm:text-base truncate max-w-[200px] sm:max-w-md">
                           {bill.description}
                         </h4>
                         <span className={`text-[11px] px-2.5 py-0.5 rounded-full border font-semibold ${badgeStyle}`}>
@@ -354,20 +354,20 @@ export const Bills: React.FC = () => {
                         </span>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-din-muted">
                         <span className="flex items-center space-x-1">
-                          <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                          <Calendar className="w-3.5 h-3.5 text-din-muted" />
                           <span>Vencimento: {new Date(bill.due_date).toLocaleDateString('pt-BR')}</span>
                         </span>
 
                         {bill.category && (
-                          <span className="text-slate-300 font-medium">
+                          <span className="text-din-text font-medium">
                             🏷️ {bill.category.name}
                           </span>
                         )}
 
                         {isPaid && bill.account && (
-                          <span className="text-emerald-400 flex items-center space-x-1 font-semibold">
+                          <span className="text-emerald-500 flex items-center space-x-1 font-semibold">
                             <Landmark className="w-3.5 h-3.5" />
                             <span>Debitado de: {bill.account.name}</span>
                           </span>
@@ -375,7 +375,7 @@ export const Bills: React.FC = () => {
                       </div>
 
                       {bill.notes && (
-                        <p className="text-xs text-slate-400 italic truncate max-w-md pt-0.5">
+                        <p className="text-xs text-din-muted italic truncate max-w-md pt-0.5">
                           "{bill.notes}"
                         </p>
                       )}
@@ -383,11 +383,11 @@ export const Bills: React.FC = () => {
                   </div>
 
                   {/* Valor e Ações */}
-                  <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800/80">
+                  <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-border">
                     {/* Valor da Conta */}
                     <div className="text-left sm:text-right">
-                      <span className="text-xs text-slate-400 block sm:hidden">Valor</span>
-                      <span className={`text-base sm:text-lg font-bold font-mono tracking-tight ${isPaid ? 'text-slate-400 line-through' : 'text-white'}`}>
+                      <span className="text-xs text-din-muted block sm:hidden">Valor</span>
+                      <span className={`text-base sm:text-lg font-bold font-mono tracking-tight ${isPaid ? 'text-din-muted line-through' : 'text-din-text'}`}>
                         {maskValue(bill.amount)}
                       </span>
                     </div>
@@ -400,10 +400,10 @@ export const Bills: React.FC = () => {
                           type="button"
                           onClick={() => handleCopyBarcode(bill)}
                           title="Copiar Código de Barras / PIX"
-                          className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center border border-slate-700/60"
+                          className="p-2.5 rounded-xl bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center border border-border"
                         >
                           {copiedId === bill.id ? (
-                            <Check className="w-4 h-4 text-emerald-400" />
+                            <Check className="w-4 h-4 text-emerald-500" />
                           ) : (
                             <Copy className="w-4 h-4" />
                           )}
@@ -425,7 +425,7 @@ export const Bills: React.FC = () => {
                           type="button"
                           onClick={() => handleUnpay(bill)}
                           title="Desfazer Pagamento"
-                          className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center border border-slate-700/60"
+                          className="p-2.5 rounded-xl bg-card-secondary hover:bg-card-hover text-amber-500 hover:text-amber-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center border border-border"
                         >
                           <RotateCcw className="w-4 h-4" />
                         </button>
@@ -439,7 +439,7 @@ export const Bills: React.FC = () => {
                           setIsModalOpen(true);
                         }}
                         title="Editar Conta"
-                        className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center border border-slate-700/60"
+                        className="p-2.5 rounded-xl bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center border border-border"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
@@ -448,7 +448,7 @@ export const Bills: React.FC = () => {
                         type="button"
                         onClick={() => handleDelete(bill)}
                         title="Excluir Conta"
-                        className="p-2.5 rounded-xl bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center border border-slate-700/60"
+                        className="p-2.5 rounded-xl bg-card-secondary hover:bg-red-500/20 text-din-muted hover:text-red-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center border border-border"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

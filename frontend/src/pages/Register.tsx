@@ -102,7 +102,7 @@ export function Register() {
                     'Para habilitar o cadastro com o Google, configure a variável VITE_GOOGLE_CLIENT_ID no arquivo .env.'
                   )
                 }
-                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700 text-slate-200 text-sm font-medium transition-all shadow-sm min-h-[44px]"
+                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-full bg-card-secondary hover:bg-card-hover border border-border text-din-text text-sm font-medium transition-all shadow-sm min-h-[44px]"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -127,7 +127,7 @@ export function Register() {
             )}
 
             {isGoogleLoading && (
-              <p className="text-center text-xs text-emerald-400 font-medium animate-pulse">
+              <p className="text-center text-xs text-din-primary font-medium animate-pulse">
                 Criando sua conta com o Google...
               </p>
             )}
@@ -135,8 +135,8 @@ export function Register() {
 
           {/* Divider */}
           <div className="relative flex items-center justify-center my-2">
-            <div className="border-t border-slate-800/90 w-full" />
-            <span className="bg-slate-900/90 px-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider absolute">
+            <div className="border-t border-border w-full" />
+            <span className="bg-card px-3 text-[10px] font-semibold text-din-muted uppercase tracking-wider absolute">
               ou preencha os dados
             </span>
           </div>
@@ -166,7 +166,7 @@ export function Register() {
               placeholder="Ex: 86 99999-8888"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              icon={<Phone className="w-4 h-4 text-emerald-400" />}
+              icon={<Phone className="w-4 h-4 text-din-primary" />}
               hint="Adicione seu número para o bot te reconhecer automaticamente"
             />
 
@@ -192,7 +192,7 @@ export function Register() {
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 <span>Acesso Completo PRO liberado</span>
               </div>
-              <p className="text-[11px] text-slate-300">
+              <p className="text-[11px] text-din-muted">
                 Teste todos os recursos com inteligência artificial sem limitações.
               </p>
             </div>
@@ -209,9 +209,9 @@ export function Register() {
             </Button>
           </form>
 
-          <div className="pt-4 border-t border-slate-800/80 text-center text-xs text-slate-400">
+          <div className="pt-4 border-t border-border text-center text-xs text-din-muted">
             Já possui uma conta no Din?{' '}
-            <NavLink to="/login" className="font-bold text-emerald-400 hover:underline">
+            <NavLink to="/login" className="font-bold text-din-primary hover:underline">
               Fazer Login
             </NavLink>
           </div>

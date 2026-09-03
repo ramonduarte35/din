@@ -37,22 +37,22 @@ export function MonthlyComparisonChart({ data, isLoading }: MonthlyComparisonCha
       const balance = income - expense;
 
       return (
-        <div className="bg-[#0b1120] border border-slate-700/80 p-3.5 rounded-xl shadow-2xl backdrop-blur-md min-w-[160px]">
-          <p className="text-xs font-bold text-slate-300 pb-1.5 border-b border-slate-800">
+        <div className="bg-card border border-border p-3.5 rounded-xl shadow-2xl backdrop-blur-md min-w-[160px] text-din-text">
+          <p className="text-xs font-bold text-din-text pb-1.5 border-b border-border">
             {label}
           </p>
           <div className="space-y-1 mt-2 text-xs">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-emerald-400 font-medium">Receitas:</span>
-              <span className="font-semibold text-white font-mono">{maskValue(income)}</span>
+              <span className="text-emerald-500 font-medium">Receitas:</span>
+              <span className="font-semibold text-din-text font-mono">{maskValue(income)}</span>
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-rose-400 font-medium">Despesas:</span>
-              <span className="font-semibold text-white font-mono">{maskValue(expense)}</span>
+              <span className="text-rose-500 font-medium">Despesas:</span>
+              <span className="font-semibold text-din-text font-mono">{maskValue(expense)}</span>
             </div>
-            <div className="flex items-center justify-between gap-3 pt-1 border-t border-slate-800 text-slate-300 font-bold">
+            <div className="flex items-center justify-between gap-3 pt-1 border-t border-border text-din-muted font-bold">
               <span>Saldo:</span>
-              <span className={`font-mono ${balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              <span className={`font-mono ${balance >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                 {maskValue(balance)}
               </span>
             </div>
@@ -64,33 +64,33 @@ export function MonthlyComparisonChart({ data, isLoading }: MonthlyComparisonCha
   };
 
   return (
-    <Card className="flex flex-col h-[380px]">
-      <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
+    <Card className="flex flex-col h-[380px] bg-card border-border">
+      <div className="flex items-center justify-between pb-3 border-b border-border">
         <div>
-          <h3 className="text-sm font-bold text-white tracking-tight">Comparativo Mensal</h3>
-          <p className="text-xs text-slate-400">Receitas vs Despesas nos últimos 6 meses</p>
+          <h3 className="text-sm font-bold text-din-text tracking-tight">Comparativo Mensal</h3>
+          <p className="text-xs text-din-muted">Receitas vs Despesas nos últimos 6 meses</p>
         </div>
       </div>
 
       <div className="flex-1 w-full mt-3">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-app)" vertical={false} />
             <XAxis
               dataKey="label"
-              stroke="#64748b"
+              stroke="var(--text-muted)"
               fontSize={11}
               tickLine={false}
-              axisLine={{ stroke: '#1e293b' }}
+              axisLine={{ stroke: 'var(--border-app)' }}
             />
             <YAxis
-              stroke="#64748b"
+              stroke="var(--text-muted)"
               fontSize={10}
               tickLine={false}
               axisLine={false}
               tickFormatter={(val) => `R$${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.03)' }} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(150, 150, 150, 0.05)' }} />
             <Legend
               verticalAlign="top"
               align="right"

@@ -253,9 +253,9 @@ body {
 
 /* Background ambient glow orbs dinâmico */
 .bg-ambient-gradient {
-  background: radial-gradient(circle at 15% 15%, var(--ambient-orb-1) 0%, transparent 45%),
-              radial-gradient(circle at 85% 25%, var(--ambient-orb-2) 0%, transparent 45%),
-              radial-gradient(circle at 50% 85%, var(--ambient-orb-3) 0%, transparent 45%);
+  background-image: radial-gradient(circle at 15% 15%, var(--ambient-orb-1) 0%, transparent 45%),
+                    radial-gradient(circle at 85% 25%, var(--ambient-orb-2) 0%, transparent 45%),
+                    radial-gradient(circle at 50% 85%, var(--ambient-orb-3) 0%, transparent 45%);
 }
 
 /* Glassmorphism adaptado por tema */

@@ -74,8 +74,8 @@ export function Login() {
         {/* Card Form */}
         <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border backdrop-blur-2xl shadow-2xl space-y-5">
           <div>
-            <h2 className="text-lg font-bold text-white">Acessar Conta</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Entre com sua conta Google ou com seu e-mail e senha</p>
+            <h2 className="text-lg font-bold text-din-text">Acessar Conta</h2>
+            <p className="text-xs text-din-muted mt-0.5">Entre com sua conta Google ou com seu e-mail e senha</p>
           </div>
 
           {/* Google Sign In Button */}
@@ -107,7 +107,7 @@ export function Login() {
                     'Para habilitar o login com o Google, configure a variável VITE_GOOGLE_CLIENT_ID no arquivo .env.'
                   )
                 }
-                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700 text-slate-200 text-sm font-medium transition-all shadow-sm min-h-[44px]"
+                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-full bg-card-secondary hover:bg-card-hover border border-border text-din-text text-sm font-medium transition-all shadow-sm min-h-[44px]"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
@@ -132,7 +132,7 @@ export function Login() {
             )}
 
             {isGoogleLoading && (
-              <p className="text-center text-xs text-emerald-400 font-medium animate-pulse">
+              <p className="text-center text-xs text-din-primary font-medium animate-pulse">
                 Autenticando com o Google...
               </p>
             )}
@@ -140,8 +140,8 @@ export function Login() {
 
           {/* Divider */}
           <div className="relative flex items-center justify-center my-3">
-            <div className="border-t border-slate-800/90 w-full" />
-            <span className="bg-slate-900/90 px-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider absolute">
+            <div className="border-t border-border w-full" />
+            <span className="bg-card px-3 text-[10px] font-semibold text-din-muted uppercase tracking-wider absolute">
               ou com seu e-mail
             </span>
           </div>
@@ -186,9 +186,9 @@ export function Login() {
             </Button>
           </form>
 
-          <div className="pt-4 border-t border-slate-800/80 text-center text-xs text-slate-400">
+          <div className="pt-4 border-t border-border text-center text-xs text-din-muted">
             Ainda não tem uma conta?{' '}
-            <NavLink to="/register" className="font-bold text-emerald-400 hover:underline">
+            <NavLink to="/register" className="font-bold text-din-primary hover:underline">
               Cadastre-se gratuitamente
             </NavLink>
           </div>

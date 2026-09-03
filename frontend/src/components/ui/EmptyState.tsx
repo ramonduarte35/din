@@ -40,7 +40,7 @@ export function EmptyState({
 
   return (
     <div
-      className={`p-8 sm:p-12 rounded-3xl bg-[#0c1322]/80 border border-slate-800/80 text-center flex flex-col items-center justify-center space-y-4 shadow-xl backdrop-blur-sm animate-fade-in ${className}`}
+      className={`p-8 sm:p-12 rounded-3xl bg-card border border-border text-center flex flex-col items-center justify-center space-y-4 shadow-xl backdrop-blur-sm animate-fade-in ${className}`}
     >
       {/* Icon with Ambient Glow */}
       <div
@@ -51,8 +51,8 @@ export function EmptyState({
 
       {/* Texts */}
       <div className="max-w-md space-y-1.5">
-        <h4 className="text-base sm:text-lg font-bold text-white tracking-tight">{title}</h4>
-        <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{description}</p>
+        <h4 className="text-base sm:text-lg font-bold text-din-text tracking-tight">{title}</h4>
+        <p className="text-xs sm:text-sm text-din-muted leading-relaxed">{description}</p>
       </div>
 
       {/* Action Buttons */}
