@@ -16,6 +16,10 @@ export async function adminWhatsAppRoutes(app: FastifyInstance) {
   app.patch('/instances/:id', adminWhatsAppController.updateInstance);
   app.delete('/instances/:id', adminWhatsAppController.deleteInstance);
 
+  // Configurações Globais do Sistema
+  app.get('/settings', adminWhatsAppController.getSettings);
+  app.patch('/settings', adminWhatsAppController.updateSettings);
+
   // Logs
   app.get('/logs', adminWhatsAppController.getLogs);
 

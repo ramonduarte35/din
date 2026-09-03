@@ -15,6 +15,9 @@ async function adminWhatsAppRoutes(app) {
     app.post('/instances/:id/logout', admin_whatsapp_controller_js_1.adminWhatsAppController.logoutInstance);
     app.patch('/instances/:id', admin_whatsapp_controller_js_1.adminWhatsAppController.updateInstance);
     app.delete('/instances/:id', admin_whatsapp_controller_js_1.adminWhatsAppController.deleteInstance);
+    // Configurações Globais do Sistema
+    app.get('/settings', admin_whatsapp_controller_js_1.adminWhatsAppController.getSettings);
+    app.patch('/settings', admin_whatsapp_controller_js_1.adminWhatsAppController.updateSettings);
     // Logs
     app.get('/logs', admin_whatsapp_controller_js_1.adminWhatsAppController.getLogs);
     // Evolution Go Gateway & License

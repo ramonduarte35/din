@@ -24,6 +24,12 @@ export const logsQuerySchema = z.object({
   sender: z.string().optional(),
 });
 
+export const updateSystemSettingsSchema = z.object({
+  reply_only_registered: z.boolean().optional(),
+});
+
 export type CreateInstanceInput = z.infer<typeof createInstanceSchema>;
 export type UpdateInstanceInput = z.infer<typeof updateInstanceSchema>;
 export type LogsQueryInput = z.infer<typeof logsQuerySchema>;
+export type UpdateSystemSettingsInput = z.infer<typeof updateSystemSettingsSchema>;
+

@@ -38,4 +38,8 @@ export declare class WebhooksService {
      * Responde com guia de uso amigável
      */
     private handleUnknownMessage;
+    /**
+     * Obtém a configuração do sistema sobre responder apenas a números cadastrados
+     */
+    private getReplyOnlyRegisteredSetting;
 }

@@ -4,9 +4,21 @@ import {
   createInstanceSchema,
   updateInstanceSchema,
   logsQuerySchema,
+  updateSystemSettingsSchema,
 } from './admin.whatsapp.schemas.js';
 
 export class AdminWhatsAppController {
+  async getSettings(request: FastifyRequest, reply: FastifyReply) {
+    const settings = await adminWhatsAppService.getSettings();
+    return reply.status(200).send(settings);
+  }
+
+  async updateSettings(request: FastifyRequest, reply: FastifyReply) {
+    const parsed = updateSystemSettingsSchema.parse(request.body);
+    const updated = await adminWhatsAppService.updateSettings(parsed);
+    return reply.status(200).send({ message: 'Configurações atualizadas com sucesso!', settings: updated });
+  }
+
   async listInstances(request: FastifyRequest, reply: FastifyReply) {
     const instances = await adminWhatsAppService.listInstances();
     return reply.status(200).send({ instances });

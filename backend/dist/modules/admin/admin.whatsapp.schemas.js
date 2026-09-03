@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logsQuerySchema = exports.updateInstanceSchema = exports.createInstanceSchema = void 0;
+exports.updateSystemSettingsSchema = exports.logsQuerySchema = exports.updateInstanceSchema = exports.createInstanceSchema = void 0;
 const zod_1 = require("zod");
 exports.createInstanceSchema = zod_1.z.object({
     instance_name: zod_1.z
@@ -22,4 +22,7 @@ exports.logsQuerySchema = zod_1.z.object({
     page: zod_1.z.coerce.number().min(1).default(1),
     status: zod_1.z.enum(['SUCCESS', 'USER_NOT_FOUND', 'PRO_REQUIRED', 'PARSING_ERROR']).optional(),
     sender: zod_1.z.string().optional(),
+});
+exports.updateSystemSettingsSchema = zod_1.z.object({
+    reply_only_registered: zod_1.z.boolean().optional(),
 });

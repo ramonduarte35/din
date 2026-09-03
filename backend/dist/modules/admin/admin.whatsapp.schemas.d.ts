@@ -44,6 +44,14 @@ export declare const logsQuerySchema: z.ZodObject<{
     limit?: number | undefined;
     sender?: string | undefined;
 }>;
+export declare const updateSystemSettingsSchema: z.ZodObject<{
+    reply_only_registered: z.ZodOptional<z.ZodBoolean>;
+}, "strip", z.ZodTypeAny, {
+    reply_only_registered?: boolean | undefined;
+}, {
+    reply_only_registered?: boolean | undefined;
+}>;
 export type CreateInstanceInput = z.infer<typeof createInstanceSchema>;
 export type UpdateInstanceInput = z.infer<typeof updateInstanceSchema>;
 export type LogsQueryInput = z.infer<typeof logsQuerySchema>;
+export type UpdateSystemSettingsInput = z.infer<typeof updateSystemSettingsSchema>;

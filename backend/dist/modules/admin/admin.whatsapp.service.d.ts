@@ -1,5 +1,11 @@
-import { CreateInstanceInput, UpdateInstanceInput, LogsQueryInput } from './admin.whatsapp.schemas.js';
+import { CreateInstanceInput, UpdateInstanceInput, LogsQueryInput, UpdateSystemSettingsInput } from './admin.whatsapp.schemas.js';
 export declare class AdminWhatsAppService {
+    getSettings(): Promise<{
+        reply_only_registered: boolean;
+    }>;
+    updateSettings(data: UpdateSystemSettingsInput): Promise<{
+        reply_only_registered: boolean;
+    }>;
     listInstances(): Promise<{
         connection_status: string;
         is_connected: boolean;

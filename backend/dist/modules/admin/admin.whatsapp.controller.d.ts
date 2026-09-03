@@ -1,5 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 export declare class AdminWhatsAppController {
+    getSettings(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateSettings(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     listInstances(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     createInstance(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     getQrCode(request: FastifyRequest<{

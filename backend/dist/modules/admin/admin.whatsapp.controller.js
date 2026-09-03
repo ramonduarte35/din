@@ -4,6 +4,15 @@ exports.adminWhatsAppController = exports.AdminWhatsAppController = void 0;
 const admin_whatsapp_service_js_1 = require("./admin.whatsapp.service.js");
 const admin_whatsapp_schemas_js_1 = require("./admin.whatsapp.schemas.js");
 class AdminWhatsAppController {
+    async getSettings(request, reply) {
+        const settings = await admin_whatsapp_service_js_1.adminWhatsAppService.getSettings();
+        return reply.status(200).send(settings);
+    }
+    async updateSettings(request, reply) {
+        const parsed = admin_whatsapp_schemas_js_1.updateSystemSettingsSchema.parse(request.body);
+        const updated = await admin_whatsapp_service_js_1.adminWhatsAppService.updateSettings(parsed);
+        return reply.status(200).send({ message: 'Configurações atualizadas com sucesso!', settings: updated });
+    }
     async listInstances(request, reply) {
         const instances = await admin_whatsapp_service_js_1.adminWhatsAppService.listInstances();
         return reply.status(200).send({ instances });

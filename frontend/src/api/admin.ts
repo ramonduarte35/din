@@ -156,3 +156,28 @@ export async function activateEvolutionLicense(code: string): Promise<{
   return data;
 }
 
+export interface AdminSettingsResponse {
+  reply_only_registered: boolean;
+}
+
+export async function fetchAdminSettings(): Promise<AdminSettingsResponse> {
+  try {
+    const { data } = await api.get<AdminSettingsResponse>('/admin/whatsapp/settings');
+    return data;
+  } catch (error) {
+    console.error('Erro ao buscar configurações do sistema:', error);
+    return { reply_only_registered: false };
+  }
+}
+
+export async function updateAdminSettings(payload: {
+  reply_only_registered?: boolean;
+}): Promise<{ message: string; settings: AdminSettingsResponse }> {
+  const { data } = await api.patch<{ message: string; settings: AdminSettingsResponse }>(
+    '/admin/whatsapp/settings',
+    payload
+  );
+  return data;
+}
+
+

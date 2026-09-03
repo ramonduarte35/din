@@ -3,7 +3,7 @@ import { redis } from '../../lib/redis.js';
 import { openai, hasOpenAIConfigured } from '../../lib/openai.js';
 import { evolutionClient } from './evolution.client.js';
 import { normalizePhoneNumber, formatPhoneNumberDisplay } from '../../utils/phone.js';
-import { formatBRL } from '../../utils/currency.js';
+import { formatBRL, parseCurrencyInput, extractAmountFromText } from '../../utils/currency.js';
 import {
   AIExtractionResponse,
   AIExtractedBill,
@@ -230,6 +230,13 @@ export class WebhooksService {
         },
       });
 
+      // Verificar se a opção de responder apenas números cadastrados está ativa no /admin
+      const replyOnlyRegistered = await this.getReplyOnlyRegisteredSetting();
+      if (replyOnlyRegistered) {
+        console.log(`⏭️ [Webhook] Ignorando resposta para ${normalizedSender}: regra 'Responder apenas a números cadastrados' está ATIVADA.`);
+        return { status: 'unregistered_ignored' };
+      }
+
       const replyMsg =
         `👋 *Olá! Seja bem-vindo ao Din.*\n\n` +
         `Não encontramos nenhuma conta vinculada ao seu número de WhatsApp (${formatPhoneNumberDisplay(normalizedSender)}).\n\n` +
@@ -365,9 +372,22 @@ export class WebhooksService {
       `Você é o assistente financeiro inteligente do Din. Sua função é extrair com extrema precisão transações financeiras, agendamentos de contas a pagar, liquidações/pagamentos e consultas em português brasileiro.\n\n` +
       `Contas bancárias/carteiras cadastradas pelo usuário:\n` +
       `${accountsListFormatted}\n\n` +
+      `🚨 REGRAS MANDATÓRIAS DE CONVERSÃO DE VALORES MONETÁRIOS (PADRÃO BRASILEIRO PT-BR):\n` +
+      `- No Brasil, o ponto (.) é usado como separador de milhar e a vírgula (,) como separador decimal.\n` +
+      `- NUNCA interprete "6.000" como 6 reais! "6.000" significa SEIS MIL REAIS (amount: 6000).\n` +
+      `- Exemplos de conversão de texto para o número float no JSON:\n` +
+      `  * "6.000" ou "6.000,00" ou "6000" ou "6 mil" ou "6k" => 6000\n` +
+      `  * "1.500" ou "1.500,00" ou "1500" ou "1,5 mil" ou "1.5k" => 1500\n` +
+      `  * "12.500,50" => 12500.50\n` +
+      `  * "50" ou "50,00" ou "50.00" => 50\n` +
+      `  * "6,50" ou "6.50" => 6.50\n` +
+      `  * "6,00" => 6\n` +
+      `  * "cem conto" => 100\n` +
+      `  * "cinco barões" ou "5 milão" => 5000\n` +
+      `  * "dezão" => 10 | "vintão" => 20 | "cinquentão" => 50\n\n` +
       `Gírias financeiras brasileiras:\n` +
       `- "conto", "pila", "pau", "reais", "mangos" = R$ 1,00 cada\n` +
-      `- "barão", "milão", "pau" (em contexto de mil) = R$ 1.000,00\n` +
+      `- "barão", "milão", "mil", "k" = R$ 1.000,00\n` +
       `- "cinquentão" = R$ 50,00 | "cem conto" = R$ 100,00 | "vintão" = R$ 20,00 | "dezão" = R$ 10,00\n\n` +
       `Categorias padrão disponíveis:\n` +
       `- Alimentação, Moradia, Transporte, Saúde, Lazer & Cultura, Educação, Vestuário, Assinaturas & Serviços, Outros (Despesas)\n` +
@@ -508,11 +528,10 @@ export class WebhooksService {
       lower.includes('vence dia') ||
       lower.includes('vence em')
     ) {
-      const amountMatch = lower.match(/(?:r\$|reais)?\s*(\d+(?:[.,]\d{1,2})?)/);
+      const amount = extractAmountFromText(text);
       const dayMatch = lower.match(/(?:dia|vence|vencimento)\s*(\d{1,2})(?:\/(\d{1,2}))?/);
 
-      if (amountMatch) {
-        const amount = parseFloat(amountMatch[1].replace(',', '.'));
+      if (amount > 0) {
         let dueDate = new Date();
 
         if (dayMatch) {
@@ -580,8 +599,8 @@ export class WebhooksService {
       else if (lower.includes('aluguel')) searchTerm = 'aluguel';
       else if (lower.includes('faculdade')) searchTerm = 'faculdade';
 
-      const amountMatch = lower.match(/(?:r\$|reais)?\s*(\d+(?:[.,]\d{1,2})?)/);
-      const amount = amountMatch ? parseFloat(amountMatch[1].replace(',', '.')) : undefined;
+      const parsedAmount = extractAmountFromText(text);
+      const amount = parsedAmount > 0 ? parsedAmount : undefined;
 
       return {
         intent: 'pay_bill',
@@ -613,124 +632,117 @@ export class WebhooksService {
 
     // 5. Detectar transação convencional
     const transactions: any[] = [];
-    let textToParse = text;
+    const amount = extractAmountFromText(text);
 
-    const isIncome =
-      lower.includes('recebi') ||
-      lower.includes('ganhei') ||
-      lower.includes('salário') ||
-      lower.includes('salario') ||
-      lower.includes('rendeu') ||
-      lower.includes('vendi') ||
-      lower.includes('pix recebido') ||
-      lower.includes('caiu o salário') ||
-      lower.includes('caiu o salario') ||
-      lower.includes('caiu');
+    if (amount > 0) {
+      const isIncome =
+        lower.includes('recebi') ||
+        lower.includes('ganhei') ||
+        lower.includes('salário') ||
+        lower.includes('salario') ||
+        lower.includes('rendeu') ||
+        lower.includes('vendi') ||
+        lower.includes('pix recebido') ||
+        lower.includes('caiu o salário') ||
+        lower.includes('caiu o salario') ||
+        lower.includes('caiu');
 
-    const amountMatch = textToParse.match(/(?:r\$|reais|conto|pila|pau|mangos)?\s*(\d+(?:[.,]\d{1,2})?)\s*(?:reais|conto|pila|pau|mangos)?/i);
+      let type: 'INCOME' | 'EXPENSE' = isIncome ? 'INCOME' : 'EXPENSE';
+      let suggested_category = 'Outros (Despesas)';
+      let description = 'Transação WhatsApp';
 
-    if (amountMatch) {
-      const rawNumber = amountMatch[1].replace(',', '.');
-      const amount = parseFloat(rawNumber);
-
-      if (!isNaN(amount) && amount > 0) {
-        let type: 'INCOME' | 'EXPENSE' = isIncome ? 'INCOME' : 'EXPENSE';
-        let suggested_category = 'Outros (Despesas)';
-        let description = 'Transação WhatsApp';
-
-        if (type === 'INCOME') {
-          if (lower.includes('salário') || lower.includes('salario')) {
-            suggested_category = 'Salário';
-            description = 'Salário';
-          } else if (lower.includes('freela') || lower.includes('projeto') || lower.includes('extra')) {
-            suggested_category = 'Freelance & Extras';
-            description = 'Trabalho Freelance';
-          } else if (lower.includes('investimento') || lower.includes('dividendo') || lower.includes('rendeu')) {
-            suggested_category = 'Investimentos';
-            description = 'Rendimento de Investimentos';
-          } else {
-            suggested_category = 'Vendas & Reembolsos';
-            description = 'Receita Diversa';
-          }
+      if (type === 'INCOME') {
+        if (lower.includes('salário') || lower.includes('salario')) {
+          suggested_category = 'Salário';
+          description = 'Salário';
+        } else if (lower.includes('freela') || lower.includes('projeto') || lower.includes('extra')) {
+          suggested_category = 'Freelance & Extras';
+          description = 'Trabalho Freelance';
+        } else if (lower.includes('investimento') || lower.includes('dividendo') || lower.includes('rendeu')) {
+          suggested_category = 'Investimentos';
+          description = 'Rendimento de Investimentos';
         } else {
-          if (
-            lower.includes('lanche') ||
-            lower.includes('almoço') ||
-            lower.includes('almoco') ||
-            lower.includes('jantar') ||
-            lower.includes('comida') ||
-            lower.includes('mercado') ||
-            lower.includes('supermercado') ||
-            lower.includes('padaria') ||
-            lower.includes('ifood')
-          ) {
-            suggested_category = 'Alimentação';
-            description = lower.includes('lanche')
-              ? 'Lanche'
-              : lower.includes('mercado')
-              ? 'Supermercado'
-              : lower.includes('padaria')
-              ? 'Padaria'
-              : 'Alimentação';
-          } else if (
-            lower.includes('gasolina') ||
-            lower.includes('combustivel') ||
-            lower.includes('combustível') ||
-            lower.includes('uber') ||
-            lower.includes('onibus') ||
-            lower.includes('posto')
-          ) {
-            suggested_category = 'Transporte';
-            description = lower.includes('gasolina')
-              ? 'Combustível Gasolina'
-              : lower.includes('uber')
-              ? 'Corrida Uber'
-              : 'Transporte';
-          } else if (
-            lower.includes('aluguel') ||
-            lower.includes('condominio') ||
-            lower.includes('luz') ||
-            lower.includes('agua') ||
-            lower.includes('internet')
-          ) {
-            suggested_category = 'Moradia';
-            description = 'Contas da Casa';
-          } else if (
-            lower.includes('cinema') ||
-            lower.includes('bar') ||
-            lower.includes('festa') ||
-            lower.includes('jogo') ||
-            lower.includes('praia')
-          ) {
-            suggested_category = 'Lazer & Cultura';
-            description = 'Lazer';
-          } else if (
-            lower.includes('farmacia') ||
-            lower.includes('farmácia') ||
-            lower.includes('remedio') ||
-            lower.includes('remédio') ||
-            lower.includes('medico') ||
-            lower.includes('consulta')
-          ) {
-            suggested_category = 'Saúde';
-            description = 'Saúde e Farmácia';
-          }
+          suggested_category = 'Vendas & Reembolsos';
+          description = 'Receita Diversa';
         }
-
-        transactions.push({
-          type,
-          amount,
-          description,
-          suggested_category,
-          suggested_account: detectedAccount,
-          date: todayISO,
-        });
-
-        return {
-          intent: 'transaction',
-          transactions,
-        };
+      } else {
+        if (
+          lower.includes('lanche') ||
+          lower.includes('almoço') ||
+          lower.includes('almoco') ||
+          lower.includes('jantar') ||
+          lower.includes('comida') ||
+          lower.includes('mercado') ||
+          lower.includes('supermercado') ||
+          lower.includes('padaria') ||
+          lower.includes('ifood')
+        ) {
+          suggested_category = 'Alimentação';
+          description = lower.includes('lanche')
+            ? 'Lanche'
+            : lower.includes('mercado')
+            ? 'Supermercado'
+            : lower.includes('padaria')
+            ? 'Padaria'
+            : 'Alimentação';
+        } else if (
+          lower.includes('gasolina') ||
+          lower.includes('combustivel') ||
+          lower.includes('combustível') ||
+          lower.includes('uber') ||
+          lower.includes('onibus') ||
+          lower.includes('posto')
+        ) {
+          suggested_category = 'Transporte';
+          description = lower.includes('gasolina')
+            ? 'Combustível Gasolina'
+            : lower.includes('uber')
+            ? 'Corrida Uber'
+            : 'Transporte';
+        } else if (
+          lower.includes('aluguel') ||
+          lower.includes('condominio') ||
+          lower.includes('luz') ||
+          lower.includes('agua') ||
+          lower.includes('internet')
+        ) {
+          suggested_category = 'Moradia';
+          description = 'Contas da Casa';
+        } else if (
+          lower.includes('cinema') ||
+          lower.includes('bar') ||
+          lower.includes('festa') ||
+          lower.includes('jogo') ||
+          lower.includes('praia')
+        ) {
+          suggested_category = 'Lazer & Cultura';
+          description = 'Lazer';
+        } else if (
+          lower.includes('farmacia') ||
+          lower.includes('farmácia') ||
+          lower.includes('remedio') ||
+          lower.includes('remédio') ||
+          lower.includes('medico') ||
+          lower.includes('consulta')
+        ) {
+          suggested_category = 'Saúde';
+          description = 'Saúde e Farmácia';
+        }
       }
+
+      transactions.push({
+        type,
+        amount,
+        description,
+        suggested_category,
+        suggested_account: detectedAccount,
+        date: todayISO,
+      });
+
+      return {
+        intent: 'transaction',
+        transactions,
+      };
     }
 
     return {
@@ -1299,5 +1311,36 @@ export class WebhooksService {
 
     await evolutionClient.sendText(instance, remoteJid, replyMsg);
     return { status: 'unknown_message_handled' };
+  }
+
+  /**
+   * Obtém a configuração do sistema sobre responder apenas a números cadastrados
+   */
+  private async getReplyOnlyRegisteredSetting(): Promise<boolean> {
+    try {
+      const cached = await redis.get('system_setting:reply_only_registered');
+      if (cached !== null) {
+        return cached === 'true' || cached === '1';
+      }
+    } catch (e) {
+      // ignore redis error
+    }
+
+    try {
+      const setting = await prisma.systemSetting.findUnique({
+        where: { key: 'reply_only_registered' },
+      });
+      const isEnabled = setting ? setting.value === 'true' : false;
+
+      try {
+        await redis.set('system_setting:reply_only_registered', isEnabled ? 'true' : 'false', 'EX', 3600);
+      } catch (e) {
+        // ignore redis error
+      }
+
+      return isEnabled;
+    } catch (e) {
+      return false;
+    }
   }
 }

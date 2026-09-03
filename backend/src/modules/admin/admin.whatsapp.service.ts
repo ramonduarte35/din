@@ -2,9 +2,59 @@ import { prisma } from '../../lib/prisma.js';
 import { redis } from '../../lib/redis.js';
 import { evolutionClient } from '../webhooks/evolution.client.js';
 import { normalizePhoneNumber } from '../../utils/phone.js';
-import { CreateInstanceInput, UpdateInstanceInput, LogsQueryInput } from './admin.whatsapp.schemas.js';
+import { CreateInstanceInput, UpdateInstanceInput, LogsQueryInput, UpdateSystemSettingsInput } from './admin.whatsapp.schemas.js';
 
 export class AdminWhatsAppService {
+  async getSettings() {
+    let replyOnlyRegistered = false;
+    try {
+      const cached = await redis.get('system_setting:reply_only_registered');
+      if (cached !== null) {
+        replyOnlyRegistered = cached === 'true' || cached === '1';
+      } else {
+        const setting = await prisma.systemSetting.findUnique({
+          where: { key: 'reply_only_registered' },
+        });
+        replyOnlyRegistered = setting ? setting.value === 'true' : false;
+        await redis.set('system_setting:reply_only_registered', replyOnlyRegistered ? 'true' : 'false', 'EX', 3600);
+      }
+    } catch (e) {
+      const setting = await prisma.systemSetting.findUnique({
+        where: { key: 'reply_only_registered' },
+      });
+      replyOnlyRegistered = setting ? setting.value === 'true' : false;
+    }
+
+    return {
+      reply_only_registered: replyOnlyRegistered,
+    };
+  }
+
+  async updateSettings(data: UpdateSystemSettingsInput) {
+    if (data.reply_only_registered !== undefined) {
+      const valStr = data.reply_only_registered ? 'true' : 'false';
+      await prisma.systemSetting.upsert({
+        where: { key: 'reply_only_registered' },
+        create: {
+          key: 'reply_only_registered',
+          value: valStr,
+          description: 'Quando ativado, o sistema não responde a remetentes desconhecidos que não possuem conta cadastrada.',
+        },
+        update: {
+          value: valStr,
+        },
+      });
+
+      try {
+        await redis.set('system_setting:reply_only_registered', valStr, 'EX', 86400);
+      } catch (e) {
+        // ignore redis error
+      }
+    }
+
+    return this.getSettings();
+  }
+
   async listInstances() {
     const dbNumbers = await prisma.systemWhatsAppNumber.findMany({
       orderBy: { created_at: 'desc' },

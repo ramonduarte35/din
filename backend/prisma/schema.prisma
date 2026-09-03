@@ -194,3 +194,14 @@ model WhatsAppLog {
   @@index([created_at])
   @@map("whatsapp_logs")
 }
+
+model SystemSetting {
+  key         String   @id
+  value       String
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("system_settings")
+}
+

@@ -28,10 +28,15 @@ import {
   ShieldCheck,
   Wifi,
   WifiOff,
+  Sliders,
+  UserCheck,
+  ShieldAlert,
+  Info,
 } from 'lucide-react';
 import {
   AdminWhatsAppInstance,
   AdminWhatsAppLog,
+  AdminSettingsResponse,
   QrCodeResponse,
   EvolutionStatusResponse,
   EvolutionLicenseResponse,
@@ -47,6 +52,8 @@ import {
   fetchEvolutionLicense,
   testEvolutionConnection,
   activateEvolutionLicense,
+  fetchAdminSettings,
+  updateAdminSettings,
 } from '../api/admin';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -60,9 +67,14 @@ export function AdminWhatsApp() {
   const toast = useToast();
   const [instances, setInstances] = useState<AdminWhatsAppInstance[]>([]);
   const [logs, setLogs] = useState<AdminWhatsAppLog[]>([]);
-  const [activeTab, setActiveTab] = useState<'instances' | 'evolution' | 'logs'>('instances');
+  const [activeTab, setActiveTab] = useState<'instances' | 'settings' | 'evolution' | 'logs'>('instances');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // System Settings state
+  const [adminSettings, setAdminSettings] = useState<AdminSettingsResponse>({ reply_only_registered: false });
+  const [isSettingsLoading, setIsSettingsLoading] = useState(false);
+  const [isUpdatingSetting, setIsUpdatingSetting] = useState(false);
 
   // Independent loading states
   const [isInstancesLoading, setIsInstancesLoading] = useState(true);
@@ -119,6 +131,18 @@ export function AdminWhatsApp() {
     }
   };
 
+  const loadSettings = async (silent = false) => {
+    if (!silent) setIsSettingsLoading(true);
+    try {
+      const data = await fetchAdminSettings();
+      setAdminSettings(data);
+    } catch (err: any) {
+      console.error('Erro ao buscar configurações:', err);
+    } finally {
+      setIsSettingsLoading(false);
+    }
+  };
+
   const loadEvolutionStatus = async (silent = false) => {
     if (!silent) setIsEvolutionLoading(true);
     try {
@@ -147,6 +171,7 @@ export function AdminWhatsApp() {
     setIsRefreshing(true);
     await Promise.allSettled([
       loadInstances(false),
+      loadSettings(false),
       loadEvolutionStatus(false),
       loadLogs(false),
     ]);
@@ -155,17 +180,45 @@ export function AdminWhatsApp() {
 
   useEffect(() => {
     loadInstances();
+    loadSettings();
     loadEvolutionStatus();
   }, []);
 
-  const handleTabChange = (tab: 'instances' | 'evolution' | 'logs') => {
+  const handleTabChange = (tab: 'instances' | 'settings' | 'evolution' | 'logs') => {
     setActiveTab(tab);
     if (tab === 'instances') {
       loadInstances(true);
+    } else if (tab === 'settings') {
+      loadSettings(true);
     } else if (tab === 'evolution') {
       loadEvolutionStatus(true);
     } else if (tab === 'logs') {
       loadLogs(true);
+    }
+  };
+
+  const handleToggleReplyOnlyRegistered = async (checked: boolean) => {
+    setIsUpdatingSetting(true);
+    try {
+      const res = await updateAdminSettings({ reply_only_registered: checked });
+      setAdminSettings(res.settings);
+      toast.show(
+        checked
+          ? 'Modo restrito ativado: Din responderá apenas a números cadastrados.'
+          : 'Modo público ativado: Din responderá a qualquer número com guia de cadastro.',
+        'success'
+      );
+      showMessage(
+        'success',
+        checked
+          ? '✓ Regra ativada: mensagens de remetentes não cadastrados serão ignoradas silenciosamente.'
+          : '✓ Regra desativada: mensagens de remetentes não cadastrados receberão mensagem de boas-vindas.'
+      );
+    } catch (err: any) {
+      toast.show('Erro ao atualizar configuração.', 'error');
+      showMessage('error', 'Falha ao atualizar configuração de atendimento.');
+    } finally {
+      setIsUpdatingSetting(false);
     }
   };
 
@@ -370,7 +423,7 @@ export function AdminWhatsApp() {
         label: '',
         is_active: true,
       });
-      loadData(true);
+      loadInstances(true);
     } catch (err: any) {
       showMessage('error', err?.response?.data?.message || 'Erro ao criar instância.');
     } finally {
@@ -386,7 +439,7 @@ export function AdminWhatsApp() {
       await updateAdminInstance(selectedInstance.id, editForm);
       showMessage('success', `Instância atualizada com sucesso!`);
       setIsEditModalOpen(false);
-      loadData(true);
+      loadInstances(true);
     } catch (err: any) {
       showMessage('error', err?.response?.data?.message || 'Erro ao atualizar instância.');
     } finally {
@@ -548,10 +601,10 @@ export function AdminWhatsApp() {
       )}
 
       {/* Tabs Switcher */}
-      <div className="flex items-center gap-2 border-b border-slate-800 overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-slate-800 overflow-x-auto pb-1">
         <button
           onClick={() => handleTabChange('instances')}
-          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap min-h-[44px] ${
             activeTab === 'instances'
               ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5'
               : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -562,8 +615,25 @@ export function AdminWhatsApp() {
         </button>
 
         <button
+          onClick={() => handleTabChange('settings')}
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap min-h-[44px] ${
+            activeTab === 'settings'
+              ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Sliders className="w-4 h-4" />
+          <span>Regras de Atendimento</span>
+          {adminSettings.reply_only_registered && (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              Restrito
+            </span>
+          )}
+        </button>
+
+        <button
           onClick={() => handleTabChange('evolution')}
-          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap min-h-[44px] ${
             activeTab === 'evolution'
               ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5'
               : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -586,7 +656,7 @@ export function AdminWhatsApp() {
 
         <button
           onClick={() => handleTabChange('logs')}
-          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap min-h-[44px] ${
             activeTab === 'logs'
               ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5'
               : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -750,7 +820,154 @@ export function AdminWhatsApp() {
         </div>
       )}
 
-      {/* TAB 2: EVOLUTION GO GATEWAY & LICENÇA */}
+      {/* TAB 2: REGRAS DE ATENDIMENTO & CONFIGURAÇÕES */}
+      {activeTab === 'settings' && (
+        <div className="space-y-6 animate-fade-in">
+          {/* Main Setting Card */}
+          <div className="glass-card rounded-2xl border border-slate-800/80 p-5 sm:p-7 relative overflow-hidden shadow-xl shadow-black/20">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex items-start gap-4">
+                <div
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-colors ${
+                    adminSettings.reply_only_registered
+                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                      : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  }`}
+                >
+                  {adminSettings.reply_only_registered ? (
+                    <ShieldAlert className="w-6 h-6" />
+                  ) : (
+                    <UserCheck className="w-6 h-6" />
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <h3 className="text-base sm:text-lg font-bold text-white leading-tight">
+                      Responder somente a números cadastrados
+                    </h3>
+                    <span
+                      className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                        adminSettings.reply_only_registered
+                          ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                          : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                      }`}
+                    >
+                      {adminSettings.reply_only_registered
+                        ? '🔒 Modo Restrito Ativo'
+                        : '🌐 Modo Público Aberto'}
+                    </span>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+                    Quando ativado, o Din irá <strong>ignorar silenciosamente</strong> qualquer mensagem vinda de números que ainda não estejam cadastrados no banco de dados. Nenhuma mensagem de boas-vindas ou aviso será enviada para desconhecidos.
+                  </p>
+                </div>
+              </div>
+
+              {/* Toggle Switch Button with Touch Target */}
+              <div className="flex items-center justify-end flex-shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800">
+                <label className="relative inline-flex items-center cursor-pointer min-h-[44px] min-w-[44px] p-2 select-none">
+                  <input
+                    type="checkbox"
+                    checked={adminSettings.reply_only_registered}
+                    onChange={(e) => handleToggleReplyOnlyRegistered(e.target.checked)}
+                    disabled={isUpdatingSetting || isSettingsLoading}
+                    className="sr-only peer"
+                  />
+                  <div
+                    className={`w-14 h-8 rounded-full peer transition-all duration-300 ease-in-out relative ${
+                      adminSettings.reply_only_registered
+                        ? 'bg-amber-500 shadow-lg shadow-amber-500/30'
+                        : 'bg-slate-700 hover:bg-slate-600'
+                    } peer-focus:ring-4 peer-focus:ring-emerald-500/20 peer-disabled:opacity-50 peer-disabled:cursor-not-allowed`}
+                  >
+                    <div
+                      className={`absolute top-1 left-1 bg-white w-6 h-6 rounded-full transition-transform duration-300 flex items-center justify-center text-slate-900 ${
+                        adminSettings.reply_only_registered ? 'transform translate-x-6' : ''
+                      }`}
+                    >
+                      {isUpdatingSetting ? (
+                        <RefreshCw className="w-3.5 h-3.5 text-amber-600 animate-spin" />
+                      ) : adminSettings.reply_only_registered ? (
+                        <Check className="w-3.5 h-3.5 text-amber-600 stroke-[3]" />
+                      ) : (
+                        <X className="w-3.5 h-3.5 text-slate-400" />
+                      )}
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Practical Advice Banner */}
+            <div className="mt-6 p-4 rounded-xl bg-slate-900/90 border border-slate-800/90 flex items-start gap-3">
+              <Info className="w-5 h-5 text-indigo-400 flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-slate-300 space-y-1 leading-relaxed">
+                <p className="font-bold text-white">
+                  💡 Como utilizar durante o desenvolvimento:
+                </p>
+                <p className="text-slate-400">
+                  Mantenha esta opção <strong className="text-amber-300">ativada</strong> enquanto estiver testando e validando as instâncias. Assim, se pessoas desconhecidas enviarem mensagem para o número da empresa, o sistema não gastará tokens de IA nem enviará respostas automáticas. Quando for lançar o Din oficialmente em produção, basta <strong className="text-emerald-400">desativar</strong> este switch para receber novos usuários.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Behavior Comparison Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Enabled Card */}
+            <div
+              className={`glass-card rounded-2xl border p-5 transition-all ${
+                adminSettings.reply_only_registered
+                  ? 'border-amber-500/40 bg-amber-500/5 ring-1 ring-amber-500/20'
+                  : 'border-slate-800/80 opacity-75'
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                <h4 className="text-sm font-bold text-white">Com a Regra Ativada (Restrito)</h4>
+              </div>
+              <ul className="space-y-2.5 text-xs text-slate-300">
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <span><strong>Usuário com conta no Din:</strong> Resposta e registro financeiro imediato via IA.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <X className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <span><strong>Número NÃO cadastrado:</strong> Mensagem é registrada nos logs internos, mas <em>nenhuma resposta é enviada</em> no WhatsApp.</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Disabled Card */}
+            <div
+              className={`glass-card rounded-2xl border p-5 transition-all ${
+                !adminSettings.reply_only_registered
+                  ? 'border-emerald-500/40 bg-emerald-500/5 ring-1 ring-emerald-500/20'
+                  : 'border-slate-800/80 opacity-75'
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                <h4 className="text-sm font-bold text-white">Com a Regra Desativada (Público / Produção)</h4>
+              </div>
+              <ul className="space-y-2.5 text-xs text-slate-300">
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <span><strong>Usuário com conta no Din:</strong> Resposta e registro financeiro imediato via IA.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" />
+                  <span><strong>Número NÃO cadastrado:</strong> Recebe mensagem automática de boas-vindas com orientações para criar conta na web e cadastrar seu número.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: EVOLUTION GO GATEWAY & LICENÇA */}
       {activeTab === 'evolution' && (
         <div className="space-y-6 animate-fade-in">
           {/* Top Banner if License Pending / Inactive */}
@@ -1124,7 +1341,7 @@ export function AdminWhatsApp() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => loadData(true)}
+              onClick={() => loadLogs(true)}
               className="text-xs"
             >
               <RefreshCw className={`w-3 h-3 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
