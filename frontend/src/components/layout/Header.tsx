@@ -86,7 +86,7 @@ export function Header({ onOpenMobileMenu, onOpenNewTransaction }: HeaderProps) 
 
           {/* Menu Dropdown de Temas */}
           {isThemeMenuOpen && (
-            <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-card border border-border shadow-2xl p-2.5 z-50 animate-slide-up backdrop-blur-2xl">
+            <div className="fixed top-16 right-3 sm:absolute sm:top-full sm:right-0 sm:mt-2 w-[calc(100vw-1.5rem)] sm:w-72 max-w-[320px] rounded-2xl bg-card border border-border shadow-2xl p-2.5 z-50 animate-slide-up backdrop-blur-2xl max-h-[80vh] overflow-y-auto">
               <div className="px-3 py-2 border-b border-border mb-1.5 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Palette className="w-4 h-4 text-din-primary" />
