@@ -83,6 +83,24 @@ class AdminWhatsAppController {
             return reply.status(400).send({ message: err?.message || 'Falha ao ativar a licença.' });
         }
     }
+    // ─── Provedor Meta Cloud API Oficial ─────────────────────────────
+    async getProviderConfig(request, reply) {
+        const config = await admin_whatsapp_service_js_1.adminWhatsAppService.getProviderConfig();
+        return reply.status(200).send({ config });
+    }
+    async updateProviderConfig(request, reply) {
+        const body = request.body;
+        const updated = await admin_whatsapp_service_js_1.adminWhatsAppService.updateProviderConfig(body);
+        return reply.status(200).send({
+            message: 'Configuração do WhatsApp atualizada com sucesso!',
+            config: updated,
+        });
+    }
+    async testMetaConnection(request, reply) {
+        const body = request.body;
+        const result = await admin_whatsapp_service_js_1.adminWhatsAppService.testMetaConnection(body);
+        return reply.status(200).send(result);
+    }
 }
 exports.AdminWhatsAppController = AdminWhatsAppController;
 exports.adminWhatsAppController = new AdminWhatsAppController();

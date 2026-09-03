@@ -4,6 +4,7 @@ exports.adminWhatsAppService = exports.AdminWhatsAppService = void 0;
 const prisma_js_1 = require("../../lib/prisma.js");
 const redis_js_1 = require("../../lib/redis.js");
 const evolution_client_js_1 = require("../webhooks/evolution.client.js");
+const meta_client_js_1 = require("../meta-whatsapp/meta.client.js");
 const phone_js_1 = require("../../utils/phone.js");
 class AdminWhatsAppService {
     async getSettings() {
@@ -303,6 +304,39 @@ class AdminWhatsAppService {
             message: 'Licença do Evolution Go ativada com sucesso!',
             status: updatedStatus,
         };
+    }
+    // ─── Provedor Meta Cloud API Oficial ─────────────────────────────
+    async getProviderConfig() {
+        let config = await prisma_js_1.prisma.whatsAppIntegrationConfig.findFirst({
+            orderBy: { created_at: 'desc' },
+        });
+        if (!config) {
+            config = await prisma_js_1.prisma.whatsAppIntegrationConfig.create({
+                data: {
+                    active_provider: 'EVOLUTION',
+                    meta_verify_token: 'din_meta_verify_token',
+                },
+            });
+        }
+        return config;
+    }
+    async updateProviderConfig(data) {
+        const current = await this.getProviderConfig();
+        const updated = await prisma_js_1.prisma.whatsAppIntegrationConfig.update({
+            where: { id: current.id },
+            data: {
+                ...(data.active_provider !== undefined && { active_provider: data.active_provider }),
+                ...(data.meta_phone_number_id !== undefined && { meta_phone_number_id: data.meta_phone_number_id }),
+                ...(data.meta_waba_id !== undefined && { meta_waba_id: data.meta_waba_id }),
+                ...(data.meta_access_token !== undefined && { meta_access_token: data.meta_access_token }),
+                ...(data.meta_verify_token !== undefined && { meta_verify_token: data.meta_verify_token }),
+                ...(data.meta_app_secret !== undefined && { meta_app_secret: data.meta_app_secret }),
+            },
+        });
+        return updated;
+    }
+    async testMetaConnection(data) {
+        return await meta_client_js_1.metaClient.testConnection(data?.meta_phone_number_id, data?.meta_access_token);
     }
 }
 exports.AdminWhatsAppService = AdminWhatsAppService;

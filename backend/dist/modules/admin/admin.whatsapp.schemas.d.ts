@@ -51,7 +51,41 @@ export declare const updateSystemSettingsSchema: z.ZodObject<{
 }, {
     reply_only_registered?: boolean | undefined;
 }>;
+export declare const updateWhatsAppConfigSchema: z.ZodObject<{
+    active_provider: z.ZodOptional<z.ZodEnum<["EVOLUTION", "META_OFFICIAL"]>>;
+    meta_phone_number_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    meta_waba_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    meta_access_token: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    meta_verify_token: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    meta_app_secret: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+}, "strip", z.ZodTypeAny, {
+    active_provider?: "EVOLUTION" | "META_OFFICIAL" | undefined;
+    meta_phone_number_id?: string | null | undefined;
+    meta_waba_id?: string | null | undefined;
+    meta_access_token?: string | null | undefined;
+    meta_verify_token?: string | null | undefined;
+    meta_app_secret?: string | null | undefined;
+}, {
+    active_provider?: "EVOLUTION" | "META_OFFICIAL" | undefined;
+    meta_phone_number_id?: string | null | undefined;
+    meta_waba_id?: string | null | undefined;
+    meta_access_token?: string | null | undefined;
+    meta_verify_token?: string | null | undefined;
+    meta_app_secret?: string | null | undefined;
+}>;
+export declare const testMetaConnectionSchema: z.ZodObject<{
+    meta_phone_number_id: z.ZodOptional<z.ZodString>;
+    meta_access_token: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    meta_phone_number_id?: string | undefined;
+    meta_access_token?: string | undefined;
+}, {
+    meta_phone_number_id?: string | undefined;
+    meta_access_token?: string | undefined;
+}>;
 export type CreateInstanceInput = z.infer<typeof createInstanceSchema>;
 export type UpdateInstanceInput = z.infer<typeof updateInstanceSchema>;
 export type LogsQueryInput = z.infer<typeof logsQuerySchema>;
 export type UpdateSystemSettingsInput = z.infer<typeof updateSystemSettingsSchema>;
+export type UpdateWhatsAppConfigInput = z.infer<typeof updateWhatsAppConfigSchema>;
+export type TestMetaConnectionInput = z.infer<typeof testMetaConnectionSchema>;

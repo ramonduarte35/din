@@ -1,8 +1,16 @@
 import { prisma } from '../../lib/prisma.js';
 import { redis } from '../../lib/redis.js';
 import { evolutionClient } from '../webhooks/evolution.client.js';
+import { metaClient } from '../meta-whatsapp/meta.client.js';
 import { normalizePhoneNumber } from '../../utils/phone.js';
-import { CreateInstanceInput, UpdateInstanceInput, LogsQueryInput, UpdateSystemSettingsInput } from './admin.whatsapp.schemas.js';
+import {
+  CreateInstanceInput,
+  UpdateInstanceInput,
+  LogsQueryInput,
+  UpdateSystemSettingsInput,
+  UpdateWhatsAppConfigInput,
+  TestMetaConnectionInput,
+} from './admin.whatsapp.schemas.js';
 
 export class AdminWhatsAppService {
   async getSettings() {
@@ -347,6 +355,46 @@ export class AdminWhatsAppService {
       message: 'Licença do Evolution Go ativada com sucesso!',
       status: updatedStatus,
     };
+  }
+
+  // ─── Provedor Meta Cloud API Oficial ─────────────────────────────
+  async getProviderConfig() {
+    let config = await prisma.whatsAppIntegrationConfig.findFirst({
+      orderBy: { created_at: 'desc' },
+    });
+
+    if (!config) {
+      config = await prisma.whatsAppIntegrationConfig.create({
+        data: {
+          active_provider: 'EVOLUTION',
+          meta_verify_token: 'din_meta_verify_token',
+        },
+      });
+    }
+
+    return config;
+  }
+
+  async updateProviderConfig(data: UpdateWhatsAppConfigInput) {
+    const current = await this.getProviderConfig();
+
+    const updated = await prisma.whatsAppIntegrationConfig.update({
+      where: { id: current.id },
+      data: {
+        ...(data.active_provider !== undefined && { active_provider: data.active_provider }),
+        ...(data.meta_phone_number_id !== undefined && { meta_phone_number_id: data.meta_phone_number_id }),
+        ...(data.meta_waba_id !== undefined && { meta_waba_id: data.meta_waba_id }),
+        ...(data.meta_access_token !== undefined && { meta_access_token: data.meta_access_token }),
+        ...(data.meta_verify_token !== undefined && { meta_verify_token: data.meta_verify_token }),
+        ...(data.meta_app_secret !== undefined && { meta_app_secret: data.meta_app_secret }),
+      },
+    });
+
+    return updated;
+  }
+
+  async testMetaConnection(data?: TestMetaConnectionInput) {
+    return await metaClient.testConnection(data?.meta_phone_number_id, data?.meta_access_token);
   }
 }
 

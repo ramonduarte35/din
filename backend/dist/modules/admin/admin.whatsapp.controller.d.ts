@@ -39,5 +39,8 @@ export declare class AdminWhatsAppController {
     getEvolutionLicense(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     testEvolutionConnection(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     activateEvolutionLicense(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getProviderConfig(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    updateProviderConfig(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    testMetaConnection(request: FastifyRequest, reply: FastifyReply): Promise<never>;
 }
 export declare const adminWhatsAppController: AdminWhatsAppController;

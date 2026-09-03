@@ -5,6 +5,7 @@ const prisma_js_1 = require("../../lib/prisma.js");
 const redis_js_1 = require("../../lib/redis.js");
 const openai_js_1 = require("../../lib/openai.js");
 const evolution_client_js_1 = require("./evolution.client.js");
+const meta_client_js_1 = require("../meta-whatsapp/meta.client.js");
 const phone_js_1 = require("../../utils/phone.js");
 const currency_js_1 = require("../../utils/currency.js");
 const webhooks_schemas_js_1 = require("./webhooks.schemas.js");
@@ -12,6 +13,126 @@ const client_1 = require("@prisma/client");
 const bills_service_js_1 = require("../bills/bills.service.js");
 const billsService = new bills_service_js_1.BillsService();
 class WebhooksService {
+    /**
+     * Envio unificado de mensagem via WhatsApp (Evolution Go ou Meta Cloud API Oficial)
+     */
+    async sendWhatsAppReply(instance, recipientNumber, message) {
+        if (instance.startsWith('meta:')) {
+            const phoneNumberId = instance.replace(/^meta:/, '');
+            return await meta_client_js_1.metaClient.sendText(recipientNumber, message, { phoneNumberId });
+        }
+        return await evolution_client_js_1.evolutionClient.sendText(instance, recipientNumber, message);
+    }
+    /**
+     * Validação do handshake de Webhook da Meta (GET /api/v1/webhooks/meta)
+     */
+    async verifyMetaWebhook(mode, token, challenge) {
+        if (mode === 'subscribe') {
+            const config = await prisma_js_1.prisma.whatsAppIntegrationConfig.findFirst({
+                orderBy: { created_at: 'desc' },
+            });
+            const expected = config?.meta_verify_token || 'din_meta_verify_token';
+            if (token === expected) {
+                console.log('✅ [Meta Webhook] Handshake verificado com sucesso para o token:', token);
+                return { success: true, challenge };
+            }
+            console.warn(`⚠️ [Meta Webhook] Token recebido "${token}" não coincide com esperado "${expected}"`);
+        }
+        return { success: false };
+    }
+    /**
+     * Processamento de mensagens recebidas da Meta Cloud API Oficial (POST /api/v1/webhooks/meta)
+     */
+    async processMetaMessage(payload) {
+        console.log('📥 [Meta Webhook] Recebido evento da Meta Cloud API:', JSON.stringify(payload, null, 2));
+        const entry = payload?.entry?.[0];
+        const changes = entry?.changes?.[0];
+        const value = changes?.value;
+        if (!value || changes?.field !== 'messages') {
+            return { status: 'ignored_non_message_field' };
+        }
+        const metadata = value?.metadata;
+        const phoneNumberId = metadata?.phone_number_id || '';
+        const messages = value?.messages;
+        if (!messages || !Array.isArray(messages) || messages.length === 0) {
+            return { status: 'no_messages_in_payload' };
+        }
+        const message = messages[0];
+        const from = message?.from;
+        const messageId = message?.id;
+        const type = message?.type;
+        if (!from || !messageId) {
+            return { status: 'invalid_meta_message' };
+        }
+        // Deduplicação com Redis (24 horas)
+        try {
+            const isDuplicate = await redis_js_1.redis.get(`webhook:msg:${messageId}`);
+            if (isDuplicate) {
+                console.log(`⏭️ [Meta Webhook] Mensagem duplicada ignorada: ${messageId}`);
+                return { status: 'duplicate_ignored' };
+            }
+            await redis_js_1.redis.set(`webhook:msg:${messageId}`, '1', 'EX', 86400);
+        }
+        catch (e) {
+            // ignore redis error
+        }
+        let textContent = '';
+        let origin = client_1.TransactionOrigin.WHATSAPP_TEXT;
+        if (type === 'text') {
+            textContent = message?.text?.body || '';
+        }
+        else if (type === 'audio' || type === 'voice') {
+            const mediaId = message?.audio?.id || message?.voice?.id;
+            if (mediaId) {
+                console.log(`🎙️ [Meta Webhook] Mensagem de áudio recebida. MediaID: ${mediaId}`);
+                origin = client_1.TransactionOrigin.WHATSAPP_AUDIO;
+                if ((0, openai_js_1.hasOpenAIConfigured)() && openai_js_1.openai) {
+                    try {
+                        const media = await meta_client_js_1.metaClient.downloadAudioMedia(mediaId);
+                        if (media) {
+                            const file = new File([media.buffer], 'audio.ogg', { type: media.mimeType });
+                            const transcription = await openai_js_1.openai.audio.transcriptions.create({
+                                file,
+                                model: 'whisper-1',
+                                language: 'pt',
+                            });
+                            textContent = transcription.text;
+                            console.log(`🗣️ [Meta Webhook] Áudio transcrito via Whisper: "${textContent}"`);
+                        }
+                    }
+                    catch (audioErr) {
+                        console.error('❌ [Meta Webhook] Falha ao transcrever áudio da Meta:', audioErr);
+                    }
+                }
+            }
+        }
+        else if (type === 'interactive') {
+            textContent =
+                message?.interactive?.button_reply?.title ||
+                    message?.interactive?.list_reply?.title ||
+                    '';
+        }
+        if (!textContent || textContent.trim() === '') {
+            console.log('⏭️ [Meta Webhook] Mensagem sem texto ou sem transcrição.');
+            return { status: 'empty_meta_message' };
+        }
+        const mockPayload = {
+            event: 'messages.upsert',
+            instance: `meta:${phoneNumberId}`,
+            data: {
+                key: {
+                    remoteJid: `${from}@s.whatsapp.net`,
+                    fromMe: false,
+                    id: messageId,
+                },
+                message: {
+                    conversation: textContent.trim(),
+                },
+                origin,
+            },
+        };
+        return await this.processEvolutionMessage(mockPayload);
+    }
     async processEvolutionMessage(payload) {
         console.log('📥 [Webhook] Recebido evento do Evolution:', JSON.stringify(payload, null, 2));
         // Extrair dados do payload da Evolution Go / Evolution API
@@ -201,7 +322,7 @@ class WebhooksService {
                 `2️⃣ Crie sua conta ou faça login\n` +
                 `3️⃣ No seu *Perfil*, adicione e confirme seu número de WhatsApp: *${(0, phone_js_1.formatPhoneNumberDisplay)(normalizedSender)}*\n\n` +
                 `Assim que cadastrado, você poderá registrar gastos e receitas enviando mensagens de texto ou áudio! 🚀`;
-            await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, replyMsg);
+            await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
             return { status: 'user_not_found_notified' };
         }
         // 2. Verificar Plano PRO
@@ -218,7 +339,7 @@ class WebhooksService {
             const replyMsg = `👋 *Olá, ${user.name}!* ⭐\n\n` +
                 `O registro automático e inteligência artificial via WhatsApp é um recurso exclusivo do *Plano PRO* do Din.\n\n` +
                 `🚀 Acesse seu painel web para fazer o upgrade e ter acesso ilimitado ao seu assistente financeiro no WhatsApp!`;
-            await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, replyMsg);
+            await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
             return { status: 'pro_required' };
         }
         // 3. Buscar contas bancárias do usuário (com provisionamento automático de conta padrão)
@@ -696,12 +817,12 @@ class WebhooksService {
                 `🗓️ *Vencimento:* ${formattedDate} ${daysNotice}\n` +
                 `🏷️ *Categoria:* ${category?.name || 'Geral'}\n\n` +
                 `💡 _Quando efetuar o pagamento, basta avisar por aqui (ex: "paguei ${createdBill.description} no Nubank") para lançar a despesa na sua conta!_`;
-            await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, replyMsg);
+            await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
             return { status: 'bill_registered', bill_id: createdBill.id };
         }
         catch (error) {
             console.error('❌ [Webhook] Erro ao registrar conta a pagar:', error);
-            await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, `❌ Não consegui agendar sua conta a pagar. Por favor, tente novamente (ex: "agendar conta de luz 150 vencimento dia 10").`);
+            await this.sendWhatsAppReply(instance, remoteJid, `❌ Não consegui agendar sua conta a pagar. Por favor, tente novamente (ex: "agendar conta de luz 150 vencimento dia 10").`);
             return { status: 'bill_registration_failed' };
         }
     }
@@ -717,7 +838,7 @@ class WebhooksService {
                 const replyMsg = `🎉 *Parabéns, ${user.name}! Tudo em dia!*\n\n` +
                     `Você não possui nenhuma conta a pagar pendente no momento.\n\n` +
                     `💡 _Para agendar um novo boleto ou conta, envie por exemplo: "lembrar conta de luz 150 dia 15"._`;
-                await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, replyMsg);
+                await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
                 return { status: 'query_bills_empty' };
             }
             const overdueList = [];
@@ -754,12 +875,12 @@ class WebhooksService {
             msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
             msg += `💰 *Total Pendente a Pagar:* ${(0, currency_js_1.formatBRL)(totalToPay)}\n\n`;
             msg += `💡 _Para dar baixa em uma conta, envie por exemplo: "paguei a conta de luz no Nubank"._`;
-            await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, msg);
+            await this.sendWhatsAppReply(instance, remoteJid, msg);
             return { status: 'query_bills_sent' };
         }
         catch (error) {
             console.error('❌ [Webhook] Erro ao consultar contas a pagar:', error);
-            await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, `❌ Ocorreu um erro ao consultar suas contas a pagar. Tente novamente mais tarde.`);
+            await this.sendWhatsAppReply(instance, remoteJid, `❌ Ocorreu um erro ao consultar suas contas a pagar. Tente novamente mais tarde.`);
             return { status: 'query_bills_error' };
         }
     }
@@ -778,7 +899,7 @@ class WebhooksService {
                 orderBy: { due_date: 'asc' },
             });
             if (pendingBills.length === 0) {
-                await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, `ℹ️ *${user.name}*, você não possui nenhuma conta a pagar pendente no sistema para dar baixa.\n\nSe deseja registrar uma nova despesa direta, envie por exemplo: "Gastei 50 no almoço no Nubank".`);
+                await this.sendWhatsAppReply(instance, remoteJid, `ℹ️ *${user.name}*, você não possui nenhuma conta a pagar pendente no sistema para dar baixa.\n\nSe deseja registrar uma nova despesa direta, envie por exemplo: "Gastei 50 no almoço no Nubank".`);
                 return { status: 'no_pending_bills_to_pay' };
             }
             // 2. Encontrar a conta mais compatível com o termo de busca ou valor
@@ -842,12 +963,12 @@ class WebhooksService {
                 `💰 *Novo Saldo no ${targetAccount.name}:* ${(0, currency_js_1.formatBRL)(updatedAccBalance)}\n` +
                 `🗓️ *Data do Pagamento:* ${new Date().toLocaleDateString('pt-BR')}\n\n` +
                 `✨ _Despesa lançada automaticamente no seu extrato e fluxo de caixa!_`;
-            await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, replyMsg);
+            await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
             return { status: 'bill_paid', bill_id: result.bill.id, transaction_id: result.transaction.id };
         }
         catch (error) {
             console.error('❌ [Webhook] Erro ao pagar conta:', error);
-            await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, `❌ Não foi possível dar baixa na conta: ${error.message || 'Erro interno'}.`);
+            await this.sendWhatsAppReply(instance, remoteJid, `❌ Não foi possível dar baixa na conta: ${error.message || 'Erro interno'}.`);
             return { status: 'pay_bill_error' };
         }
     }
@@ -905,7 +1026,7 @@ class WebhooksService {
                     `  🔴 Despesas no ${targetAccount.name}: ${(0, currency_js_1.formatBRL)(monthExpense)}\n` +
                     `  ⚖️ Resultado: ${(0, currency_js_1.formatBRL)(monthIncome - monthExpense)}\n\n` +
                     `💡 _Para registrar um gasto nesta conta, basta enviar: "Gastei 50 no ${targetAccount.name}"._`;
-                await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, replyMsg);
+                await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
                 return { status: 'account_balance_sent' };
             }
         }
@@ -970,7 +1091,7 @@ class WebhooksService {
             `  🔴 Despesas: ${(0, currency_js_1.formatBRL)(currentMonthExpense)}\n` +
             `  ⚖️ Resultado do Mês: ${(0, currency_js_1.formatBRL)(monthBalance)}\n\n` +
             `💡 _Dica: Você pode consultar o saldo de um banco específico enviando "saldo do Nubank" ou consultar suas contas enviando "quais contas tenho a pagar?"._`;
-        await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, replyMsg);
+        await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
         return { status: 'balance_query_sent' };
     }
     /**
@@ -1066,7 +1187,7 @@ class WebhooksService {
         const replyMsg = `${title}\n\n` +
             registeredItems.join('\n\n─────────────\n\n') +
             `\n\n💡 _Dica: Digite "qual meu saldo?" para ver o balanço de todas as suas contas._`;
-        await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, replyMsg);
+        await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
         return { status: 'transactions_created', count: transactions.length };
     }
     /**
@@ -1086,7 +1207,7 @@ class WebhooksService {
             `*Consultas de Saldo:*\n` +
             `• 📊 *"Qual meu saldo geral?"*\n` +
             `• 🏦 *"Qual o saldo do ${userAccounts[0]?.name || 'Banco'}?"*`;
-        await evolution_client_js_1.evolutionClient.sendText(instance, remoteJid, replyMsg);
+        await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
         return { status: 'unknown_message_handled' };
     }
     /**

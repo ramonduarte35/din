@@ -1,4 +1,4 @@
-import { CreateInstanceInput, UpdateInstanceInput, LogsQueryInput, UpdateSystemSettingsInput } from './admin.whatsapp.schemas.js';
+import { CreateInstanceInput, UpdateInstanceInput, LogsQueryInput, UpdateSystemSettingsInput, UpdateWhatsAppConfigInput, TestMetaConnectionInput } from './admin.whatsapp.schemas.js';
 export declare class AdminWhatsAppService {
     getSettings(): Promise<{
         reply_only_registered: boolean;
@@ -118,5 +118,28 @@ export declare class AdminWhatsAppService {
             error?: string;
         };
     }>;
+    getProviderConfig(): Promise<{
+        id: string;
+        created_at: Date;
+        updated_at: Date;
+        active_provider: import("@prisma/client").$Enums.WhatsAppProviderType;
+        meta_phone_number_id: string | null;
+        meta_waba_id: string | null;
+        meta_access_token: string | null;
+        meta_verify_token: string | null;
+        meta_app_secret: string | null;
+    }>;
+    updateProviderConfig(data: UpdateWhatsAppConfigInput): Promise<{
+        id: string;
+        created_at: Date;
+        updated_at: Date;
+        active_provider: import("@prisma/client").$Enums.WhatsAppProviderType;
+        meta_phone_number_id: string | null;
+        meta_waba_id: string | null;
+        meta_access_token: string | null;
+        meta_verify_token: string | null;
+        meta_app_secret: string | null;
+    }>;
+    testMetaConnection(data?: TestMetaConnectionInput): Promise<import("../meta-whatsapp/meta.client.js").MetaConnectionStatus>;
 }
 export declare const adminWhatsAppService: AdminWhatsAppService;

@@ -20,6 +20,10 @@ async function adminWhatsAppRoutes(app) {
     app.patch('/settings', admin_whatsapp_controller_js_1.adminWhatsAppController.updateSettings);
     // Logs
     app.get('/logs', admin_whatsapp_controller_js_1.adminWhatsAppController.getLogs);
+    // Provedor WhatsApp & Configuração Meta Cloud API Oficial
+    app.get('/config', admin_whatsapp_controller_js_1.adminWhatsAppController.getProviderConfig);
+    app.put('/config', admin_whatsapp_controller_js_1.adminWhatsAppController.updateProviderConfig);
+    app.post('/meta/test', admin_whatsapp_controller_js_1.adminWhatsAppController.testMetaConnection);
     // Evolution Go Gateway & License
     app.get('/evolution/status', admin_whatsapp_controller_js_1.adminWhatsAppController.getEvolutionStatus);
     app.get('/evolution/license', admin_whatsapp_controller_js_1.adminWhatsAppController.getEvolutionLicense);

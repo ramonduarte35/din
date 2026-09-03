@@ -180,4 +180,55 @@ export async function updateAdminSettings(payload: {
   return data;
 }
 
+// ─── WhatsApp Provider & Meta Cloud API ──────────────────────────
+export interface WhatsAppIntegrationConfig {
+  id: string;
+  active_provider: 'EVOLUTION' | 'META_OFFICIAL';
+  meta_phone_number_id: string | null;
+  meta_waba_id: string | null;
+  meta_access_token: string | null;
+  meta_verify_token: string | null;
+  meta_app_secret: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MetaConnectionStatusResponse {
+  success: boolean;
+  phoneNumberId?: string;
+  displayPhoneNumber?: string;
+  verifiedName?: string;
+  qualityRating?: string;
+  status?: string;
+  error?: string;
+}
+
+export async function fetchWhatsAppProviderConfig(): Promise<WhatsAppIntegrationConfig> {
+  const { data } = await api.get<{ config: WhatsAppIntegrationConfig }>('/admin/whatsapp/config');
+  return data.config;
+}
+
+export async function updateWhatsAppProviderConfig(payload: Partial<WhatsAppIntegrationConfig>): Promise<{
+  message: string;
+  config: WhatsAppIntegrationConfig;
+}> {
+  const { data } = await api.put<{ message: string; config: WhatsAppIntegrationConfig }>(
+    '/admin/whatsapp/config',
+    payload
+  );
+  return data;
+}
+
+export async function testMetaConnection(payload?: {
+  meta_phone_number_id?: string;
+  meta_access_token?: string;
+}): Promise<MetaConnectionStatusResponse> {
+  const { data } = await api.post<MetaConnectionStatusResponse>(
+    '/admin/whatsapp/meta/test',
+    payload || {}
+  );
+  return data;
+}
+
+
 

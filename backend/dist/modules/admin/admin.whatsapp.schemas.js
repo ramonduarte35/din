@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateSystemSettingsSchema = exports.logsQuerySchema = exports.updateInstanceSchema = exports.createInstanceSchema = void 0;
+exports.testMetaConnectionSchema = exports.updateWhatsAppConfigSchema = exports.updateSystemSettingsSchema = exports.logsQuerySchema = exports.updateInstanceSchema = exports.createInstanceSchema = void 0;
 const zod_1 = require("zod");
 exports.createInstanceSchema = zod_1.z.object({
     instance_name: zod_1.z
@@ -25,4 +25,16 @@ exports.logsQuerySchema = zod_1.z.object({
 });
 exports.updateSystemSettingsSchema = zod_1.z.object({
     reply_only_registered: zod_1.z.boolean().optional(),
+});
+exports.updateWhatsAppConfigSchema = zod_1.z.object({
+    active_provider: zod_1.z.enum(['EVOLUTION', 'META_OFFICIAL']).optional(),
+    meta_phone_number_id: zod_1.z.string().optional().nullable(),
+    meta_waba_id: zod_1.z.string().optional().nullable(),
+    meta_access_token: zod_1.z.string().optional().nullable(),
+    meta_verify_token: zod_1.z.string().optional().nullable(),
+    meta_app_secret: zod_1.z.string().optional().nullable(),
+});
+exports.testMetaConnectionSchema = zod_1.z.object({
+    meta_phone_number_id: zod_1.z.string().optional(),
+    meta_access_token: zod_1.z.string().optional(),
 });

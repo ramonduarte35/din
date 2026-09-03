@@ -40,6 +40,8 @@ import {
   QrCodeResponse,
   EvolutionStatusResponse,
   EvolutionLicenseResponse,
+  WhatsAppIntegrationConfig,
+  MetaConnectionStatusResponse,
   fetchAdminInstances,
   createAdminInstance,
   getAdminInstanceQrCode,
@@ -54,6 +56,9 @@ import {
   activateEvolutionLicense,
   fetchAdminSettings,
   updateAdminSettings,
+  fetchWhatsAppProviderConfig,
+  updateWhatsAppProviderConfig,
+  testMetaConnection,
 } from '../api/admin';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -67,7 +72,7 @@ export function AdminWhatsApp() {
   const toast = useToast();
   const [instances, setInstances] = useState<AdminWhatsAppInstance[]>([]);
   const [logs, setLogs] = useState<AdminWhatsAppLog[]>([]);
-  const [activeTab, setActiveTab] = useState<'instances' | 'settings' | 'evolution' | 'logs'>('instances');
+  const [activeTab, setActiveTab] = useState<'instances' | 'meta' | 'settings' | 'evolution' | 'logs'>('instances');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -75,6 +80,18 @@ export function AdminWhatsApp() {
   const [adminSettings, setAdminSettings] = useState<AdminSettingsResponse>({ reply_only_registered: false });
   const [isSettingsLoading, setIsSettingsLoading] = useState(false);
   const [isUpdatingSetting, setIsUpdatingSetting] = useState(false);
+
+  // Meta Cloud API & Provider Config state
+  const [providerConfig, setProviderConfig] = useState<WhatsAppIntegrationConfig | null>(null);
+  const [isProviderConfigLoading, setIsProviderConfigLoading] = useState(true);
+  const [isSavingProviderConfig, setIsSavingProviderConfig] = useState(false);
+  const [isTestingMeta, setIsTestingMeta] = useState(false);
+  const [metaStatus, setMetaStatus] = useState<MetaConnectionStatusResponse | null>(null);
+  const [metaPhoneNumberId, setMetaPhoneNumberId] = useState('');
+  const [metaWabaId, setMetaWabaId] = useState('');
+  const [metaAccessToken, setMetaAccessToken] = useState('');
+  const [metaVerifyToken, setMetaVerifyToken] = useState('din_meta_verify_token');
+  const [metaAppSecret, setMetaAppSecret] = useState('');
 
   // Independent loading states
   const [isInstancesLoading, setIsInstancesLoading] = useState(true);
@@ -167,11 +184,29 @@ export function AdminWhatsApp() {
     }
   };
 
+  const loadProviderConfig = async (silent = false) => {
+    if (!silent) setIsProviderConfigLoading(true);
+    try {
+      const cfg = await fetchWhatsAppProviderConfig();
+      setProviderConfig(cfg);
+      setMetaPhoneNumberId(cfg.meta_phone_number_id || '');
+      setMetaWabaId(cfg.meta_waba_id || '');
+      setMetaAccessToken(cfg.meta_access_token || '');
+      setMetaVerifyToken(cfg.meta_verify_token || 'din_meta_verify_token');
+      setMetaAppSecret(cfg.meta_app_secret || '');
+    } catch (err) {
+      console.error('Erro ao buscar configuração do provedor WhatsApp:', err);
+    } finally {
+      setIsProviderConfigLoading(false);
+    }
+  };
+
   const loadAll = async () => {
     setIsRefreshing(true);
     await Promise.allSettled([
       loadInstances(false),
       loadSettings(false),
+      loadProviderConfig(false),
       loadEvolutionStatus(false),
       loadLogs(false),
     ]);
@@ -181,19 +216,83 @@ export function AdminWhatsApp() {
   useEffect(() => {
     loadInstances();
     loadSettings();
+    loadProviderConfig();
     loadEvolutionStatus();
   }, []);
 
-  const handleTabChange = (tab: 'instances' | 'settings' | 'evolution' | 'logs') => {
+  const handleTabChange = (tab: 'instances' | 'meta' | 'settings' | 'evolution' | 'logs') => {
     setActiveTab(tab);
     if (tab === 'instances') {
       loadInstances(true);
+    } else if (tab === 'meta') {
+      loadProviderConfig(true);
     } else if (tab === 'settings') {
       loadSettings(true);
     } else if (tab === 'evolution') {
       loadEvolutionStatus(true);
     } else if (tab === 'logs') {
       loadLogs(true);
+    }
+  };
+
+  const handleSaveMetaConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingProviderConfig(true);
+    try {
+      const res = await updateWhatsAppProviderConfig({
+        meta_phone_number_id: metaPhoneNumberId.trim() || null,
+        meta_waba_id: metaWabaId.trim() || null,
+        meta_access_token: metaAccessToken.trim() || null,
+        meta_verify_token: metaVerifyToken.trim() || null,
+        meta_app_secret: metaAppSecret.trim() || null,
+      });
+      setProviderConfig(res.config);
+      toast.show('Credenciais da Meta salvas com sucesso!', 'success');
+      showMessage('success', 'Configurações da Meta Cloud API atualizadas com sucesso!');
+    } catch (err: any) {
+      toast.show('Erro ao salvar credenciais da Meta.', 'error');
+      showMessage('error', 'Falha ao salvar credenciais da Meta Cloud API.');
+    } finally {
+      setIsSavingProviderConfig(false);
+    }
+  };
+
+  const handleToggleProvider = async (newProvider: 'EVOLUTION' | 'META_OFFICIAL') => {
+    setIsSavingProviderConfig(true);
+    try {
+      const res = await updateWhatsAppProviderConfig({ active_provider: newProvider });
+      setProviderConfig(res.config);
+      const provName = newProvider === 'META_OFFICIAL' ? 'API Oficial da Meta (Cloud API)' : 'Evolution Go (QR Code)';
+      toast.show(`Provedor ativo alterado para: ${provName}`, 'success');
+      showMessage('success', `🎉 Provedor principal do WhatsApp alterado para "${provName}" com sucesso!`);
+    } catch (err: any) {
+      toast.show('Erro ao alterar provedor do WhatsApp.', 'error');
+    } finally {
+      setIsSavingProviderConfig(false);
+    }
+  };
+
+  const handleTestMeta = async () => {
+    setIsTestingMeta(true);
+    try {
+      const res = await testMetaConnection({
+        meta_phone_number_id: metaPhoneNumberId.trim() || undefined,
+        meta_access_token: metaAccessToken.trim() || undefined,
+      });
+      setMetaStatus(res);
+      if (res.success) {
+        toast.show('Conexão com a Meta verificada com sucesso!', 'success');
+        showMessage('success', `✅ Conexão com a Meta bem-sucedida! Número: ${res.displayPhoneNumber || 'OK'} | Nome: ${res.verifiedName || 'Verificado'}`);
+      } else {
+        toast.show(res.error || 'Erro na verificação com a Meta', 'error');
+        showMessage('error', res.error || 'Falha ao conectar com os servidores da Meta.');
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.message || 'Erro ao testar conexão';
+      toast.show(msg, 'error');
+      showMessage('error', msg);
+    } finally {
+      setIsTestingMeta(false);
     }
   };
 
@@ -606,20 +705,42 @@ export function AdminWhatsApp() {
           onClick={() => handleTabChange('instances')}
           className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap min-h-[44px] ${
             activeTab === 'instances'
-              ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-din-primary text-din-primary bg-din-primary/5'
+              : 'border-transparent text-din-muted hover:text-din-text'
           }`}
         >
           <Smartphone className="w-4 h-4" />
-          <span>Instâncias & Números ({instances.length})</span>
+          <span>Evolution Go (QR Code) ({instances.length})</span>
+          {providerConfig?.active_provider === 'EVOLUTION' && (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              Ativo
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => handleTabChange('meta')}
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap min-h-[44px] ${
+            activeTab === 'meta'
+              ? 'border-din-primary text-din-primary bg-din-primary/5'
+              : 'border-transparent text-din-muted hover:text-din-text'
+          }`}
+        >
+          <Bot className="w-4 h-4" />
+          <span>API Oficial Meta (Cloud API)</span>
+          {providerConfig?.active_provider === 'META_OFFICIAL' && (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-din-primary/20 text-din-primary border border-din-primary/30">
+              Ativo
+            </span>
+          )}
         </button>
 
         <button
           onClick={() => handleTabChange('settings')}
           className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap min-h-[44px] ${
             activeTab === 'settings'
-              ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-din-primary text-din-primary bg-din-primary/5'
+              : 'border-transparent text-din-muted hover:text-din-text'
           }`}
         >
           <Sliders className="w-4 h-4" />
@@ -635,14 +756,14 @@ export function AdminWhatsApp() {
           onClick={() => handleTabChange('evolution')}
           className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap min-h-[44px] ${
             activeTab === 'evolution'
-              ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-din-primary text-din-primary bg-din-primary/5'
+              : 'border-transparent text-din-muted hover:text-din-text'
           }`}
         >
           <Key className="w-4 h-4" />
-          <span>Gateway & Licença Evolution Go</span>
+          <span>Gateway & Licença Evolution</span>
           {isEvolutionLoading && !evolutionStatus ? (
-            <span className="w-2 h-2 rounded-full bg-slate-500 animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-din-muted animate-ping" />
           ) : evolutionStatus ? (
             <span
               className={`w-2 h-2 rounded-full ${
@@ -658,8 +779,8 @@ export function AdminWhatsApp() {
           onClick={() => handleTabChange('logs')}
           className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap min-h-[44px] ${
             activeTab === 'logs'
-              ? 'border-emerald-500 text-emerald-400 bg-emerald-500/5'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-din-primary text-din-primary bg-din-primary/5'
+              : 'border-transparent text-din-muted hover:text-din-text'
           }`}
         >
           <MessageSquare className="w-4 h-4" />
@@ -820,7 +941,329 @@ export function AdminWhatsApp() {
         </div>
       )}
 
-      {/* TAB 2: REGRAS DE ATENDIMENTO & CONFIGURAÇÕES */}
+      {/* TAB 2: API OFICIAL DA META (WHATSAPP CLOUD API) */}
+      {activeTab === 'meta' && (
+        <div className="space-y-6 animate-fade-in">
+          {/* Card 1: Seletor de Provedor Ativo */}
+          <div className="p-6 rounded-3xl bg-card border border-border shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-din-text flex items-center gap-2">
+                  <Bot className="w-5 h-5 text-din-primary" />
+                  <span>Provedor Principal do WhatsApp</span>
+                </h3>
+                <p className="text-xs text-din-muted mt-0.5">
+                  Escolha qual motor o Din utilizará para processar e responder mensagens financeiras
+                </p>
+              </div>
+
+              {providerConfig && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-din-primary/10 text-din-primary border border-din-primary/20 self-start sm:self-auto">
+                  <span className="w-2 h-2 rounded-full bg-din-primary animate-pulse" />
+                  Ativo:{' '}
+                  {providerConfig.active_provider === 'META_OFFICIAL'
+                    ? 'API Oficial Meta'
+                    : 'Evolution Go'}
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              {/* Opção 1: Evolution Go */}
+              <button
+                type="button"
+                onClick={() => handleToggleProvider('EVOLUTION')}
+                disabled={isSavingProviderConfig}
+                className={`p-4 sm:p-5 rounded-2xl border text-left transition-all relative flex flex-col justify-between min-h-[120px] ${
+                  providerConfig?.active_provider === 'EVOLUTION'
+                    ? 'border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-500/30'
+                    : 'border-border bg-card-secondary hover:border-border hover:bg-card-hover'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                      <Smartphone className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-din-text">Evolution Go</h4>
+                      <span className="text-[10px] text-emerald-400 font-semibold">QR Code / Local</span>
+                    </div>
+                  </div>
+                  {providerConfig?.active_provider === 'EVOLUTION' && (
+                    <div className="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-din-muted mt-3">
+                  Conexão via escaneamento de QR Code com qualquer chip ou WhatsApp físico.
+                </p>
+              </button>
+
+              {/* Opção 2: API Oficial da Meta */}
+              <button
+                type="button"
+                onClick={() => handleToggleProvider('META_OFFICIAL')}
+                disabled={isSavingProviderConfig}
+                className={`p-4 sm:p-5 rounded-2xl border text-left transition-all relative flex flex-col justify-between min-h-[120px] ${
+                  providerConfig?.active_provider === 'META_OFFICIAL'
+                    ? 'border-din-primary bg-din-primary/10 shadow-lg shadow-din-primary/10 ring-1 ring-din-primary/30'
+                    : 'border-border bg-card-secondary hover:border-border hover:bg-card-hover'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-din-primary/20 text-din-primary flex items-center justify-center">
+                      <Bot className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-din-text">Meta Cloud API Oficial</h4>
+                      <span className="text-[10px] text-din-primary font-semibold">WhatsApp Business Cloud</span>
+                    </div>
+                  </div>
+                  {providerConfig?.active_provider === 'META_OFFICIAL' && (
+                    <div className="w-5 h-5 rounded-full bg-din-primary text-slate-950 flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-din-muted mt-3">
+                  Conexão oficial da Meta. Zero risco de banimento e estabilidade na nuvem.
+                </p>
+              </button>
+            </div>
+          </div>
+
+          {/* Card 2: Instruções de Webhook da Meta */}
+          <div className="p-6 rounded-3xl bg-card border border-border shadow-xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                <Radio className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-din-text">
+                  Configuração do Webhook da Meta
+                </h3>
+                <p className="text-xs text-din-muted">
+                  Cole estes dados no painel da Meta (developers.facebook.com &gt; WhatsApp &gt; Configuration &gt; Webhook)
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              {/* Callback URL */}
+              <div className="p-4 rounded-2xl bg-card-secondary border border-border space-y-2">
+                <span className="text-xs font-semibold text-din-muted uppercase tracking-wider block">
+                  URL de Retorno (Callback URL)
+                </span>
+                <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-card border border-border font-mono text-xs text-din-text overflow-hidden">
+                  <span className="truncate">{`${window.location.origin}/api/v1/webhooks/meta`}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/api/v1/webhooks/meta`);
+                      setCopiedText('url');
+                      setTimeout(() => setCopiedText(null), 2000);
+                    }}
+                    className="p-1.5 rounded-lg text-din-muted hover:text-din-primary hover:bg-card-hover transition-colors shrink-0"
+                    title="Copiar URL"
+                  >
+                    {copiedText === 'url' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-[11px] text-din-muted">
+                  Insira esta URL no campo "Callback URL" do portal de desenvolvedores da Meta.
+                </p>
+              </div>
+
+              {/* Verify Token */}
+              <div className="p-4 rounded-2xl bg-card-secondary border border-border space-y-2">
+                <span className="text-xs font-semibold text-din-muted uppercase tracking-wider block">
+                  Token de Verificação (Verify Token)
+                </span>
+                <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-card border border-border font-mono text-xs text-din-text overflow-hidden">
+                  <span className="truncate">{metaVerifyToken || 'din_meta_verify_token'}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(metaVerifyToken || 'din_meta_verify_token');
+                      setCopiedText('token');
+                      setTimeout(() => setCopiedText(null), 2000);
+                    }}
+                    className="p-1.5 rounded-lg text-din-muted hover:text-din-primary hover:bg-card-hover transition-colors shrink-0"
+                    title="Copiar Token"
+                  >
+                    {copiedText === 'token' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-[11px] text-din-muted">
+                  Insira este mesmo token no campo "Verify Token" e assine o evento <strong className="text-din-text">messages</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Formulário de Credenciais da Meta Cloud API */}
+          <form onSubmit={handleSaveMetaConfig} className="p-6 rounded-3xl bg-card border border-border shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-din-text flex items-center gap-2">
+                  <Key className="w-5 h-5 text-din-primary" />
+                  <span>Credenciais da API da Meta</span>
+                </h3>
+                <p className="text-xs text-din-muted mt-0.5">
+                  Preencha os identificadores obtidos no Meta Business Manager / Developer Portal
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTestMeta}
+                  disabled={isTestingMeta || !metaPhoneNumberId || !metaAccessToken}
+                  className="min-h-[40px] text-xs flex items-center gap-1.5"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isTestingMeta ? 'animate-spin' : ''}`} />
+                  <span>{isTestingMeta ? 'Verificando...' : 'Testar Conexão'}</span>
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                  disabled={isSavingProviderConfig}
+                  className="min-h-[40px] text-xs px-5"
+                >
+                  {isSavingProviderConfig ? 'Salvando...' : 'Salvar Credenciais'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Diagnóstico de Status da Meta */}
+            {metaStatus && (
+              <div
+                className={`p-4 rounded-2xl border text-xs animate-fade-in ${
+                  metaStatus.success
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                    : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                }`}
+              >
+                {metaStatus.success ? (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2 font-bold text-sm text-emerald-400">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Conexão com a Meta Verificada com Sucesso!</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 font-mono text-[11px]">
+                      <div>
+                        <span className="text-din-muted">Nome da Conta:</span> {metaStatus.verifiedName || 'N/A'}
+                      </div>
+                      <div>
+                        <span className="text-din-muted">Número:</span> {metaStatus.displayPhoneNumber || 'N/A'}
+                      </div>
+                      <div>
+                        <span className="text-din-muted">Qualidade:</span> {metaStatus.qualityRating || 'GREEN'}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                    <span>{metaStatus.error}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Phone Number ID */}
+              <div>
+                <label className="block text-xs font-semibold text-din-text mb-1.5">
+                  Phone Number ID (ID do Número de Telefone) *
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Ex: 109283746592817"
+                  value={metaPhoneNumberId}
+                  onChange={(e) => setMetaPhoneNumberId(e.target.value)}
+                  required
+                  className="h-11 text-xs font-mono"
+                />
+                <span className="text-[11px] text-din-muted mt-1 block">
+                  Encontrado na página WhatsApp &gt; API Setup no portal da Meta.
+                </span>
+              </div>
+
+              {/* WABA ID */}
+              <div>
+                <label className="block text-xs font-semibold text-din-text mb-1.5">
+                  WhatsApp Business Account ID (WABA ID)
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Ex: 987654321098765"
+                  value={metaWabaId}
+                  onChange={(e) => setMetaWabaId(e.target.value)}
+                  className="h-11 text-xs font-mono"
+                />
+                <span className="text-[11px] text-din-muted mt-1 block">
+                  ID da sua Conta Empresarial do WhatsApp.
+                </span>
+              </div>
+
+              {/* Access Token */}
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-din-text mb-1.5">
+                  System User Permanent Access Token (Token Permanente) *
+                </label>
+                <Input
+                  type="password"
+                  placeholder="EAAG..."
+                  value={metaAccessToken}
+                  onChange={(e) => setMetaAccessToken(e.target.value)}
+                  required
+                  className="h-11 text-xs font-mono"
+                />
+                <span className="text-[11px] text-din-muted mt-1 block">
+                  Token de usuário de sistema com permissões <code className="text-din-primary">whatsapp_business_messaging</code> e <code className="text-din-primary">whatsapp_business_management</code>.
+                </span>
+              </div>
+
+              {/* Verify Token */}
+              <div>
+                <label className="block text-xs font-semibold text-din-text mb-1.5">
+                  Verify Token do Webhook
+                </label>
+                <Input
+                  type="text"
+                  placeholder="din_meta_verify_token"
+                  value={metaVerifyToken}
+                  onChange={(e) => setMetaVerifyToken(e.target.value)}
+                  className="h-11 text-xs font-mono"
+                />
+              </div>
+
+              {/* App Secret */}
+              <div>
+                <label className="block text-xs font-semibold text-din-text mb-1.5">
+                  App Secret (Segredo do Aplicativo Meta)
+                </label>
+                <Input
+                  type="password"
+                  placeholder="Segredo do app para validação de assinatura HMAC"
+                  value={metaAppSecret}
+                  onChange={(e) => setMetaAppSecret(e.target.value)}
+                  className="h-11 text-xs font-mono"
+                />
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* TAB 3: REGRAS DE ATENDIMENTO & CONFIGURAÇÕES */}
       {activeTab === 'settings' && (
         <div className="space-y-6 animate-fade-in">
           {/* Main Setting Card */}

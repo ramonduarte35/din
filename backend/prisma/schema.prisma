@@ -57,6 +57,11 @@ enum WhatsAppLogStatus {
   PARSING_ERROR
 }
 
+enum WhatsAppProviderType {
+  EVOLUTION
+  META_OFFICIAL
+}
+
 model User {
   id                String           @id @default(uuid())
   name              String
@@ -204,5 +209,19 @@ model SystemSetting {
   updated_at  DateTime @updatedAt
 
   @@map("system_settings")
+}
+
+model WhatsAppIntegrationConfig {
+  id                   String               @id @default(uuid())
+  active_provider      WhatsAppProviderType @default(EVOLUTION)
+  meta_phone_number_id String?
+  meta_waba_id         String?
+  meta_access_token    String?              @db.Text
+  meta_verify_token    String?
+  meta_app_secret      String?
+  created_at           DateTime             @default(now())
+  updated_at           DateTime             @updatedAt
+
+  @@map("whatsapp_integration_configs")
 }
 

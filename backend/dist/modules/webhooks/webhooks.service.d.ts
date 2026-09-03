@@ -1,4 +1,24 @@
 export declare class WebhooksService {
+    /**
+     * Envio unificado de mensagem via WhatsApp (Evolution Go ou Meta Cloud API Oficial)
+     */
+    private sendWhatsAppReply;
+    /**
+     * Validação do handshake de Webhook da Meta (GET /api/v1/webhooks/meta)
+     */
+    verifyMetaWebhook(mode?: string, token?: string, challenge?: string): Promise<{
+        success: boolean;
+        challenge: string | undefined;
+    } | {
+        success: boolean;
+        challenge?: undefined;
+    }>;
+    /**
+     * Processamento de mensagens recebidas da Meta Cloud API Oficial (POST /api/v1/webhooks/meta)
+     */
+    processMetaMessage(payload: any): Promise<{
+        status: string;
+    }>;
     processEvolutionMessage(payload: any): Promise<{
         status: string;
     }>;

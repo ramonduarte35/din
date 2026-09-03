@@ -23,6 +23,11 @@ export async function adminWhatsAppRoutes(app: FastifyInstance) {
   // Logs
   app.get('/logs', adminWhatsAppController.getLogs);
 
+  // Provedor WhatsApp & Configuração Meta Cloud API Oficial
+  app.get('/config', adminWhatsAppController.getProviderConfig);
+  app.put('/config', adminWhatsAppController.updateProviderConfig);
+  app.post('/meta/test', adminWhatsAppController.testMetaConnection);
+
   // Evolution Go Gateway & License
   app.get('/evolution/status', adminWhatsAppController.getEvolutionStatus);
   app.get('/evolution/license', adminWhatsAppController.getEvolutionLicense);

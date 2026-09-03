@@ -28,8 +28,24 @@ export const updateSystemSettingsSchema = z.object({
   reply_only_registered: z.boolean().optional(),
 });
 
+export const updateWhatsAppConfigSchema = z.object({
+  active_provider: z.enum(['EVOLUTION', 'META_OFFICIAL']).optional(),
+  meta_phone_number_id: z.string().optional().nullable(),
+  meta_waba_id: z.string().optional().nullable(),
+  meta_access_token: z.string().optional().nullable(),
+  meta_verify_token: z.string().optional().nullable(),
+  meta_app_secret: z.string().optional().nullable(),
+});
+
+export const testMetaConnectionSchema = z.object({
+  meta_phone_number_id: z.string().optional(),
+  meta_access_token: z.string().optional(),
+});
+
 export type CreateInstanceInput = z.infer<typeof createInstanceSchema>;
 export type UpdateInstanceInput = z.infer<typeof updateInstanceSchema>;
 export type LogsQueryInput = z.infer<typeof logsQuerySchema>;
 export type UpdateSystemSettingsInput = z.infer<typeof updateSystemSettingsSchema>;
+export type UpdateWhatsAppConfigInput = z.infer<typeof updateWhatsAppConfigSchema>;
+export type TestMetaConnectionInput = z.infer<typeof testMetaConnectionSchema>;
 
