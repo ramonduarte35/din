@@ -2,12 +2,15 @@ import { z } from 'zod';
 export declare const updateProfileSchema: z.ZodObject<{
     name: z.ZodOptional<z.ZodString>;
     phone_number: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    theme: z.ZodOptional<z.ZodEnum<["dark", "rose", "light", "purple"]>>;
 }, "strip", z.ZodTypeAny, {
     name?: string | undefined;
     phone_number?: string | null | undefined;
+    theme?: "dark" | "rose" | "light" | "purple" | undefined;
 }, {
     name?: string | undefined;
     phone_number?: string | null | undefined;
+    theme?: "dark" | "rose" | "light" | "purple" | undefined;
 }>;
 export declare const changePasswordSchema: z.ZodObject<{
     current_password: z.ZodOptional<z.ZodString>;

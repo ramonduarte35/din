@@ -2,57 +2,178 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* ══════════════════════════════════════════════════════════════════ */
+/* 🎨 PALETAS DE CORES & VARIÁVEIS DE TEMA DIN                         */
+/* ══════════════════════════════════════════════════════════════════ */
+
+/* 1. ESCURO PADRÃO (Emerald & Deep Navy/Slate) */
+:root,
+[data-theme="dark"] {
   color-scheme: dark;
+  --bg-app: #080d1a;
+  --bg-surface: #0f172a;
+  --bg-surface-secondary: #0d1424;
+  --bg-surface-elevated: #172033;
+  --bg-sidebar: #0b1120;
+  --bg-header: rgba(8, 13, 26, 0.85);
+  --bg-input: #080d1a;
+  --border-app: #1e293b;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-focus: #10b981;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --color-primary: #10b981;
+  --color-primary-hover: #059669;
+  --color-primary-gradient: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+  --color-primary-glow: rgba(16, 185, 129, 0.35);
+  --ambient-orb-1: rgba(16, 185, 129, 0.09);
+  --ambient-orb-2: rgba(99, 102, 241, 0.09);
+  --ambient-orb-3: rgba(244, 63, 94, 0.05);
+  --scrollbar-thumb: #1e293b;
+  --scrollbar-thumb-hover: #334155;
+}
+
+/* 2. ROSA GLAMOUR (Sunset Rose & Velvet Berry) */
+[data-theme="rose"] {
+  color-scheme: dark;
+  --bg-app: #0f0714;
+  --bg-surface: #190d24;
+  --bg-surface-secondary: #160a20;
+  --bg-surface-elevated: #231233;
+  --bg-sidebar: #130a1b;
+  --bg-header: rgba(15, 7, 20, 0.85);
+  --bg-input: #0f0714;
+  --border-app: #381647;
+  --border-subtle: rgba(244, 63, 94, 0.18);
+  --border-focus: #f43f5e;
+  --text-main: #fff1f2;
+  --text-muted: #fda4af;
+  --text-subtle: #9f1239;
+  --color-primary: #f43f5e;
+  --color-primary-hover: #e11d48;
+  --color-primary-gradient: linear-gradient(135deg, #f43f5e 0%, #ec4899 100%);
+  --color-primary-glow: rgba(244, 63, 94, 0.4);
+  --ambient-orb-1: rgba(244, 63, 94, 0.14);
+  --ambient-orb-2: rgba(236, 72, 153, 0.11);
+  --ambient-orb-3: rgba(251, 146, 60, 0.07);
+  --scrollbar-thumb: #381647;
+  --scrollbar-thumb-hover: #58216f;
+}
+
+/* 3. ROXO NEON (Cyber Violet & Mystic Purple) */
+[data-theme="purple"] {
+  color-scheme: dark;
+  --bg-app: #090616;
+  --bg-surface: #130c29;
+  --bg-surface-secondary: #0f0822;
+  --bg-surface-elevated: #1b103b;
+  --bg-sidebar: #0e0720;
+  --bg-header: rgba(9, 6, 22, 0.85);
+  --bg-input: #090616;
+  --border-app: #2f185c;
+  --border-subtle: rgba(139, 92, 246, 0.18);
+  --border-focus: #8b5cf6;
+  --text-main: #f5f3ff;
+  --text-muted: #c4b5fd;
+  --text-subtle: #7c3aed;
+  --color-primary: #8b5cf6;
+  --color-primary-hover: #7c3aed;
+  --color-primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  --color-primary-glow: rgba(139, 92, 246, 0.4);
+  --ambient-orb-1: rgba(139, 92, 246, 0.14);
+  --ambient-orb-2: rgba(168, 85, 247, 0.11);
+  --ambient-orb-3: rgba(56, 189, 248, 0.07);
+  --scrollbar-thumb: #2f185c;
+  --scrollbar-thumb-hover: #48238d;
+}
+
+/* 4. BRANCO CLEAN (Clean Pearl White & Modern Slate) */
+[data-theme="light"] {
+  color-scheme: light;
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-secondary: #f1f5f9;
+  --bg-surface-elevated: #ffffff;
+  --bg-sidebar: #ffffff;
+  --bg-header: rgba(255, 255, 255, 0.9);
+  --bg-input: #ffffff;
+  --border-app: #e2e8f0;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-focus: #059669;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-subtle: #94a3b8;
+  --color-primary: #059669;
+  --color-primary-hover: #047857;
+  --color-primary-gradient: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+  --color-primary-glow: rgba(5, 150, 105, 0.25);
+  --ambient-orb-1: rgba(16, 185, 129, 0.07);
+  --ambient-orb-2: rgba(99, 102, 241, 0.06);
+  --ambient-orb-3: rgba(14, 165, 233, 0.05);
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
 }
 
 body {
   margin: 0;
-  background-color: #080d1a;
-  color: #f1f5f9;
+  background-color: var(--bg-app);
+  color: var(--text-main);
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar dinâmico */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #080d1a;
+  background: var(--bg-app);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--scrollbar-thumb);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--scrollbar-thumb-hover);
 }
 
-/* Glassmorphism & Glow styles */
+/* Background ambient glow orbs dinâmico */
+.bg-ambient-gradient {
+  background: radial-gradient(circle at 15% 15%, var(--ambient-orb-1) 0%, transparent 45%),
+              radial-gradient(circle at 85% 25%, var(--ambient-orb-2) 0%, transparent 45%),
+              radial-gradient(circle at 50% 85%, var(--ambient-orb-3) 0%, transparent 45%);
+}
+
+/* Glassmorphism adaptado por tema */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.75);
+  background: var(--bg-surface);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-app);
 }
 
 .glass-card {
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--bg-surface-secondary);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
-  background: rgba(23, 34, 59, 0.7);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: var(--bg-surface-elevated);
+  border-color: var(--border-app);
   transform: translateY(-2px);
+}
+
+.glow-primary {
+  box-shadow: 0 0 30px -5px var(--color-primary-glow);
 }
 
 .glow-emerald {
@@ -67,9 +188,6 @@ body {
   box-shadow: 0 0 30px -5px rgba(99, 102, 241, 0.25);
 }
 
-/* Background ambient glow orbs */
-.bg-ambient-gradient {
-  background: radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
-              radial-gradient(circle at 85% 25%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
-              radial-gradient(circle at 50% 85%, rgba(244, 63, 94, 0.05) 0%, transparent 40%);
+.glow-violet {
+  box-shadow: 0 0 30px -5px rgba(139, 92, 246, 0.25);
 }

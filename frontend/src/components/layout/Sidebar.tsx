@@ -64,20 +64,20 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
   };
 
   return (
-    <aside className="w-64 flex flex-col h-full bg-[#0b1120] border-r border-slate-800/80 p-4 select-none">
+    <aside className="w-64 flex flex-col h-full bg-card border-r border-border p-4 select-none transition-colors duration-300">
       {/* Brand Header */}
-      <div className="flex items-center gap-3 px-3 py-4 mb-4 border-b border-slate-800/80">
+      <div className="flex items-center gap-3 px-3 py-4 mb-4 border-b border-border">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-2 ring-emerald-400/20">
           <Zap className="w-5 h-5 text-slate-950 fill-current" />
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xl font-black tracking-tight text-white">Din</span>
-            <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            <span className="text-xl font-black tracking-tight text-din-text">Din</span>
+            <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-din-primary/20 text-din-primary border border-din-primary/30">
               AI Finance
             </span>
           </div>
-          <p className="text-[11px] text-slate-400 font-medium">Gestão & WhatsApp</p>
+          <p className="text-[11px] text-din-muted font-medium">Gestão & WhatsApp</p>
         </div>
       </div>
 
@@ -92,8 +92,8 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
               cn(
                 'flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group',
                 isActive
-                  ? 'bg-gradient-to-r from-emerald-500/15 to-teal-500/5 text-emerald-400 border border-emerald-500/30 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  ? 'bg-din-primary/15 text-din-primary border border-din-primary/30 shadow-sm font-semibold'
+                  : 'text-din-muted hover:text-din-text hover:bg-card-hover'
               )
             }
           >
@@ -103,7 +103,7 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
                   <item.icon
                     className={cn(
                       'w-4 h-4 transition-colors',
-                      isActive ? 'text-emerald-400' : 'text-slate-400 group-hover:text-slate-200'
+                      isActive ? 'text-din-primary' : 'text-din-muted group-hover:text-din-text'
                     )}
                   />
                   <span>{item.label}</span>
@@ -120,8 +120,8 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
 
         {/* Admin Navigation Section */}
         {user?.role === 'ADMIN' && (
-          <div className="pt-3 mt-3 border-t border-slate-800/80">
-            <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+          <div className="pt-3 mt-3 border-t border-border">
+            <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-din-muted mb-1.5">
               Administração
             </p>
             <NavLink
@@ -131,8 +131,8 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
                 cn(
                   'flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group',
                   isActive
-                    ? 'bg-gradient-to-r from-emerald-500/15 to-indigo-500/10 text-emerald-400 border border-emerald-500/30 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                    ? 'bg-din-primary/15 text-din-primary border border-din-primary/30 shadow-sm font-semibold'
+                    : 'text-din-muted hover:text-din-text hover:bg-card-hover'
                 )
               }
             >
@@ -142,12 +142,12 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
                     <Shield
                       className={cn(
                         'w-4 h-4 transition-colors',
-                        isActive ? 'text-emerald-400' : 'text-slate-400 group-hover:text-slate-200'
+                        isActive ? 'text-din-primary' : 'text-din-muted group-hover:text-din-text'
                       )}
                     />
                     <span>WhatsApp & Evolution</span>
                   </div>
-                  <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-din-primary/20 text-din-primary border border-din-primary/30">
                     ADMIN
                   </span>
                 </>
@@ -164,7 +164,7 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
             <Sparkles className="w-4 h-4 text-amber-400" />
             <span>Assine o Plano PRO</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+          <p className="text-[11px] text-din-muted mt-1 leading-relaxed">
             Libere o assistente inteligente por áudio e texto no WhatsApp.
           </p>
           <NavLink
@@ -178,23 +178,23 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
       ) : null}
 
       {/* User profile footer */}
-      <div className="pt-4 border-t border-slate-800/80 mt-auto">
-        <div className="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
+      <div className="pt-4 border-t border-border mt-auto">
+        <div className="flex items-center justify-between p-2 rounded-xl bg-card-secondary border border-border">
           <div className="flex items-center gap-2.5 overflow-hidden">
             {user?.avatar_url ? (
               <img
                 src={user.avatar_url}
                 alt={user.name || 'Avatar'}
                 referrerPolicy="no-referrer"
-                className="w-8 h-8 rounded-full object-cover border border-slate-700 flex-shrink-0"
+                className="w-8 h-8 rounded-full object-cover border border-border flex-shrink-0"
               />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-slate-200 uppercase flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-xs font-bold text-din-text uppercase flex-shrink-0">
                 {user?.name ? user.name.slice(0, 2) : 'D'}
               </div>
             )}
             <div className="overflow-hidden">
-              <p className="text-xs font-semibold text-slate-200 truncate">{user?.name || 'Usuário'}</p>
+              <p className="text-xs font-semibold text-din-text truncate">{user?.name || 'Usuário'}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <Badge variant={user?.subscription_tier === 'PRO' ? 'pro' : 'free'} className="text-[9px] py-0 px-1.5">
                   {user?.subscription_tier || 'FREE'}
@@ -205,7 +205,7 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
           <button
             onClick={handleLogout}
             title="Sair da conta"
-            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800/80 rounded-lg transition-colors"
+            className="p-1.5 text-din-muted hover:text-rose-400 hover:bg-card-hover rounded-lg transition-colors"
           >
             <LogOut className="w-4 h-4" />
           </button>

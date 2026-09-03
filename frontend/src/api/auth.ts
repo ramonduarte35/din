@@ -10,6 +10,7 @@ export interface User {
   has_password?: boolean;
   subscription_tier: 'FREE' | 'PRO';
   role?: 'USER' | 'ADMIN';
+  theme?: 'dark' | 'rose' | 'light' | 'purple' | string;
   created_at?: string;
   updated_at?: string;
 }
@@ -48,6 +49,7 @@ export async function getProfileRequest(): Promise<{ user: User }> {
 export async function updateProfileRequest(payload: {
   name?: string;
   phone_number?: string | null;
+  theme?: 'dark' | 'rose' | 'light' | 'purple' | string;
 }): Promise<{ message: string; user: User }> {
   const { data } = await api.put<{ message: string; user: User }>('/users/profile', payload);
   return data;

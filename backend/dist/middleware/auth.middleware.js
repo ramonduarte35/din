@@ -18,6 +18,7 @@ async function authenticate(request, reply) {
                 phone_number: true,
                 subscription_tier: true,
                 role: true,
+                theme: true,
             },
         });
         if (!user) {

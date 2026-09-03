@@ -21,6 +21,7 @@ class UsersService {
                 password_hash: true,
                 subscription_tier: true,
                 role: true,
+                theme: true,
                 created_at: true,
                 updated_at: true,
                 _count: {
@@ -65,8 +66,9 @@ class UsersService {
         const updatedUser = await prisma_js_1.prisma.user.update({
             where: { id: userId },
             data: {
-                name: data.name,
-                phone_number: normalizedPhone,
+                ...(data.name !== undefined && { name: data.name }),
+                ...(normalizedPhone !== undefined && { phone_number: normalizedPhone }),
+                ...(data.theme !== undefined && { theme: data.theme }),
             },
             select: {
                 id: true,
@@ -78,6 +80,7 @@ class UsersService {
                 password_hash: true,
                 subscription_tier: true,
                 role: true,
+                theme: true,
                 updated_at: true,
             },
         });

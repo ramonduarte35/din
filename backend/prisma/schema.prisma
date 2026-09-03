@@ -67,6 +67,7 @@ model User {
   google_id         String?          @unique
   subscription_tier SubscriptionTier @default(FREE)
   role              Role             @default(USER)
+  theme             String           @default("dark")
   created_at        DateTime         @default(now())
   updated_at        DateTime         @updatedAt
 

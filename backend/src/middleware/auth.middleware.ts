@@ -35,6 +35,7 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
         phone_number: true,
         subscription_tier: true,
         role: true,
+        theme: true,
       },
     });
 

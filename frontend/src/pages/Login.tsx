@@ -52,9 +52,9 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#080d1a] bg-ambient-gradient relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background bg-ambient-gradient relative overflow-hidden transition-colors duration-300">
       {/* Decorative ambient orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-din-primary/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
@@ -63,16 +63,16 @@ export function Login() {
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 shadow-xl shadow-emerald-500/30 ring-4 ring-emerald-400/20 mb-4">
             <Zap className="w-7 h-7 text-slate-950 fill-current" />
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-white">
-            Din <span className="text-emerald-400">Finance</span>
+          <h1 className="text-3xl font-black tracking-tight text-din-text">
+            Din <span className="text-din-primary">Finance</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-din-muted mt-1">
             Gestão financeira inteligente com IA e integração direta no WhatsApp
           </p>
         </div>
 
         {/* Card Form */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-slate-900/70 border border-slate-800/80 backdrop-blur-2xl shadow-2xl space-y-5">
+        <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border backdrop-blur-2xl shadow-2xl space-y-5">
           <div>
             <h2 className="text-lg font-bold text-white">Acessar Conta</h2>
             <p className="text-xs text-slate-400 mt-0.5">Entre com sua conta Google ou com seu e-mail e senha</p>

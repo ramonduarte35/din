@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ConfirmProvider } from './contexts/ConfirmContext';
 import { PrivacyProvider } from './contexts/PrivacyContext';
@@ -32,8 +33,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#080d1a] flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-4 border-slate-700/40 border-t-emerald-500 animate-spin" />
       </div>
     );
   }
@@ -50,8 +51,8 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#080d1a] flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-4 border-slate-700/40 border-t-emerald-500 animate-spin" />
       </div>
     );
   }
@@ -72,13 +73,13 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#080d1a] flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-4 border-slate-700/40 border-t-emerald-500 animate-spin" />
       </div>
     );
   }
 
-  if (isAuthenticated) {
+  if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
@@ -88,10 +89,11 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
 export function App() {
   return (
     <AuthProvider>
-      <GoogleOAuthWrapper>
-        <PrivacyProvider>
-          <ToastProvider>
-            <ConfirmProvider>
+      <ThemeProvider>
+        <GoogleOAuthWrapper>
+          <PrivacyProvider>
+            <ToastProvider>
+              <ConfirmProvider>
               <BrowserRouter>
                 <Routes>
                   {/* Public Auth Routes */}
@@ -149,6 +151,7 @@ export function App() {
           </ToastProvider>
         </PrivacyProvider>
       </GoogleOAuthWrapper>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

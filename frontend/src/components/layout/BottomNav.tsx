@@ -33,7 +33,7 @@ export function BottomNav({ onOpenQuickAction }: BottomNavProps) {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-[#080d1a]/95 backdrop-blur-2xl border-t border-slate-800/90 px-3 pb-safe pt-2 shadow-2xl select-none">
+    <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-card/95 backdrop-blur-2xl border-t border-border px-3 pb-safe pt-2 shadow-2xl select-none transition-colors duration-300">
       <div className="flex items-center justify-around relative max-w-lg mx-auto">
         {/* Item 1: Início */}
         <NavLink
@@ -42,8 +42,8 @@ export function BottomNav({ onOpenQuickAction }: BottomNavProps) {
             cn(
               'flex flex-col items-center justify-center py-1 px-3 min-w-[56px] min-h-[44px] rounded-xl transition-all',
               isActive
-                ? 'text-emerald-400 font-bold scale-105'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'text-din-primary font-bold scale-105'
+                : 'text-din-muted hover:text-din-text'
             )
           }
         >
@@ -58,8 +58,8 @@ export function BottomNav({ onOpenQuickAction }: BottomNavProps) {
             cn(
               'flex flex-col items-center justify-center py-1 px-3 min-w-[56px] min-h-[44px] rounded-xl transition-all',
               isActive
-                ? 'text-emerald-400 font-bold scale-105'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'text-din-primary font-bold scale-105'
+                : 'text-din-muted hover:text-din-text'
             )
           }
         >
@@ -73,11 +73,11 @@ export function BottomNav({ onOpenQuickAction }: BottomNavProps) {
             type="button"
             onClick={onOpenQuickAction}
             aria-label="Adicionar Novo Lançamento"
-            className="w-13 h-13 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 flex items-center justify-center shadow-lg shadow-emerald-500/40 ring-4 ring-[#080d1a] active:scale-95 transition-all"
+            className="w-13 h-13 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 flex items-center justify-center shadow-lg shadow-emerald-500/40 ring-4 ring-background active:scale-95 transition-all"
           >
             <Plus className="w-6 h-6 stroke-[2.5]" />
           </button>
-          <span className="text-[9px] font-bold text-emerald-400 mt-1">Novo</span>
+          <span className="text-[9px] font-bold text-din-primary mt-1">Novo</span>
         </div>
 
         {/* Item 3: Boletos */}
@@ -87,8 +87,8 @@ export function BottomNav({ onOpenQuickAction }: BottomNavProps) {
             cn(
               'flex flex-col items-center justify-center py-1 px-3 min-w-[56px] min-h-[44px] rounded-xl transition-all',
               isActive
-                ? 'text-emerald-400 font-bold scale-105'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'text-din-primary font-bold scale-105'
+                : 'text-din-muted hover:text-din-text'
             )
           }
         >
@@ -103,8 +103,8 @@ export function BottomNav({ onOpenQuickAction }: BottomNavProps) {
             cn(
               'flex flex-col items-center justify-center py-1 px-3 min-w-[56px] min-h-[44px] rounded-xl transition-all',
               isActive
-                ? 'text-emerald-400 font-bold scale-105'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'text-din-primary font-bold scale-105'
+                : 'text-din-muted hover:text-din-text'
             )
           }
         >

@@ -10,6 +10,7 @@ export declare class UsersService {
         google_id: string | null;
         subscription_tier: import("@prisma/client").$Enums.SubscriptionTier;
         role: import("@prisma/client").$Enums.Role;
+        theme: string;
         created_at: Date;
         updated_at: Date;
         _count: {
@@ -26,6 +27,7 @@ export declare class UsersService {
         google_id: string | null;
         subscription_tier: import("@prisma/client").$Enums.SubscriptionTier;
         role: import("@prisma/client").$Enums.Role;
+        theme: string;
         updated_at: Date;
     }>;
     changePassword(userId: string, data: ChangePasswordInput): Promise<{

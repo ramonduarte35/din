@@ -77,7 +77,7 @@ export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({ children })
           />
 
           {/* Card Dialog */}
-          <div className="relative w-full max-w-md bg-[#0c1322] border border-slate-700/80 rounded-3xl p-5 sm:p-6 text-slate-100 z-10 shadow-2xl animate-scale-in space-y-4">
+          <div className="relative w-full max-w-md bg-card border border-border rounded-3xl p-5 sm:p-6 text-din-text z-10 shadow-2xl animate-scale-in space-y-4 backdrop-blur-2xl">
             {/* Header com Ícone e Fechar */}
             <div className="flex items-start justify-between">
               <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center shadow-md ${iconContainerClass}`}>
@@ -86,7 +86,7 @@ export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({ children })
               <button
                 type="button"
                 onClick={handleCancel}
-                className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
+                className="p-1.5 text-din-muted hover:text-din-text rounded-xl hover:bg-card-hover transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -94,10 +94,10 @@ export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({ children })
 
             {/* Conteúdo Textual */}
             <div className="space-y-1.5 pt-1">
-              <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+              <h3 className="text-lg sm:text-xl font-bold text-din-text tracking-tight">
                 {options.title || 'Confirmar Ação'}
               </h3>
-              <div className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <div className="text-xs sm:text-sm text-din-muted leading-relaxed">
                 {options.message}
               </div>
             </div>

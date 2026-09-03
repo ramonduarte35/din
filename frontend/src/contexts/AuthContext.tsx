@@ -21,7 +21,7 @@ interface AuthContextType {
   loginWithGoogle: (idToken: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
-  updateProfile: (data: { name?: string; phone_number?: string | null }) => Promise<void>;
+  updateProfile: (data: { name?: string; phone_number?: string | null; theme?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateProfile = async (data: { name?: string; phone_number?: string | null }) => {
+  const updateProfile = async (data: { name?: string; phone_number?: string | null; theme?: string }) => {
     const res = await updateProfileRequest(data);
     setUser(res.user);
     localStorage.setItem('@din:user', JSON.stringify(res.user));

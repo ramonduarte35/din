@@ -53,6 +53,7 @@ class AuthService {
                 avatar_url: true,
                 subscription_tier: true,
                 role: true,
+                theme: true,
                 created_at: true,
             },
         });
@@ -96,6 +97,7 @@ class AuthService {
             avatar_url: user.avatar_url,
             subscription_tier: user.subscription_tier,
             role: currentRole,
+            theme: user.theme || 'dark',
             has_password: true,
         };
     }
@@ -191,6 +193,7 @@ class AuthService {
             avatar_url: user.avatar_url,
             subscription_tier: user.subscription_tier,
             role: user.role,
+            theme: user.theme || 'dark',
             has_password: Boolean(user.password_hash),
         };
     }

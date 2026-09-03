@@ -55,7 +55,7 @@ export function AppLayout() {
         refreshKey,
       }}
     >
-      <div className="flex h-screen bg-[#080d1a] bg-ambient-gradient text-slate-100 overflow-hidden">
+      <div className="flex h-screen bg-background bg-ambient-gradient text-din-text overflow-hidden transition-colors duration-300">
         {/* Desktop Sidebar */}
         <div className="hidden lg:flex lg:flex-shrink-0">
           <Sidebar />
@@ -68,7 +68,7 @@ export function AppLayout() {
               className="fixed inset-0 bg-black/75 backdrop-blur-md"
               onClick={() => setIsMobileMenuOpen(false)}
             />
-            <div className="relative flex-1 flex flex-col max-w-xs w-full bg-[#0b1120] z-10 animate-slide-up">
+            <div className="relative flex-1 flex flex-col max-w-xs w-full bg-card z-10 animate-slide-up border-r border-border">
               <Sidebar onCloseMobile={() => setIsMobileMenuOpen(false)} />
             </div>
           </div>

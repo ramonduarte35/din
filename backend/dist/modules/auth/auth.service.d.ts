@@ -11,6 +11,7 @@ export declare class AuthService {
         avatar_url: string | null;
         subscription_tier: import("@prisma/client").$Enums.SubscriptionTier;
         role: import("@prisma/client").$Enums.Role;
+        theme: string;
         created_at: Date;
     }>;
     login(data: LoginInput): Promise<{
@@ -21,6 +22,7 @@ export declare class AuthService {
         avatar_url: string | null;
         subscription_tier: import("@prisma/client").$Enums.SubscriptionTier;
         role: import("@prisma/client").$Enums.Role;
+        theme: string;
         has_password: boolean;
     }>;
     googleLogin(idToken: string): Promise<{
@@ -31,6 +33,7 @@ export declare class AuthService {
         avatar_url: string | null;
         subscription_tier: import("@prisma/client").$Enums.SubscriptionTier;
         role: import("@prisma/client").$Enums.Role;
+        theme: string;
         has_password: boolean;
     }>;
 }
