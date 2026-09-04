@@ -1,6 +1,7 @@
+import { TransactionOrigin } from '@prisma/client';
 export declare class WebhooksService {
     /**
-     * Envio unificado de mensagem via WhatsApp (Evolution Go ou Meta Cloud API Oficial)
+     * Envio unificado de mensagem via canais (Evolution Go, Meta Cloud API Oficial ou Telegram Bot)
      */
     private sendWhatsAppReply;
     /**
@@ -19,7 +20,22 @@ export declare class WebhooksService {
     processMetaMessage(payload: any): Promise<{
         status: string;
     }>;
+    /**
+     * Processamento de eventos e mensagens recebidas do Telegram Bot API (POST /api/v1/webhooks/telegram)
+     */
+    processTelegramMessage(payload: any): Promise<{
+        status: string;
+    } | {
+        status: string;
+        userId: string;
+    }>;
     processEvolutionMessage(payload: any): Promise<{
+        status: string;
+    }>;
+    /**
+     * Pipeline Financeiro Unificado (WhatsApp Evolution, WhatsApp Meta e Telegram Bot)
+     */
+    processUserFinancialMessage(user: any, instance: string, remoteJid: string, trimmedText: string, origin?: TransactionOrigin, senderIdentifier?: string): Promise<{
         status: string;
     }>;
     /**

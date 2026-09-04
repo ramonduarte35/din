@@ -8,4 +8,6 @@ async function usersRoutes(app) {
     app.get('/me', { preHandler: [auth_middleware_js_1.authenticate] }, usersController.getProfile);
     app.put('/profile', { preHandler: [auth_middleware_js_1.authenticate] }, usersController.updateProfile);
     app.post('/change-password', { preHandler: [auth_middleware_js_1.authenticate] }, usersController.changePassword);
+    app.post('/telegram/link-code', { preHandler: [auth_middleware_js_1.authenticate] }, usersController.generateTelegramLinkCode);
+    app.post('/telegram/unlink', { preHandler: [auth_middleware_js_1.authenticate] }, usersController.unlinkTelegram);
 }

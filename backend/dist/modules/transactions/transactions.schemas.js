@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.queryTransactionsSchema = exports.updateTransactionSchema = exports.createTransactionSchema = void 0;
+exports.createTransferSchema = exports.queryTransactionsSchema = exports.updateTransactionSchema = exports.createTransactionSchema = void 0;
 const zod_1 = require("zod");
 const client_1 = require("@prisma/client");
 exports.createTransactionSchema = zod_1.z.object({
@@ -29,4 +29,11 @@ exports.queryTransactionsSchema = zod_1.z.object({
     page: zod_1.z.coerce.number().default(1),
     limit: zod_1.z.coerce.number().default(20),
     search: zod_1.z.string().optional(),
+});
+exports.createTransferSchema = zod_1.z.object({
+    from_account_id: zod_1.z.string().uuid('Conta de origem inválida'),
+    to_account_id: zod_1.z.string().uuid('Conta de destino inválida'),
+    amount: zod_1.z.number().positive('O valor deve ser positivo'),
+    description: zod_1.z.string().optional(),
+    date: zod_1.z.string().or(zod_1.z.date()).optional(),
 });

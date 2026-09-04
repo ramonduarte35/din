@@ -2,8 +2,20 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TransactionsService = void 0;
 const prisma_js_1 = require("../../lib/prisma.js");
+const redis_js_1 = require("../../lib/redis.js");
 const client_1 = require("@prisma/client");
 class TransactionsService {
+    async invalidateUserCache(userId) {
+        try {
+            const keys = await redis_js_1.redis.keys(`summary:${userId}:*`);
+            if (keys.length > 0) {
+                await redis_js_1.redis.del(...keys);
+            }
+        }
+        catch (e) {
+            // Falha silenciosa do cache
+        }
+    }
     async getDefaultAccount(userId) {
         let account = await prisma_js_1.prisma.account.findFirst({
             where: { user_id: userId, is_default: true },
@@ -149,9 +161,57 @@ class TransactionsService {
                 account: true,
             },
         });
+        await this.invalidateUserCache(userId);
         return {
             ...transaction,
             amount: Number(transaction.amount),
+        };
+    }
+    async createTransfer(userId, data) {
+        if (data.from_account_id === data.to_account_id) {
+            throw { statusCode: 400, message: 'A conta de origem e destino não podem ser as mesmas.' };
+        }
+        const [fromAccount, toAccount] = await Promise.all([
+            prisma_js_1.prisma.account.findFirst({ where: { id: data.from_account_id, user_id: userId } }),
+            prisma_js_1.prisma.account.findFirst({ where: { id: data.to_account_id, user_id: userId } }),
+        ]);
+        if (!fromAccount) {
+            throw { statusCode: 404, message: 'Conta de origem não encontrada.' };
+        }
+        if (!toAccount) {
+            throw { statusCode: 404, message: 'Conta de destino não encontrada.' };
+        }
+        const txDate = data.date ? new Date(data.date) : new Date();
+        const baseDesc = data.description?.trim() || `Transferência: ${fromAccount.name} ➔ ${toAccount.name}`;
+        const [expenseTx, incomeTx] = await prisma_js_1.prisma.$transaction([
+            prisma_js_1.prisma.transaction.create({
+                data: {
+                    user_id: userId,
+                    account_id: fromAccount.id,
+                    description: `Saída: ${baseDesc}`,
+                    amount: data.amount,
+                    type: client_1.TransactionType.EXPENSE,
+                    origin: client_1.TransactionOrigin.MANUAL,
+                    date: txDate,
+                },
+            }),
+            prisma_js_1.prisma.transaction.create({
+                data: {
+                    user_id: userId,
+                    account_id: toAccount.id,
+                    description: `Entrada: ${baseDesc}`,
+                    amount: data.amount,
+                    type: client_1.TransactionType.INCOME,
+                    origin: client_1.TransactionOrigin.MANUAL,
+                    date: txDate,
+                },
+            }),
+        ]);
+        await this.invalidateUserCache(userId);
+        return {
+            message: 'Transferência realizada com sucesso!',
+            from: { ...expenseTx, amount: Number(expenseTx.amount) },
+            to: { ...incomeTx, amount: Number(incomeTx.amount) },
         };
     }
     async update(userId, transactionId, data) {
@@ -183,18 +243,19 @@ class TransactionsService {
         const updated = await prisma_js_1.prisma.transaction.update({
             where: { id: transactionId },
             data: {
-                description: data.description,
-                amount: data.amount,
-                type: data.type,
-                account_id: data.account_id !== undefined ? data.account_id : existing.account_id,
-                category_id: data.category_id !== undefined ? data.category_id : existing.category_id,
-                date: data.date ? new Date(data.date) : existing.date,
+                ...(data.description && { description: data.description }),
+                ...(data.amount !== undefined && { amount: data.amount }),
+                ...(data.type && { type: data.type }),
+                ...(data.account_id !== undefined && { account_id: data.account_id }),
+                ...(data.category_id !== undefined && { category_id: data.category_id }),
+                ...(data.date && { date: new Date(data.date) }),
             },
             include: {
                 category: true,
                 account: true,
             },
         });
+        await this.invalidateUserCache(userId);
         return {
             ...updated,
             amount: Number(updated.amount),
@@ -210,34 +271,67 @@ class TransactionsService {
         await prisma_js_1.prisma.transaction.delete({
             where: { id: transactionId },
         });
+        await this.invalidateUserCache(userId);
         return { message: 'Transação excluída com sucesso.' };
     }
-    async getSummary(userId) {
+    async getSummary(userId, targetMonth, targetYear) {
         const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        const month = targetMonth !== undefined ? targetMonth - 1 : now.getMonth(); // 0-indexed
+        const year = targetYear !== undefined ? targetYear : now.getFullYear();
+        const cacheKey = `summary:${userId}:${year}:${month}`;
+        try {
+            const cached = await redis_js_1.redis.get(cacheKey);
+            if (cached) {
+                return JSON.parse(cached);
+            }
+        }
+        catch (e) {
+            // Falha silenciosa do cache
+        }
+        const startOfMonth = new Date(year, month, 1);
+        const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59, 999);
         // Mês anterior para cálculo de variação
-        const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
-        // Agregações do mês atual
-        const currentMonthTransactions = await prisma_js_1.prisma.transaction.findMany({
-            where: {
-                user_id: userId,
-                date: { gte: startOfMonth, lte: endOfMonth },
-            },
-            include: {
-                category: true,
-                account: true,
-            },
-        });
-        // Agregações do mês anterior
-        const prevMonthTransactions = await prisma_js_1.prisma.transaction.findMany({
-            where: {
-                user_id: userId,
-                date: { gte: startOfPrevMonth, lte: endOfPrevMonth },
-            },
-        });
-        // Cálculos Mês Atual
+        const prevMonthDate = new Date(year, month - 1, 1);
+        const startOfPrevMonth = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth(), 1);
+        const endOfPrevMonth = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth() + 1, 0, 23, 59, 59, 999);
+        // Janela dos últimos 6 meses (início do período)
+        const sixMonthsAgo = new Date(year, month - 5, 1);
+        // ─── Parallelizar todas as queries independentes ────────────────────────
+        const [currentMonthTransactions, prevMonthTransactions, allUserTransactions, userAccounts, recentTransactions, sixMonthsRaw,] = await Promise.all([
+            // 1. Transações do mês selecionado (com categoria e conta)
+            prisma_js_1.prisma.transaction.findMany({
+                where: { user_id: userId, date: { gte: startOfMonth, lte: endOfMonth } },
+                include: { category: true, account: true },
+            }),
+            // 2. Transações do mês anterior (só tipo e valor)
+            prisma_js_1.prisma.transaction.findMany({
+                where: { user_id: userId, date: { gte: startOfPrevMonth, lte: endOfPrevMonth } },
+                select: { type: true, amount: true },
+            }),
+            // 3. Todas as transações históricas (tipo e valor) para saldo total
+            prisma_js_1.prisma.transaction.findMany({
+                where: { user_id: userId },
+                select: { type: true, amount: true },
+            }),
+            // 4. Contas bancárias (saldo inicial)
+            prisma_js_1.prisma.account.findMany({ where: { user_id: userId } }),
+            // 5. Últimas 5 transações
+            prisma_js_1.prisma.transaction.findMany({
+                where: { user_id: userId },
+                include: {
+                    category: { select: { id: true, name: true, icon: true, color: true } },
+                    account: { select: { id: true, name: true, icon: true, color: true } },
+                },
+                orderBy: { date: 'desc' },
+                take: 5,
+            }),
+            // 6. Todos os últimos 6 meses em uma única query
+            prisma_js_1.prisma.transaction.findMany({
+                where: { user_id: userId, date: { gte: sixMonthsAgo, lte: endOfMonth } },
+                select: { type: true, amount: true, date: true },
+            }),
+        ]);
+        // ─── Cálculos Mês Atual ─────────────────────────────────────────────────
         let currentIncome = 0;
         let currentExpense = 0;
         const categoryTotals = {};
@@ -252,19 +346,13 @@ class TransactionsService {
                 const catColor = t.category?.color || '#94a3b8';
                 const catIcon = t.category?.icon || 'Tag';
                 if (!categoryTotals[catName]) {
-                    categoryTotals[catName] = {
-                        name: catName,
-                        amount: 0,
-                        color: catColor,
-                        icon: catIcon,
-                        count: 0,
-                    };
+                    categoryTotals[catName] = { name: catName, amount: 0, color: catColor, icon: catIcon, count: 0 };
                 }
                 categoryTotals[catName].amount += amount;
                 categoryTotals[catName].count += 1;
             }
         }
-        // Cálculos Mês Anterior
+        // ─── Cálculos Mês Anterior ──────────────────────────────────────────────
         let prevIncome = 0;
         let prevExpense = 0;
         for (const t of prevMonthTransactions) {
@@ -274,20 +362,10 @@ class TransactionsService {
             else
                 prevExpense += amount;
         }
-        // Saldo Total Geral Histórico do Usuário (incluindo saldo inicial de todas as contas)
-        const [allUserTransactions, userAccounts] = await Promise.all([
-            prisma_js_1.prisma.transaction.findMany({
-                where: { user_id: userId },
-                select: { type: true, amount: true },
-            }),
-            prisma_js_1.prisma.account.findMany({
-                where: { user_id: userId },
-            }),
-        ]);
+        // ─── Saldo Total Histórico ──────────────────────────────────────────────
         let totalHistoricalBalance = 0;
-        for (const acc of userAccounts) {
+        for (const acc of userAccounts)
             totalHistoricalBalance += Number(acc.initial_balance);
-        }
         for (const t of allUserTransactions) {
             const amount = Number(t.amount);
             if (t.type === client_1.TransactionType.INCOME)
@@ -295,60 +373,42 @@ class TransactionsService {
             else
                 totalHistoricalBalance -= amount;
         }
-        // Histórico dos últimos 6 meses
-        const monthlyHistory = [];
+        // ─── Histórico Mensal: Agrupar os 6 meses a partir da query única ───────
         const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const monthlyMap = {};
+        for (const t of sixMonthsRaw) {
+            const d = new Date(t.date);
+            const key = `${d.getFullYear()}-${d.getMonth()}`; // 0-indexed month
+            if (!monthlyMap[key])
+                monthlyMap[key] = { income: 0, expense: 0 };
+            const amount = Number(t.amount);
+            if (t.type === client_1.TransactionType.INCOME)
+                monthlyMap[key].income += amount;
+            else
+                monthlyMap[key].expense += amount;
+        }
+        const monthlyHistory = [];
         for (let i = 5; i >= 0; i--) {
-            const targetDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            const mStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
-            const mEnd = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0, 23, 59, 59, 999);
-            const mTransactions = await prisma_js_1.prisma.transaction.findMany({
-                where: {
-                    user_id: userId,
-                    date: { gte: mStart, lte: mEnd },
-                },
-                select: { type: true, amount: true },
-            });
-            let mIncome = 0;
-            let mExpense = 0;
-            for (const t of mTransactions) {
-                const amt = Number(t.amount);
-                if (t.type === client_1.TransactionType.INCOME)
-                    mIncome += amt;
-                else
-                    mExpense += amt;
-            }
+            const targetDate = new Date(year, month - i, 1);
+            const key = `${targetDate.getFullYear()}-${targetDate.getMonth()}`;
+            const data = monthlyMap[key] || { income: 0, expense: 0 };
             monthlyHistory.push({
                 month: monthNames[targetDate.getMonth()],
                 year: targetDate.getFullYear(),
                 label: `${monthNames[targetDate.getMonth()]}/${targetDate.getFullYear().toString().slice(-2)}`,
-                income: mIncome,
-                expense: mExpense,
-                balance: mIncome - mExpense,
+                income: data.income,
+                expense: data.expense,
+                balance: data.income - data.expense,
             });
         }
-        // 5 transações mais recentes
-        const recentTransactions = await prisma_js_1.prisma.transaction.findMany({
-            where: { user_id: userId },
-            include: {
-                category: {
-                    select: { id: true, name: true, icon: true, color: true },
-                },
-                account: {
-                    select: { id: true, name: true, icon: true, color: true },
-                },
-            },
-            orderBy: { date: 'desc' },
-            take: 5,
-        });
-        // Breakdown por categoria ordenado por valor decrescente
+        // ─── Breakdown por Categoria ────────────────────────────────────────────
         const categoryBreakdown = Object.values(categoryTotals)
             .sort((a, b) => b.amount - a.amount)
             .map((item) => ({
             ...item,
             percentage: currentExpense > 0 ? Number(((item.amount / currentExpense) * 100).toFixed(1)) : 0,
         }));
-        return {
+        const result = {
             current_month: {
                 income: currentIncome,
                 expense: currentExpense,
@@ -368,6 +428,13 @@ class TransactionsService {
                 amount: Number(t.amount),
             })),
         };
+        try {
+            await redis_js_1.redis.set(cacheKey, JSON.stringify(result), 'EX', 45);
+        }
+        catch (e) {
+            // Falha silenciosa do cache
+        }
+        return result;
     }
 }
 exports.TransactionsService = TransactionsService;

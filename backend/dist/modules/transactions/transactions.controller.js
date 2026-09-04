@@ -21,6 +21,12 @@ class TransactionsController {
             transaction,
         });
     }
+    async transfer(request, reply) {
+        const userId = (0, auth_middleware_js_1.getUserId)(request);
+        const body = transactions_schemas_js_1.createTransferSchema.parse(request.body);
+        const result = await transactionsService.createTransfer(userId, body);
+        return reply.status(201).send(result);
+    }
     async update(request, reply) {
         const userId = (0, auth_middleware_js_1.getUserId)(request);
         const body = transactions_schemas_js_1.updateTransactionSchema.parse(request.body);
@@ -37,7 +43,10 @@ class TransactionsController {
     }
     async summary(request, reply) {
         const userId = (0, auth_middleware_js_1.getUserId)(request);
-        const summary = await transactionsService.getSummary(userId);
+        const query = request.query;
+        const month = query.month ? parseInt(query.month, 10) : undefined;
+        const year = query.year ? parseInt(query.year, 10) : undefined;
+        const summary = await transactionsService.getSummary(userId, month, year);
         return reply.send({ summary });
     }
 }

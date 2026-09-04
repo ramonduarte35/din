@@ -42,5 +42,8 @@ export declare class AdminWhatsAppController {
     getProviderConfig(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     updateProviderConfig(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     testMetaConnection(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    testTelegramConnection(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    setTelegramWebhook(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    getTelegramStatus(request: FastifyRequest, reply: FastifyReply): Promise<never>;
 }
 export declare const adminWhatsAppController: AdminWhatsAppController;

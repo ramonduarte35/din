@@ -58,6 +58,10 @@ export declare const updateWhatsAppConfigSchema: z.ZodObject<{
     meta_access_token: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     meta_verify_token: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     meta_app_secret: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    telegram_bot_token: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    telegram_bot_username: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    telegram_is_active: z.ZodOptional<z.ZodBoolean>;
+    telegram_webhook_secret: z.ZodNullable<z.ZodOptional<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
     active_provider?: "EVOLUTION" | "META_OFFICIAL" | undefined;
     meta_phone_number_id?: string | null | undefined;
@@ -65,6 +69,10 @@ export declare const updateWhatsAppConfigSchema: z.ZodObject<{
     meta_access_token?: string | null | undefined;
     meta_verify_token?: string | null | undefined;
     meta_app_secret?: string | null | undefined;
+    telegram_bot_token?: string | null | undefined;
+    telegram_bot_username?: string | null | undefined;
+    telegram_is_active?: boolean | undefined;
+    telegram_webhook_secret?: string | null | undefined;
 }, {
     active_provider?: "EVOLUTION" | "META_OFFICIAL" | undefined;
     meta_phone_number_id?: string | null | undefined;
@@ -72,6 +80,10 @@ export declare const updateWhatsAppConfigSchema: z.ZodObject<{
     meta_access_token?: string | null | undefined;
     meta_verify_token?: string | null | undefined;
     meta_app_secret?: string | null | undefined;
+    telegram_bot_token?: string | null | undefined;
+    telegram_bot_username?: string | null | undefined;
+    telegram_is_active?: boolean | undefined;
+    telegram_webhook_secret?: string | null | undefined;
 }>;
 export declare const testMetaConnectionSchema: z.ZodObject<{
     meta_phone_number_id: z.ZodOptional<z.ZodString>;
@@ -83,9 +95,31 @@ export declare const testMetaConnectionSchema: z.ZodObject<{
     meta_phone_number_id?: string | undefined;
     meta_access_token?: string | undefined;
 }>;
+export declare const testTelegramConnectionSchema: z.ZodObject<{
+    telegram_bot_token: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    telegram_bot_token?: string | undefined;
+}, {
+    telegram_bot_token?: string | undefined;
+}>;
+export declare const setTelegramWebhookSchema: z.ZodObject<{
+    webhook_url: z.ZodOptional<z.ZodString>;
+    secret_token: z.ZodOptional<z.ZodString>;
+    telegram_bot_token: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    telegram_bot_token?: string | undefined;
+    webhook_url?: string | undefined;
+    secret_token?: string | undefined;
+}, {
+    telegram_bot_token?: string | undefined;
+    webhook_url?: string | undefined;
+    secret_token?: string | undefined;
+}>;
 export type CreateInstanceInput = z.infer<typeof createInstanceSchema>;
 export type UpdateInstanceInput = z.infer<typeof updateInstanceSchema>;
 export type LogsQueryInput = z.infer<typeof logsQuerySchema>;
 export type UpdateSystemSettingsInput = z.infer<typeof updateSystemSettingsSchema>;
 export type UpdateWhatsAppConfigInput = z.infer<typeof updateWhatsAppConfigSchema>;
 export type TestMetaConnectionInput = z.infer<typeof testMetaConnectionSchema>;
+export type TestTelegramConnectionInput = z.infer<typeof testTelegramConnectionSchema>;
+export type SetTelegramWebhookInput = z.infer<typeof setTelegramWebhookSchema>;

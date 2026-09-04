@@ -101,6 +101,26 @@ class AdminWhatsAppController {
         const result = await admin_whatsapp_service_js_1.adminWhatsAppService.testMetaConnection(body);
         return reply.status(200).send(result);
     }
+    // ─── Provedor Telegram Bot ───────────────────────────────────────
+    async testTelegramConnection(request, reply) {
+        const body = request.body;
+        const result = await admin_whatsapp_service_js_1.adminWhatsAppService.testTelegramConnection(body);
+        return reply.status(200).send(result);
+    }
+    async setTelegramWebhook(request, reply) {
+        try {
+            const body = request.body;
+            const result = await admin_whatsapp_service_js_1.adminWhatsAppService.setTelegramWebhook(body);
+            return reply.status(200).send(result);
+        }
+        catch (err) {
+            return reply.status(400).send({ success: false, message: err.message, error: err.message });
+        }
+    }
+    async getTelegramStatus(request, reply) {
+        const result = await admin_whatsapp_service_js_1.adminWhatsAppService.getTelegramStatus();
+        return reply.status(200).send(result);
+    }
 }
 exports.AdminWhatsAppController = AdminWhatsAppController;
 exports.adminWhatsAppController = new AdminWhatsAppController();

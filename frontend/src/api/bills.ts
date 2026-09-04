@@ -129,3 +129,21 @@ export async function unpayBill(id: string): Promise<Bill> {
   const { data } = await api.post(`/bills/${id}/unpay`);
   return data;
 }
+
+export async function notifyDueBillsRequest(): Promise<{
+  success: boolean;
+  totalUsersChecked: number;
+  notificationsSent: number;
+  details: Array<{
+    userId: string;
+    userName: string;
+    billsCount: number;
+    channels: string[];
+    status: string;
+    reason?: string;
+  }>;
+}> {
+  const { data } = await api.post('/bills/notify-due');
+  return data;
+}
+

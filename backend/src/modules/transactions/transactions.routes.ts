@@ -9,6 +9,7 @@ export async function transactionsRoutes(app: FastifyInstance) {
 
   app.get('/', transactionsController.list);
   app.post('/', transactionsController.create);
+  app.post('/transfer', transactionsController.transfer);
   app.get('/summary', transactionsController.summary);
   app.put('/:id', transactionsController.update);
   app.delete('/:id', transactionsController.delete);

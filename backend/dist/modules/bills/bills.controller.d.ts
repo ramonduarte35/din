@@ -28,4 +28,6 @@ export declare class BillsController {
             id: string;
         };
     }>, reply: FastifyReply): Promise<never>;
+    notifyDue(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    adminNotifyAll(request: FastifyRequest, reply: FastifyReply): Promise<never>;
 }

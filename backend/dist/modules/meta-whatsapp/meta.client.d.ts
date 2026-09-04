@@ -23,6 +23,10 @@ export declare class MetaCloudApiClient {
         meta_access_token: string | null;
         meta_verify_token: string | null;
         meta_app_secret: string | null;
+        telegram_bot_token: string | null;
+        telegram_bot_username: string | null;
+        telegram_is_active: boolean;
+        telegram_webhook_secret: string | null;
     } | null>;
     /**
      * Envia uma mensagem de texto via WhatsApp Cloud API

@@ -62,6 +62,8 @@ export declare const queryTransactionsSchema: z.ZodObject<{
         MANUAL: "MANUAL";
         WHATSAPP_TEXT: "WHATSAPP_TEXT";
         WHATSAPP_AUDIO: "WHATSAPP_AUDIO";
+        TELEGRAM_TEXT: "TELEGRAM_TEXT";
+        TELEGRAM_AUDIO: "TELEGRAM_AUDIO";
     }>>;
     page: z.ZodDefault<z.ZodNumber>;
     limit: z.ZodDefault<z.ZodNumber>;
@@ -73,7 +75,7 @@ export declare const queryTransactionsSchema: z.ZodObject<{
     search?: string | undefined;
     account_id?: string | undefined;
     category_id?: string | undefined;
-    origin?: "MANUAL" | "WHATSAPP_TEXT" | "WHATSAPP_AUDIO" | undefined;
+    origin?: "MANUAL" | "WHATSAPP_TEXT" | "WHATSAPP_AUDIO" | "TELEGRAM_TEXT" | "TELEGRAM_AUDIO" | undefined;
     start_date?: string | undefined;
     end_date?: string | undefined;
 }, {
@@ -81,12 +83,32 @@ export declare const queryTransactionsSchema: z.ZodObject<{
     search?: string | undefined;
     account_id?: string | undefined;
     category_id?: string | undefined;
-    origin?: "MANUAL" | "WHATSAPP_TEXT" | "WHATSAPP_AUDIO" | undefined;
+    origin?: "MANUAL" | "WHATSAPP_TEXT" | "WHATSAPP_AUDIO" | "TELEGRAM_TEXT" | "TELEGRAM_AUDIO" | undefined;
     start_date?: string | undefined;
     end_date?: string | undefined;
     page?: number | undefined;
     limit?: number | undefined;
 }>;
+export declare const createTransferSchema: z.ZodObject<{
+    from_account_id: z.ZodString;
+    to_account_id: z.ZodString;
+    amount: z.ZodNumber;
+    description: z.ZodOptional<z.ZodString>;
+    date: z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodDate]>>;
+}, "strip", z.ZodTypeAny, {
+    amount: number;
+    from_account_id: string;
+    to_account_id: string;
+    description?: string | undefined;
+    date?: string | Date | undefined;
+}, {
+    amount: number;
+    from_account_id: string;
+    to_account_id: string;
+    description?: string | undefined;
+    date?: string | Date | undefined;
+}>;
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;
 export type UpdateTransactionInput = z.infer<typeof updateTransactionSchema>;
 export type QueryTransactionsInput = z.infer<typeof queryTransactionsSchema>;
+export type CreateTransferInput = z.infer<typeof createTransferSchema>;

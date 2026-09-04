@@ -5,6 +5,7 @@ import {
   fetchBillSummary,
   deleteBill,
   unpayBill,
+  notifyDueBillsRequest,
 } from '../api/bills';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -32,6 +33,7 @@ import {
   Calendar,
   Landmark,
   Tag,
+  BellRing,
 } from 'lucide-react';
 
 export const Bills: React.FC = () => {
@@ -42,6 +44,7 @@ export const Bills: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
   const [year, setYear] = useState<number>(new Date().getFullYear());
+  const [isSendingReminder, setIsSendingReminder] = useState(false);
 
   const confirm = useConfirm();
   const toast = useToast();
@@ -52,6 +55,30 @@ export const Bills: React.FC = () => {
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
   const [payingBill, setPayingBill] = useState<Bill | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  async function handleSendReminder() {
+    setIsSendingReminder(true);
+    try {
+      const res = await notifyDueBillsRequest();
+      if (res.notificationsSent > 0) {
+        const channels = res.details[0]?.channels?.join(', ') || 'bot';
+        toast.success(`Lembrete enviado com sucesso via ${channels}!`);
+      } else {
+        const detail = res.details[0];
+        if (detail?.status === 'skipped') {
+          toast.info(detail.reason || 'Nenhuma conta pendente para notificar no momento.');
+        } else if (detail?.status === 'failed') {
+          toast.warning(detail.reason || 'Não foi possível entregar o lembrete. Verifique seu WhatsApp ou Telegram conectado.');
+        } else {
+          toast.info('Nenhuma conta próxima do vencimento encontrada.');
+        }
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Falha ao disparar lembrete.');
+    } finally {
+      setIsSendingReminder(false);
+    }
+  }
 
   useEffect(() => {
     loadData();
@@ -152,16 +179,29 @@ export const Bills: React.FC = () => {
           </p>
         </div>
 
-        <Button
-          onClick={() => {
-            setEditingBill(null);
-            setIsModalOpen(true);
-          }}
-          className="w-full sm:w-auto py-2.5 px-4 min-h-[44px] bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 font-semibold shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Nova Conta a Pagar</span>
-        </Button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <Button
+            variant="secondary"
+            onClick={handleSendReminder}
+            isLoading={isSendingReminder}
+            title="Enviar resumo de contas próximas para seu WhatsApp/Telegram"
+            className="py-2.5 px-3.5 min-h-[44px] text-xs sm:text-sm font-semibold border-border hover:border-amber-500/40 hover:text-amber-400 flex items-center justify-center space-x-2"
+          >
+            <BellRing className="w-4 h-4 text-amber-400" />
+            <span>Enviar Lembrete</span>
+          </Button>
+
+          <Button
+            onClick={() => {
+              setEditingBill(null);
+              setIsModalOpen(true);
+            }}
+            className="py-2.5 px-4 min-h-[44px] bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 font-semibold shadow-lg shadow-emerald-500/20 flex items-center justify-center space-x-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Nova Conta a Pagar</span>
+          </Button>
+        </div>
       </div>
 
       {/* Cards de Métricas / KPIs */}
@@ -216,6 +256,111 @@ export const Bills: React.FC = () => {
           </div>
         </Card>
       </div>
+
+      {/* ── Barra de Progresso de Quitação Mensal ──────────────────────────── */}
+      {(() => {
+        const paidCount = summary?.total_paid?.count || 0;
+        const pendingCount = summary?.total_pending?.count || 0;
+        const overdueCount = summary?.total_overdue?.count || 0;
+        const totalCount = paidCount + pendingCount + overdueCount;
+
+        const paidAmount = summary?.total_paid?.amount || 0;
+        const pendingAmount = summary?.total_pending?.amount || 0;
+        const overdueAmount = summary?.total_overdue?.amount || 0;
+        const totalAmount = paidAmount + pendingAmount + overdueAmount;
+
+        const percentPaidCount = totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0;
+        const percentPaidAmount = totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0;
+
+        const isAllPaid = totalCount > 0 && paidCount === totalCount;
+        const hasOverdue = overdueCount > 0;
+
+        return (
+          <Card className="p-4 sm:p-5 border-border bg-card rounded-3xl shadow-xl relative overflow-hidden">
+            {/* Efeito sutil de iluminação */}
+            <div className={`absolute top-0 right-0 w-64 h-64 blur-3xl opacity-10 pointer-events-none rounded-full ${
+              isAllPaid ? 'bg-emerald-400' : hasOverdue ? 'bg-red-500' : 'bg-din-primary'
+            }`} />
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-din-muted">
+                    Progresso de Quitação do Mês
+                  </span>
+                  {isAllPaid ? (
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      100% Liquidado 🎉
+                    </span>
+                  ) : hasOverdue ? (
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">
+                      Atenção: Vencimentos Pendentes
+                    </span>
+                  ) : (
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                      Em Andamento
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm font-semibold text-din-text mt-0.5">
+                  {paidCount} de {totalCount} contas pagas ({percentPaidCount}%) • {maskValue(paidAmount)} de {maskValue(totalAmount)}
+                </p>
+              </div>
+
+              <div className="text-left sm:text-right">
+                <span className="text-2xl sm:text-3xl font-black font-mono text-din-text">
+                  {percentPaidAmount}%
+                </span>
+                <span className="text-xs text-din-muted block">do valor total liquidado</span>
+              </div>
+            </div>
+
+            {/* Barra de Progresso com Multi-segmentos */}
+            <div className="w-full h-3.5 bg-card-secondary rounded-full overflow-hidden border border-border/80 flex p-0.5 gap-0.5">
+              {/* Segmento Pago (Verde) */}
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-700 ease-out shadow-sm shadow-emerald-500/30"
+                style={{ width: `${percentPaidAmount}%` }}
+                title={`Pago: ${percentPaidAmount}% (${maskValue(paidAmount)})`}
+              />
+              {/* Segmento Atrasado (Vermelho) */}
+              {overdueAmount > 0 && (
+                <div
+                  className="h-full bg-gradient-to-r from-red-500 to-rose-600 rounded-full transition-all duration-700 ease-out shadow-sm shadow-red-500/30 animate-pulse"
+                  style={{ width: `${Math.round((overdueAmount / totalAmount) * 100)}%` }}
+                  title={`Atrasado: ${maskValue(overdueAmount)}`}
+                />
+              )}
+            </div>
+
+            {/* Legenda visual mobile friendly */}
+            <div className="flex flex-wrap items-center justify-between gap-2 mt-3 text-xs text-din-muted">
+              <div className="flex items-center gap-4 flex-wrap">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" />
+                  <span>Pagas: <strong className="text-din-text">{maskValue(paidAmount)}</strong></span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
+                  <span>A Vencer: <strong className="text-din-text">{maskValue(pendingAmount)}</strong></span>
+                </span>
+                {overdueAmount > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" />
+                    <span>Vencidas: <strong className="text-rose-400">{maskValue(overdueAmount)}</strong></span>
+                  </span>
+                )}
+              </div>
+
+              {pendingAmount > 0 && (
+                <span className="text-amber-400 font-medium">
+                  Faltam {maskValue(pendingAmount + overdueAmount)} para quitar o mês
+                </span>
+              )}
+            </div>
+          </Card>
+        );
+      })()}
 
       {/* Filtros e Abas */}
       <Card className="p-3 sm:p-4 border-border bg-card space-y-3 shadow-lg">

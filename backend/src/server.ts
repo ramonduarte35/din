@@ -3,6 +3,7 @@ import { env } from './config/env.js';
 import { prisma } from './lib/prisma.js';
 import { redis } from './lib/redis.js';
 import { evolutionClient } from './modules/webhooks/evolution.client.js';
+import { billsNotificationService } from './modules/bills/bills-notification.service.js';
 
 async function autoConnectWhatsAppInstances() {
   try {
@@ -47,6 +48,9 @@ async function bootstrap() {
 
     // Conectar automaticamente instâncias do WhatsApp em background
     autoConnectWhatsAppInstances();
+
+    // Inicializar agendador diário de notificações proativas de contas a pagar
+    billsNotificationService.initScheduledBillNotifier();
 
     // Graceful shutdown
     const signals = ['SIGINT', 'SIGTERM'] as const;

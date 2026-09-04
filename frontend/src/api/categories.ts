@@ -25,9 +25,23 @@ export async function createCategoryRequest(category: {
   return data.category;
 }
 
+export async function updateCategoryRequest(
+  id: string,
+  category: Partial<{
+    name: string;
+    type: 'INCOME' | 'EXPENSE';
+    icon?: string;
+    color?: string;
+  }>
+): Promise<Category> {
+  const { data } = await api.put<{ category: Category }>(`/categories/${id}`, category);
+  return data.category;
+}
+
 export async function deleteCategoryRequest(id: string): Promise<void> {
   await api.delete(`/categories/${id}`);
 }
 
 export const fetchCategories = getCategoriesRequest;
+
 

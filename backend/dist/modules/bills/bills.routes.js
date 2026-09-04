@@ -10,6 +10,8 @@ async function billsRoutes(app) {
     app.post('/', controller.create.bind(controller));
     app.get('/', controller.list.bind(controller));
     app.get('/summary', controller.getSummary.bind(controller));
+    app.post('/notify-due', controller.notifyDue.bind(controller));
+    app.post('/admin/notify-all', { preHandler: [auth_middleware_js_1.requireAdmin] }, controller.adminNotifyAll.bind(controller));
     app.get('/:id', controller.getById.bind(controller));
     app.put('/:id', controller.update.bind(controller));
     app.delete('/:id', controller.delete.bind(controller));

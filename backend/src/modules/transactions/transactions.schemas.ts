@@ -31,6 +31,15 @@ export const queryTransactionsSchema = z.object({
   search: z.string().optional(),
 });
 
+export const createTransferSchema = z.object({
+  from_account_id: z.string().uuid('Conta de origem inválida'),
+  to_account_id: z.string().uuid('Conta de destino inválida'),
+  amount: z.number().positive('O valor deve ser positivo'),
+  description: z.string().optional(),
+  date: z.string().or(z.date()).optional(),
+});
+
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;
 export type UpdateTransactionInput = z.infer<typeof updateTransactionSchema>;
 export type QueryTransactionsInput = z.infer<typeof queryTransactionsSchema>;
+export type CreateTransferInput = z.infer<typeof createTransferSchema>;

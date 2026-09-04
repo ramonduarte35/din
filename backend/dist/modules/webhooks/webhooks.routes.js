@@ -11,6 +11,8 @@ async function webhooksRoutes(app) {
     app.get('/meta', webhooksController.handleMetaWebhookVerification);
     // POST: Recepção de eventos e mensagens da Meta
     app.post('/meta', webhooksController.handleMetaWebhook);
+    // Webhook do Telegram Bot (POST /api/v1/webhooks/telegram)
+    app.post('/telegram', webhooksController.handleTelegramWebhook);
     // Endpoint de simulação para desenvolvimento e testes rápidos
     app.post('/simulate', webhooksController.simulateWhatsAppMessage);
 }

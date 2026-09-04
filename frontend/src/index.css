@@ -299,3 +299,70 @@ body {
 .glow-violet {
   box-shadow: 0 0 30px -5px rgba(139, 92, 246, 0.25);
 }
+
+/* ══════════════════════════════════════════════════════════════════ */
+/* 🖨️ ESTILOS DE IMPRESSÃO / EXPORTAÇÃO PDF                           */
+/* ══════════════════════════════════════════════════════════════════ */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  /* Ocultar elementos desnecessários na impressão */
+  header,
+  nav,
+  aside,
+  .no-print,
+  .no-print-backdrop {
+    display: none !important;
+  }
+
+  /* Exibir apenas o relatório */
+  #financial-report-printable {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    color: #0f172a !important;
+  }
+
+  #financial-report-printable * {
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  #financial-report-printable .text-emerald-500,
+  #financial-report-printable .text-emerald-400 {
+    color: #047857 !important;
+  }
+
+  #financial-report-printable .text-rose-500,
+  #financial-report-printable .text-rose-400 {
+    color: #b91c1c !important;
+  }
+
+  #financial-report-printable .text-din-primary {
+    color: #047857 !important;
+  }
+
+  #financial-report-printable .text-din-muted,
+  #financial-report-printable .text-din-subtle {
+    color: #64748b !important;
+  }
+
+  #financial-report-printable .bg-card-secondary,
+  #financial-report-printable .bg-card-secondary\/40,
+  #financial-report-printable .bg-card-secondary\/60 {
+    background: #f8fafc !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+}
+

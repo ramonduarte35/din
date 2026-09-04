@@ -69,22 +69,58 @@ export class WebhooksController {
     }
   }
 
-  // Endpoint para testes e simulação de mensagens do WhatsApp diretamente via API
+  // Endpoint para testes e simulação de mensagens de WhatsApp e Telegram diretamente via API
   async simulateWhatsAppMessage(
     request: FastifyRequest<{
       Body: {
         sender: string;
         message: string;
         instance?: string;
+        channel?: 'whatsapp' | 'telegram';
+        telegramId?: string;
       };
     }>,
     reply: FastifyReply
   ) {
-    const { sender, message, instance = 'din-finance-01' } = request.body || {};
+    const { sender, message, instance = 'din-finance-01', channel = 'whatsapp', telegramId } = request.body || {};
 
-    if (!sender || !message) {
+    if (!message) {
       return reply.status(400).send({
-        error: 'Campos sender e message são obrigatórios para simulação.',
+        error: 'O campo message é obrigatório para simulação.',
+      });
+    }
+
+    if (channel === 'telegram') {
+      const numTelegramId = telegramId ? parseInt(telegramId, 10) : 999888777;
+      const mockTelegramPayload = {
+        update_id: Date.now(),
+        message: {
+          message_id: Date.now(),
+          from: {
+            id: numTelegramId,
+            is_bot: false,
+            first_name: 'Simulador Telegram',
+            username: 'simulador_user',
+          },
+          chat: {
+            id: numTelegramId,
+            type: 'private',
+          },
+          date: Math.floor(Date.now() / 1000),
+          text: message,
+        },
+      };
+
+      const result = await webhooksService.processTelegramMessage(mockTelegramPayload);
+      return reply.status(200).send({
+        message: 'Simulação de Telegram processada com sucesso!',
+        result,
+      });
+    }
+
+    if (!sender) {
+      return reply.status(400).send({
+        error: 'O campo sender é obrigatório para simulação de WhatsApp.',
       });
     }
 

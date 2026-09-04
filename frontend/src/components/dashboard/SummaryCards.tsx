@@ -43,9 +43,12 @@ export function SummaryCards({ summary, isLoading }: SummaryCardsProps) {
             <Wallet className="w-5 h-5" />
           </div>
         </div>
-        <p className="text-[11px] text-din-muted mt-3 flex items-center gap-1">
-          <span>Acumulado histórico consolidado</span>
-        </p>
+        <div className="flex items-center justify-between text-[11px] text-din-muted mt-3 pt-2 border-t border-border/60">
+          <span>Acumulado geral</span>
+          <span className="font-semibold text-din-text">
+            Previsto: <strong className={total_balance + current_month.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'}>{maskValue(total_balance)}</strong>
+          </span>
+        </div>
       </Card>
 
       {/* 2. Receitas do Mês */}

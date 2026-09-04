@@ -17,6 +17,12 @@ class CategoriesController {
         const category = await categoriesService.createCategory(userId, body);
         return reply.status(201).send({ category });
     }
+    async update(request, reply) {
+        const userId = (0, auth_middleware_js_1.getUserId)(request);
+        const body = categories_schemas_js_1.createCategorySchema.partial().parse(request.body);
+        const category = await categoriesService.updateCategory(userId, request.params.id, body);
+        return reply.send({ category });
+    }
     async delete(request, reply) {
         const userId = (0, auth_middleware_js_1.getUserId)(request);
         const result = await categoriesService.deleteCategory(userId, request.params.id);

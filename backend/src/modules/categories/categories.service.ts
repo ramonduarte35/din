@@ -34,6 +34,44 @@ export class CategoriesService {
     });
   }
 
+  async updateCategory(userId: string, categoryId: string, data: Partial<CreateCategoryInput>) {
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId },
+    });
+
+    if (!category) {
+      throw { statusCode: 404, message: 'Categoria não encontrada.' };
+    }
+
+    if (category.user_id !== userId) {
+      throw { statusCode: 403, message: 'Você não pode editar uma categoria padrão do sistema.' };
+    }
+
+    if (data.name) {
+      const existing = await prisma.category.findFirst({
+        where: {
+          id: { not: categoryId },
+          name: { equals: data.name, mode: 'insensitive' },
+          OR: [{ user_id: null }, { user_id: userId }],
+        },
+      });
+
+      if (existing) {
+        throw { statusCode: 409, message: 'Já existe outra categoria com este nome.' };
+      }
+    }
+
+    return prisma.category.update({
+      where: { id: categoryId },
+      data: {
+        ...(data.name && { name: data.name }),
+        ...(data.type && { type: data.type }),
+        ...(data.icon !== undefined && { icon: data.icon }),
+        ...(data.color !== undefined && { color: data.color }),
+      },
+    });
+  }
+
   async deleteCategory(userId: string, categoryId: string) {
     const category = await prisma.category.findUnique({
       where: { id: categoryId },

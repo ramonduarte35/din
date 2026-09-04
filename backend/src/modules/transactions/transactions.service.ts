@@ -1,12 +1,25 @@
 import { prisma } from '../../lib/prisma.js';
+import { redis } from '../../lib/redis.js';
 import {
   CreateTransactionInput,
   UpdateTransactionInput,
   QueryTransactionsInput,
+  CreateTransferInput,
 } from './transactions.schemas.js';
 import { TransactionOrigin, TransactionType, Prisma, AccountType } from '@prisma/client';
 
 export class TransactionsService {
+  private async invalidateUserCache(userId: string) {
+    try {
+      const keys = await redis.keys(`summary:${userId}:*`);
+      if (keys.length > 0) {
+        await redis.del(...keys);
+      }
+    } catch (e) {
+      // Falha silenciosa do cache
+    }
+  }
+
   private async getDefaultAccount(userId: string) {
     let account = await prisma.account.findFirst({
       where: { user_id: userId, is_default: true },
@@ -168,9 +181,65 @@ export class TransactionsService {
       },
     });
 
+    await this.invalidateUserCache(userId);
+
     return {
       ...transaction,
       amount: Number(transaction.amount),
+    };
+  }
+
+  async createTransfer(userId: string, data: CreateTransferInput) {
+    if (data.from_account_id === data.to_account_id) {
+      throw { statusCode: 400, message: 'A conta de origem e destino não podem ser as mesmas.' };
+    }
+
+    const [fromAccount, toAccount] = await Promise.all([
+      prisma.account.findFirst({ where: { id: data.from_account_id, user_id: userId } }),
+      prisma.account.findFirst({ where: { id: data.to_account_id, user_id: userId } }),
+    ]);
+
+    if (!fromAccount) {
+      throw { statusCode: 404, message: 'Conta de origem não encontrada.' };
+    }
+    if (!toAccount) {
+      throw { statusCode: 404, message: 'Conta de destino não encontrada.' };
+    }
+
+    const txDate = data.date ? new Date(data.date) : new Date();
+    const baseDesc = data.description?.trim() || `Transferência: ${fromAccount.name} ➔ ${toAccount.name}`;
+
+    const [expenseTx, incomeTx] = await prisma.$transaction([
+      prisma.transaction.create({
+        data: {
+          user_id: userId,
+          account_id: fromAccount.id,
+          description: `Saída: ${baseDesc}`,
+          amount: data.amount,
+          type: TransactionType.EXPENSE,
+          origin: TransactionOrigin.MANUAL,
+          date: txDate,
+        },
+      }),
+      prisma.transaction.create({
+        data: {
+          user_id: userId,
+          account_id: toAccount.id,
+          description: `Entrada: ${baseDesc}`,
+          amount: data.amount,
+          type: TransactionType.INCOME,
+          origin: TransactionOrigin.MANUAL,
+          date: txDate,
+        },
+      }),
+    ]);
+
+    await this.invalidateUserCache(userId);
+
+    return {
+      message: 'Transferência realizada com sucesso!',
+      from: { ...expenseTx, amount: Number(expenseTx.amount) },
+      to: { ...incomeTx, amount: Number(incomeTx.amount) },
     };
   }
 
@@ -207,18 +276,20 @@ export class TransactionsService {
     const updated = await prisma.transaction.update({
       where: { id: transactionId },
       data: {
-        description: data.description,
-        amount: data.amount,
-        type: data.type,
-        account_id: data.account_id !== undefined ? data.account_id : existing.account_id,
-        category_id: data.category_id !== undefined ? data.category_id : existing.category_id,
-        date: data.date ? new Date(data.date) : existing.date,
+        ...(data.description && { description: data.description }),
+        ...(data.amount !== undefined && { amount: data.amount }),
+        ...(data.type && { type: data.type }),
+        ...(data.account_id !== undefined && { account_id: data.account_id }),
+        ...(data.category_id !== undefined && { category_id: data.category_id }),
+        ...(data.date && { date: new Date(data.date) }),
       },
       include: {
         category: true,
         account: true,
       },
     });
+
+    await this.invalidateUserCache(userId);
 
     return {
       ...updated,
@@ -240,6 +311,8 @@ export class TransactionsService {
       where: { id: transactionId },
     });
 
+    await this.invalidateUserCache(userId);
+
     return { message: 'Transação excluída com sucesso.' };
   }
 
@@ -247,6 +320,16 @@ export class TransactionsService {
     const now = new Date();
     const month = targetMonth !== undefined ? targetMonth - 1 : now.getMonth(); // 0-indexed
     const year = targetYear !== undefined ? targetYear : now.getFullYear();
+
+    const cacheKey = `summary:${userId}:${year}:${month}`;
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch (e) {
+      // Falha silenciosa do cache
+    }
 
     const startOfMonth = new Date(year, month, 1);
     const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59, 999);
@@ -381,7 +464,7 @@ export class TransactionsService {
         percentage: currentExpense > 0 ? Number(((item.amount / currentExpense) * 100).toFixed(1)) : 0,
       }));
 
-    return {
+    const result = {
       current_month: {
         income: currentIncome,
         expense: currentExpense,
@@ -401,5 +484,13 @@ export class TransactionsService {
         amount: Number(t.amount),
       })),
     };
+
+    try {
+      await redis.set(cacheKey, JSON.stringify(result), 'EX', 45);
+    } catch (e) {
+      // Falha silenciosa do cache
+    }
+
+    return result;
   }
 }

@@ -4,6 +4,7 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { BottomNav } from './BottomNav';
 import { QuickActionModal } from './QuickActionModal';
+import { PWAInstallBanner } from '../pwa/PWAInstallBanner';
 import { TransactionModal } from '../transactions/TransactionModal';
 import { BillModal } from '../bills/BillModal';
 import { AccountModal } from '../accounts/AccountModal';
@@ -89,6 +90,9 @@ export function AppLayout() {
 
         {/* Mobile Bottom Navigation Bar */}
         <BottomNav onOpenQuickAction={openQuickActionModal} />
+
+        {/* PWA Install Banner & Offline Sync Indicator */}
+        <PWAInstallBanner />
 
         {/* Quick Action Modal (FAB / Bottom Sheet) */}
         <QuickActionModal

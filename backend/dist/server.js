@@ -5,6 +5,7 @@ const env_js_1 = require("./config/env.js");
 const prisma_js_1 = require("./lib/prisma.js");
 const redis_js_1 = require("./lib/redis.js");
 const evolution_client_js_1 = require("./modules/webhooks/evolution.client.js");
+const bills_notification_service_js_1 = require("./modules/bills/bills-notification.service.js");
 async function autoConnectWhatsAppInstances() {
     try {
         const instances = await prisma_js_1.prisma.systemWhatsAppNumber.findMany({
@@ -45,6 +46,8 @@ async function bootstrap() {
     `);
         // Conectar automaticamente instâncias do WhatsApp em background
         autoConnectWhatsAppInstances();
+        // Inicializar agendador diário de notificações proativas de contas a pagar
+        bills_notification_service_js_1.billsNotificationService.initScheduledBillNotifier();
         // Graceful shutdown
         const signals = ['SIGINT', 'SIGTERM'];
         for (const signal of signals) {

@@ -19,6 +19,13 @@ export class CategoriesController {
     return reply.status(201).send({ category });
   }
 
+  async update(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+    const userId = getUserId(request);
+    const body = createCategorySchema.partial().parse(request.body);
+    const category = await categoriesService.updateCategory(userId, request.params.id, body);
+    return reply.send({ category });
+  }
+
   async delete(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
     const userId = getUserId(request);
     const result = await categoriesService.deleteCategory(userId, request.params.id);

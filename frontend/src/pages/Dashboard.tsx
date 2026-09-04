@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { SummaryCards } from '../components/dashboard/SummaryCards';
+import { FinancialHealthWidget } from '../components/dashboard/FinancialHealthWidget';
 import { AccountsWidget } from '../components/dashboard/AccountsWidget';
 import { BillsWidget } from '../components/dashboard/BillsWidget';
 import { CategoryChart } from '../components/dashboard/CategoryChart';
 import { MonthlyComparisonChart } from '../components/dashboard/MonthlyComparisonChart';
 import { WhatsAppNumbersCard } from '../components/dashboard/WhatsAppNumbersCard';
 import { RecentTransactionsCard } from '../components/dashboard/RecentTransactionsCard';
+import { FinancialReportModal } from '../components/dashboard/FinancialReportModal';
 import { getTransactionsSummaryRequest, TransactionsSummary } from '../api/transactions';
 import { getSystemNumbersRequest, SystemWhatsAppNumber } from '../api/system-numbers';
 import { getAccountsRequest, Account } from '../api/accounts';
 import { useAuth } from '../contexts/AuthContext';
 import { useLayout } from '../components/layout/AppLayout';
-import { Sparkles, RefreshCw, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { Sparkles, RefreshCw, ChevronLeft, ChevronRight, Calendar, FileText } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
 const MONTH_NAMES = [
@@ -33,6 +35,7 @@ export function Dashboard() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const loadData = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
@@ -138,6 +141,17 @@ export function Dashboard() {
           <Button
             variant="secondary"
             size="sm"
+            onClick={() => setIsReportModalOpen(true)}
+            className="h-9 min-h-[44px] text-xs px-3 border-border hover:border-din-primary/40 text-din-text hover:text-din-primary"
+            title="Exportar demonstrativo executivo mensal em PDF"
+          >
+            <FileText className="w-3.5 h-3.5 mr-1.5 text-din-primary" />
+            Relatório PDF
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => loadData(false)}
             isLoading={isRefreshing}
             className="h-9 min-h-[44px] text-xs px-3"
@@ -151,7 +165,10 @@ export function Dashboard() {
       {/* 1. Cards de Resumo / KPIs Gerais */}
       <SummaryCards summary={summary} isLoading={isLoading} />
 
-      {/* 2. Widget de Contas Bancárias & Saldos Separados */}
+      {/* 2. Score de Saúde Financeira com IA */}
+      <FinancialHealthWidget summary={summary} isLoading={isLoading} />
+
+      {/* 3. Widget de Contas Bancárias & Saldos Separados */}
       <AccountsWidget accounts={accounts} isLoading={isLoading} />
 
       {/* 3. Contas a Pagar & WhatsApp Bot Numbers */}
@@ -183,6 +200,18 @@ export function Dashboard() {
           isLoading={isLoading}
         />
       </div>
+
+      {/* Modal de Exportação do Relatório Executivo em PDF */}
+      <FinancialReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        summary={summary}
+        accounts={accounts}
+        month={selectedMonth}
+        year={selectedYear}
+        userName={user?.name || 'Usuário Din'}
+        userEmail={user?.email || ''}
+      />
     </div>
   );
 }

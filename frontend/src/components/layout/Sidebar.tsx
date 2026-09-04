@@ -5,6 +5,8 @@ import {
   ReceiptText,
   Landmark,
   CalendarClock,
+  Layers,
+  Target,
   Bot,
   User as UserIcon,
   LogOut,
@@ -44,6 +46,16 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
       to: '/accounts',
       label: 'Contas & Bancos',
       icon: Landmark,
+    },
+    {
+      to: '/categories',
+      label: 'Categorias',
+      icon: Layers,
+    },
+    {
+      to: '/goals',
+      label: 'Metas & Cofrinhos',
+      icon: Target,
     },
     {
       to: '/simulator',

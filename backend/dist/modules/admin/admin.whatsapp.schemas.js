@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.testMetaConnectionSchema = exports.updateWhatsAppConfigSchema = exports.updateSystemSettingsSchema = exports.logsQuerySchema = exports.updateInstanceSchema = exports.createInstanceSchema = void 0;
+exports.setTelegramWebhookSchema = exports.testTelegramConnectionSchema = exports.testMetaConnectionSchema = exports.updateWhatsAppConfigSchema = exports.updateSystemSettingsSchema = exports.logsQuerySchema = exports.updateInstanceSchema = exports.createInstanceSchema = void 0;
 const zod_1 = require("zod");
 exports.createInstanceSchema = zod_1.z.object({
     instance_name: zod_1.z
@@ -33,8 +33,20 @@ exports.updateWhatsAppConfigSchema = zod_1.z.object({
     meta_access_token: zod_1.z.string().optional().nullable(),
     meta_verify_token: zod_1.z.string().optional().nullable(),
     meta_app_secret: zod_1.z.string().optional().nullable(),
+    telegram_bot_token: zod_1.z.string().optional().nullable(),
+    telegram_bot_username: zod_1.z.string().optional().nullable(),
+    telegram_is_active: zod_1.z.boolean().optional(),
+    telegram_webhook_secret: zod_1.z.string().optional().nullable(),
 });
 exports.testMetaConnectionSchema = zod_1.z.object({
     meta_phone_number_id: zod_1.z.string().optional(),
     meta_access_token: zod_1.z.string().optional(),
+});
+exports.testTelegramConnectionSchema = zod_1.z.object({
+    telegram_bot_token: zod_1.z.string().optional(),
+});
+exports.setTelegramWebhookSchema = zod_1.z.object({
+    webhook_url: zod_1.z.string().url('URL de webhook inválida.').optional(),
+    secret_token: zod_1.z.string().optional(),
+    telegram_bot_token: zod_1.z.string().optional(),
 });

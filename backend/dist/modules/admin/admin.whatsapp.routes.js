@@ -24,6 +24,10 @@ async function adminWhatsAppRoutes(app) {
     app.get('/config', admin_whatsapp_controller_js_1.adminWhatsAppController.getProviderConfig);
     app.put('/config', admin_whatsapp_controller_js_1.adminWhatsAppController.updateProviderConfig);
     app.post('/meta/test', admin_whatsapp_controller_js_1.adminWhatsAppController.testMetaConnection);
+    // Provedor Telegram Bot
+    app.get('/telegram/status', admin_whatsapp_controller_js_1.adminWhatsAppController.getTelegramStatus);
+    app.post('/telegram/test', admin_whatsapp_controller_js_1.adminWhatsAppController.testTelegramConnection);
+    app.post('/telegram/webhook', admin_whatsapp_controller_js_1.adminWhatsAppController.setTelegramWebhook);
     // Evolution Go Gateway & License
     app.get('/evolution/status', admin_whatsapp_controller_js_1.adminWhatsAppController.getEvolutionStatus);
     app.get('/evolution/license', admin_whatsapp_controller_js_1.adminWhatsAppController.getEvolutionLicense);

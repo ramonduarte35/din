@@ -26,5 +26,15 @@ class UsersController {
         const result = await usersService.changePassword(userId, body);
         return reply.send(result);
     }
+    async generateTelegramLinkCode(request, reply) {
+        const userId = (0, auth_middleware_js_1.getUserId)(request);
+        const result = await usersService.generateTelegramLinkCode(userId);
+        return reply.send(result);
+    }
+    async unlinkTelegram(request, reply) {
+        const userId = (0, auth_middleware_js_1.getUserId)(request);
+        const result = await usersService.unlinkTelegram(userId);
+        return reply.send(result);
+    }
 }
 exports.UsersController = UsersController;

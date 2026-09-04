@@ -51,12 +51,59 @@ class WebhooksController {
             return reply.status(200).send({ status: 'EVENT_RECEIVED' });
         }
     }
-    // Endpoint para testes e simulação de mensagens do WhatsApp diretamente via API
+    // Webhook do Telegram Bot: Recepção de Updates e Mensagens (POST)
+    async handleTelegramWebhook(request, reply) {
+        try {
+            const payload = request.body;
+            // Resposta imediata HTTP 200 para o Telegram (obrigatório para evitar retries)
+            reply.status(200).send({ ok: true });
+            // Processamento assíncrono
+            webhooksService.processTelegramMessage(payload).catch((err) => {
+                console.error('❌ [Telegram Webhook] Erro no processamento assíncrono:', err);
+            });
+        }
+        catch (error) {
+            request.log.error(error);
+            return reply.status(200).send({ ok: true });
+        }
+    }
+    // Endpoint para testes e simulação de mensagens de WhatsApp e Telegram diretamente via API
     async simulateWhatsAppMessage(request, reply) {
-        const { sender, message, instance = 'din-finance-01' } = request.body || {};
-        if (!sender || !message) {
+        const { sender, message, instance = 'din-finance-01', channel = 'whatsapp', telegramId } = request.body || {};
+        if (!message) {
             return reply.status(400).send({
-                error: 'Campos sender e message são obrigatórios para simulação.',
+                error: 'O campo message é obrigatório para simulação.',
+            });
+        }
+        if (channel === 'telegram') {
+            const numTelegramId = telegramId ? parseInt(telegramId, 10) : 999888777;
+            const mockTelegramPayload = {
+                update_id: Date.now(),
+                message: {
+                    message_id: Date.now(),
+                    from: {
+                        id: numTelegramId,
+                        is_bot: false,
+                        first_name: 'Simulador Telegram',
+                        username: 'simulador_user',
+                    },
+                    chat: {
+                        id: numTelegramId,
+                        type: 'private',
+                    },
+                    date: Math.floor(Date.now() / 1000),
+                    text: message,
+                },
+            };
+            const result = await webhooksService.processTelegramMessage(mockTelegramPayload);
+            return reply.status(200).send({
+                message: 'Simulação de Telegram processada com sucesso!',
+                result,
+            });
+        }
+        if (!sender) {
+            return reply.status(400).send({
+                error: 'O campo sender é obrigatório para simulação de WhatsApp.',
             });
         }
         const mockPayload = {

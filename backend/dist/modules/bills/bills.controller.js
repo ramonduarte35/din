@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BillsController = void 0;
 const bills_service_js_1 = require("./bills.service.js");
+const bills_notification_service_js_1 = require("./bills-notification.service.js");
 const bills_schemas_js_1 = require("./bills.schemas.js");
 const auth_middleware_js_1 = require("../../middleware/auth.middleware.js");
 const billsService = new bills_service_js_1.BillsService();
@@ -106,6 +107,25 @@ class BillsController {
         }
         catch (error) {
             return reply.status(400).send({ message: error.message || 'Erro ao excluir conta a pagar' });
+        }
+    }
+    async notifyDue(request, reply) {
+        try {
+            const userId = (0, auth_middleware_js_1.getUserId)(request);
+            const result = await bills_notification_service_js_1.billsNotificationService.dispatchDueBillNotifications({ userId, force: true });
+            return reply.send(result);
+        }
+        catch (error) {
+            return reply.status(500).send({ message: error.message || 'Erro ao disparar notificações de contas' });
+        }
+    }
+    async adminNotifyAll(request, reply) {
+        try {
+            const result = await bills_notification_service_js_1.billsNotificationService.dispatchDueBillNotifications({ force: false });
+            return reply.send(result);
+        }
+        catch (error) {
+            return reply.status(500).send({ message: error.message || 'Erro ao processar notificações globais' });
         }
     }
 }

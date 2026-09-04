@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { BillsService } from './bills.service.js';
+import { billsNotificationService } from './bills-notification.service.js';
 import { createBillSchema, updateBillSchema, payBillSchema, listBillsQuerySchema } from './bills.schemas.js';
 import { getUserId } from '../../middleware/auth.middleware.js';
 
@@ -111,4 +112,24 @@ export class BillsController {
       return reply.status(400).send({ message: error.message || 'Erro ao excluir conta a pagar' });
     }
   }
+
+  async notifyDue(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const userId = getUserId(request);
+      const result = await billsNotificationService.dispatchDueBillNotifications({ userId, force: true });
+      return reply.send(result);
+    } catch (error: any) {
+      return reply.status(500).send({ message: error.message || 'Erro ao disparar notificações de contas' });
+    }
+  }
+
+  async adminNotifyAll(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const result = await billsNotificationService.dispatchDueBillNotifications({ force: false });
+      return reply.send(result);
+    } catch (error: any) {
+      return reply.status(500).send({ message: error.message || 'Erro ao processar notificações globais' });
+    }
+  }
 }
+

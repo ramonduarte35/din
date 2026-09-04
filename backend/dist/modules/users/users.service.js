@@ -16,6 +16,8 @@ class UsersService {
                 name: true,
                 email: true,
                 phone_number: true,
+                telegram_id: true,
+                telegram_username: true,
                 avatar_url: true,
                 google_id: true,
                 password_hash: true,
@@ -39,6 +41,7 @@ class UsersService {
         return {
             ...userProfile,
             has_password: hasPassword,
+            is_telegram_connected: Boolean(user.telegram_id),
         };
     }
     async updateProfile(userId, data) {
@@ -118,6 +121,50 @@ class UsersService {
         });
         return {
             message: user.password_hash ? 'Senha alterada com sucesso!' : 'Senha criada com sucesso!',
+        };
+    }
+    async generateTelegramLinkCode(userId) {
+        const user = await prisma_js_1.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            throw { statusCode: 404, message: 'Usuário não encontrado.' };
+        }
+        const config = await prisma_js_1.prisma.whatsAppIntegrationConfig.findFirst({
+            orderBy: { created_at: 'desc' },
+        });
+        const botUsername = config?.telegram_bot_username?.replace(/^@/, '') || null;
+        // Gerar código de 6 dígitos alfanuméricos
+        const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const token = `v_${randomCode}`;
+        // Armazenar no Redis por 15 minutos (900 segundos)
+        try {
+            const { redis } = await import('../../lib/redis.js');
+            await redis.set(`tele_link:${token}`, userId, 'EX', 900);
+            await redis.set(`tele_link:${randomCode}`, userId, 'EX', 900);
+        }
+        catch (e) {
+            console.warn('⚠️ [Redis] Erro ao salvar token de vinculação do Telegram:', e);
+        }
+        const deepLink = botUsername ? `https://t.me/${botUsername}?start=${token}` : null;
+        return {
+            code: randomCode,
+            token,
+            deep_link: deepLink,
+            bot_username: botUsername,
+            expires_in_seconds: 900,
+        };
+    }
+    async unlinkTelegram(userId) {
+        await prisma_js_1.prisma.user.update({
+            where: { id: userId },
+            data: {
+                telegram_id: null,
+                telegram_username: null,
+            },
+        });
+        return {
+            message: 'Conta do Telegram desvinculada com sucesso!',
         };
     }
 }

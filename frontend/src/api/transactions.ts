@@ -104,6 +104,17 @@ export async function createTransactionRequest(payload: {
   return data;
 }
 
+export async function createTransferRequest(payload: {
+  from_account_id: string;
+  to_account_id: string;
+  amount: number;
+  description?: string;
+  date?: string;
+}): Promise<any> {
+  const { data } = await api.post('/transactions/transfer', payload);
+  return data;
+}
+
 export async function updateTransactionRequest(
   id: string,
   payload: Partial<{
@@ -129,9 +140,11 @@ export async function getTransactionsSummaryRequest(filters?: SummaryFilters): P
 }
 
 export async function simulateWhatsAppRequest(payload: {
-  sender: string;
+  sender?: string;
   message: string;
   instance?: string;
+  channel?: 'whatsapp' | 'telegram';
+  telegramId?: string;
 }): Promise<any> {
   const { data } = await api.post('/webhooks/simulate', payload);
   return data;

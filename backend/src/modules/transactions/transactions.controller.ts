@@ -4,6 +4,7 @@ import {
   createTransactionSchema,
   updateTransactionSchema,
   queryTransactionsSchema,
+  createTransferSchema,
 } from './transactions.schemas.js';
 import { getUserId } from '../../middleware/auth.middleware.js';
 
@@ -25,6 +26,13 @@ export class TransactionsController {
       message: 'Transação registrada com sucesso!',
       transaction,
     });
+  }
+
+  async transfer(request: FastifyRequest, reply: FastifyReply) {
+    const userId = getUserId(request);
+    const body = createTransferSchema.parse(request.body);
+    const result = await transactionsService.createTransfer(userId, body);
+    return reply.status(201).send(result);
   }
 
   async update(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {

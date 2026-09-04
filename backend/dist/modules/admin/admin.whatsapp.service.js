@@ -5,6 +5,7 @@ const prisma_js_1 = require("../../lib/prisma.js");
 const redis_js_1 = require("../../lib/redis.js");
 const evolution_client_js_1 = require("../webhooks/evolution.client.js");
 const meta_client_js_1 = require("../meta-whatsapp/meta.client.js");
+const telegram_client_js_1 = require("../telegram/telegram.client.js");
 const phone_js_1 = require("../../utils/phone.js");
 class AdminWhatsAppService {
     async getSettings() {
@@ -331,12 +332,49 @@ class AdminWhatsAppService {
                 ...(data.meta_access_token !== undefined && { meta_access_token: data.meta_access_token }),
                 ...(data.meta_verify_token !== undefined && { meta_verify_token: data.meta_verify_token }),
                 ...(data.meta_app_secret !== undefined && { meta_app_secret: data.meta_app_secret }),
+                ...(data.telegram_bot_token !== undefined && { telegram_bot_token: data.telegram_bot_token }),
+                ...(data.telegram_bot_username !== undefined && { telegram_bot_username: data.telegram_bot_username }),
+                ...(data.telegram_is_active !== undefined && { telegram_is_active: data.telegram_is_active }),
+                ...(data.telegram_webhook_secret !== undefined && { telegram_webhook_secret: data.telegram_webhook_secret }),
             },
         });
         return updated;
     }
     async testMetaConnection(data) {
         return await meta_client_js_1.metaClient.testConnection(data?.meta_phone_number_id, data?.meta_access_token);
+    }
+    // ─── Provedor Telegram Bot ───────────────────────────────────────
+    async testTelegramConnection(data) {
+        return await telegram_client_js_1.telegramClient.getMe(data?.telegram_bot_token);
+    }
+    async setTelegramWebhook(data) {
+        const config = await this.getProviderConfig();
+        const token = data?.telegram_bot_token || config.telegram_bot_token || undefined;
+        const webhookUrl = data?.webhook_url;
+        if (!webhookUrl) {
+            throw new Error('URL do webhook é obrigatória.');
+        }
+        const secretToken = data?.secret_token || config.telegram_webhook_secret || undefined;
+        return await telegram_client_js_1.telegramClient.setWebhook(webhookUrl, secretToken, token);
+    }
+    async getTelegramStatus() {
+        const config = await this.getProviderConfig();
+        if (!config.telegram_bot_token) {
+            return {
+                success: false,
+                is_active: false,
+                error: 'Token do Telegram Bot não configurado.',
+            };
+        }
+        const botRes = await telegram_client_js_1.telegramClient.getMe(config.telegram_bot_token);
+        const webhookRes = await telegram_client_js_1.telegramClient.getWebhookInfo(config.telegram_bot_token);
+        return {
+            success: botRes.success,
+            bot: botRes.bot,
+            webhook: webhookRes.webhook,
+            is_active: config.telegram_is_active,
+            error: botRes.error || webhookRes.error,
+        };
     }
 }
 exports.AdminWhatsAppService = AdminWhatsAppService;

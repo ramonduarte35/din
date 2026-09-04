@@ -1,4 +1,4 @@
-import { CreateInstanceInput, UpdateInstanceInput, LogsQueryInput, UpdateSystemSettingsInput, UpdateWhatsAppConfigInput, TestMetaConnectionInput } from './admin.whatsapp.schemas.js';
+import { CreateInstanceInput, UpdateInstanceInput, LogsQueryInput, UpdateSystemSettingsInput, UpdateWhatsAppConfigInput, TestMetaConnectionInput, TestTelegramConnectionInput, SetTelegramWebhookInput } from './admin.whatsapp.schemas.js';
 export declare class AdminWhatsAppService {
     getSettings(): Promise<{
         reply_only_registered: boolean;
@@ -128,6 +128,10 @@ export declare class AdminWhatsAppService {
         meta_access_token: string | null;
         meta_verify_token: string | null;
         meta_app_secret: string | null;
+        telegram_bot_token: string | null;
+        telegram_bot_username: string | null;
+        telegram_is_active: boolean;
+        telegram_webhook_secret: string | null;
     }>;
     updateProviderConfig(data: UpdateWhatsAppConfigInput): Promise<{
         id: string;
@@ -139,7 +143,34 @@ export declare class AdminWhatsAppService {
         meta_access_token: string | null;
         meta_verify_token: string | null;
         meta_app_secret: string | null;
+        telegram_bot_token: string | null;
+        telegram_bot_username: string | null;
+        telegram_is_active: boolean;
+        telegram_webhook_secret: string | null;
     }>;
     testMetaConnection(data?: TestMetaConnectionInput): Promise<import("../meta-whatsapp/meta.client.js").MetaConnectionStatus>;
+    testTelegramConnection(data?: TestTelegramConnectionInput): Promise<{
+        success: boolean;
+        bot?: import("../telegram/telegram.client.js").TelegramBotInfo;
+        error?: string;
+    }>;
+    setTelegramWebhook(data?: SetTelegramWebhookInput): Promise<{
+        success: boolean;
+        message: string;
+        error?: string;
+    }>;
+    getTelegramStatus(): Promise<{
+        success: boolean;
+        is_active: boolean;
+        error: string;
+        bot?: undefined;
+        webhook?: undefined;
+    } | {
+        success: boolean;
+        bot: import("../telegram/telegram.client.js").TelegramBotInfo | undefined;
+        webhook: import("../telegram/telegram.client.js").TelegramWebhookInfo | undefined;
+        is_active: boolean;
+        error: string | undefined;
+    }>;
 }
 export declare const adminWhatsAppService: AdminWhatsAppService;

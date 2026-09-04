@@ -2,18 +2,41 @@
 <html lang="pt-BR" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'/></svg>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- PWA: Ícones e Manifest -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- PWA: Viewport e comportamento mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Din" />
+
+    <!-- PWA: Cor da barra de status no Android Chrome -->
+    <meta name="theme-color" content="#080d1a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+
+    <!-- SEO -->
     <title>Din — Gestão Financeira Inteligente com IA e WhatsApp</title>
-    <meta name="description" content="Controle financeiro pessoal inteligente. Registre seus gastos por texto ou áudio no WhatsApp com inteligência artificial e acompanhe gráficos em tempo real no painel web." />
-    
+    <meta name="description" content="Controle financeiro pessoal inteligente. Registre seus gastos por texto ou áudio no WhatsApp e Telegram com IA. Funciona offline e sincroniza automaticamente." />
+    <meta name="keywords" content="finanças pessoais, controle financeiro, whatsapp, inteligência artificial, app financeiro" />
+
+    <!-- Open Graph (WhatsApp / Telegram share preview) -->
+    <meta property="og:title" content="Din — Gestão Financeira Inteligente" />
+    <meta property="og:description" content="Controle financeiro via WhatsApp e Telegram com IA. Funciona offline." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/icon-512x512.png" />
+
     <!-- Google Fonts Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/assets/index-clWXRti7.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-B22KfUMe.css">
-  </head>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script type="module" crossorigin src="/assets/index-CCGvhLc8.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CmtC3M84.css">
+  <link rel="manifest" href="/manifest.webmanifest"></head>
   <body class="bg-background text-din-text font-sans antialiased min-h-screen selection:bg-din-primary selection:text-white">
     <div id="root"></div>
   </body>

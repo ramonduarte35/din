@@ -11,6 +11,7 @@ import { systemNumbersRoutes } from './modules/system-numbers/system-numbers.rou
 import { transactionsRoutes } from './modules/transactions/transactions.routes.js';
 import { accountsRoutes } from './modules/accounts/accounts.routes.js';
 import { billsRoutes } from './modules/bills/bills.routes.js';
+import { goalsRoutes } from './modules/goals/goals.routes.js';
 import { webhooksRoutes } from './modules/webhooks/webhooks.routes.js';
 import { adminWhatsAppRoutes } from './modules/admin/admin.whatsapp.routes.js';
 
@@ -56,6 +57,7 @@ export function buildApp() {
       v1.register(categoriesRoutes, { prefix: '/categories' });
       v1.register(accountsRoutes, { prefix: '/accounts' });
       v1.register(billsRoutes, { prefix: '/bills' });
+      v1.register(goalsRoutes, { prefix: '/goals' });
       v1.register(systemNumbersRoutes, { prefix: '/system-numbers' });
       v1.register(transactionsRoutes, { prefix: '/transactions' });
       v1.register(webhooksRoutes, { prefix: '/webhooks' });
