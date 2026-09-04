@@ -45,7 +45,10 @@ export class TransactionsController {
 
   async summary(request: FastifyRequest, reply: FastifyReply) {
     const userId = getUserId(request);
-    const summary = await transactionsService.getSummary(userId);
+    const query = request.query as { month?: string; year?: string };
+    const month = query.month ? parseInt(query.month, 10) : undefined;
+    const year = query.year ? parseInt(query.year, 10) : undefined;
+    const summary = await transactionsService.getSummary(userId, month, year);
     return reply.send({ summary });
   }
 }

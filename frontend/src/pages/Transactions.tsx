@@ -111,15 +111,23 @@ export function Transactions() {
 
     try {
       const headers = ['Data', 'Descrição', 'Tipo', 'Valor (R$)', 'Categoria', 'Conta Bancária', 'Origem'];
-      const rows = transactions.map((t) => [
-        new Date(t.date).toLocaleDateString('pt-BR'),
-        `"${(t.description || '').replace(/"/g, '""')}"`,
-        t.type === 'INCOME' ? 'Receita' : 'Despesa',
-        t.amount.toFixed(2).replace('.', ','),
-        `"${t.category?.name || 'Sem Categoria'}"`,
-        `"${t.account?.name || 'Conta Principal'}"`,
-        t.origin === 'WHATSAPP_TEXT' ? 'WhatsApp' : 'Manual',
-      ]);
+      const rows = transactions.map((t) => {
+        const originLabel =
+          t.origin === 'WHATSAPP_TEXT' ? 'WhatsApp (Texto)'
+          : t.origin === 'WHATSAPP_AUDIO' ? 'WhatsApp (Áudio)'
+          : t.origin === 'TELEGRAM_TEXT' ? 'Telegram (Texto)'
+          : t.origin === 'TELEGRAM_AUDIO' ? 'Telegram (Áudio)'
+          : 'Manual';
+        return [
+          new Date(t.date).toLocaleDateString('pt-BR'),
+          `"${(t.description || '').replace(/"/g, '""')}"`,
+          t.type === 'INCOME' ? 'Receita' : 'Despesa',
+          t.amount.toFixed(2).replace('.', ','),
+          `"${t.category?.name || 'Sem Categoria'}"`,
+          `"${t.account?.name || 'Conta Principal'}"`,
+          originLabel,
+        ];
+      });
 
       const csvContent = '\uFEFF' + [headers.join(';'), ...rows.map((e) => e.join(';'))].join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -143,11 +151,11 @@ export function Transactions() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-din-text tracking-tight">
             Extrato de Transações
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Visualize, filtre e gerencie todos os seus registros manuais e via WhatsApp
+          <p className="text-xs text-din-muted mt-0.5">
+            Visualize, filtre e gerencie todos os seus registros manuais e via WhatsApp ou Telegram
           </p>
         </div>
 

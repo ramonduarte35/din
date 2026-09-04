@@ -3,7 +3,7 @@ import { Category } from './categories';
 import { Account } from './accounts';
 
 export type TransactionType = 'INCOME' | 'EXPENSE';
-export type TransactionOrigin = 'MANUAL' | 'WHATSAPP_TEXT' | 'WHATSAPP_AUDIO';
+export type TransactionOrigin = 'MANUAL' | 'WHATSAPP_TEXT' | 'WHATSAPP_AUDIO' | 'TELEGRAM_TEXT' | 'TELEGRAM_AUDIO';
 
 export interface Transaction {
   id: string;
@@ -82,6 +82,11 @@ export interface TransactionFilters {
   limit?: number;
 }
 
+export interface SummaryFilters {
+  month?: number;
+  year?: number;
+}
+
 export async function getTransactionsRequest(filters: TransactionFilters = {}): Promise<TransactionsListResponse> {
   const { data } = await api.get<TransactionsListResponse>('/transactions', { params: filters });
   return data;
@@ -118,8 +123,8 @@ export async function deleteTransactionRequest(id: string): Promise<void> {
   await api.delete(`/transactions/${id}`);
 }
 
-export async function getTransactionsSummaryRequest(): Promise<TransactionsSummary> {
-  const { data } = await api.get<{ summary: TransactionsSummary }>('/transactions/summary');
+export async function getTransactionsSummaryRequest(filters?: SummaryFilters): Promise<TransactionsSummary> {
+  const { data } = await api.get<{ summary: TransactionsSummary }>('/transactions/summary', { params: filters });
   return data.summary;
 }
 

@@ -47,13 +47,13 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
     },
     {
       to: '/simulator',
-      label: 'Simulador WhatsApp',
+      label: 'Simulador de IA',
       icon: Bot,
       highlight: true,
     },
     {
       to: '/profile',
-      label: 'Perfil & WhatsApp',
+      label: 'Perfil & Integrações',
       icon: UserIcon,
     },
   ];
@@ -145,7 +145,7 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
                         isActive ? 'text-din-primary' : 'text-din-muted group-hover:text-din-text'
                       )}
                     />
-                    <span>WhatsApp & Evolution</span>
+                    <span>Canais & Integrações</span>
                   </div>
                   <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-din-primary/20 text-din-primary border border-din-primary/30">
                     ADMIN

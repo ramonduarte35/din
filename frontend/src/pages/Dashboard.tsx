@@ -11,12 +11,22 @@ import { getSystemNumbersRequest, SystemWhatsAppNumber } from '../api/system-num
 import { getAccountsRequest, Account } from '../api/accounts';
 import { useAuth } from '../contexts/AuthContext';
 import { useLayout } from '../components/layout/AppLayout';
-import { Sparkles, RefreshCw } from 'lucide-react';
+import { Sparkles, RefreshCw, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+
+const MONTH_NAMES = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
 
 export function Dashboard() {
   const { user } = useAuth();
   const { refreshKey } = useLayout();
+
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1); // 1-indexed
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const isCurrentMonth = selectedMonth === now.getMonth() + 1 && selectedYear === now.getFullYear();
 
   const [summary, setSummary] = useState<TransactionsSummary | null>(null);
   const [systemNumbers, setSystemNumbers] = useState<SystemWhatsAppNumber[]>([]);
@@ -30,7 +40,7 @@ export function Dashboard() {
 
     try {
       const [sumRes, numRes, accsRes] = await Promise.all([
-        getTransactionsSummaryRequest(),
+        getTransactionsSummaryRequest({ month: selectedMonth, year: selectedYear }),
         getSystemNumbersRequest(),
         getAccountsRequest(),
       ]);
@@ -47,34 +57,95 @@ export function Dashboard() {
 
   useEffect(() => {
     loadData();
-  }, [refreshKey]);
+  }, [refreshKey, selectedMonth, selectedYear]);
+
+  const handlePrevMonth = () => {
+    if (selectedMonth === 1) {
+      setSelectedMonth(12);
+      setSelectedYear((y) => y - 1);
+    } else {
+      setSelectedMonth((m) => m - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (isCurrentMonth) return; // Não avançar além do mês atual
+    if (selectedMonth === 12) {
+      setSelectedMonth(1);
+      setSelectedYear((y) => y + 1);
+    } else {
+      setSelectedMonth((m) => m + 1);
+    }
+  };
+
+  const handleGoToCurrentMonth = () => {
+    setSelectedMonth(now.getMonth() + 1);
+    setSelectedYear(now.getFullYear());
+  };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-8 animate-fade-in">
-      {/* Header com boas-vindas e botão de atualizar */}
+      {/* Header com boas-vindas, seletor de período e botão de atualizar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-din-text tracking-tight flex items-center gap-2">
             <span>Painel Financeiro</span>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-din-primary/10 text-din-primary border border-din-primary/20">
-              Tempo Real
-            </span>
+            {isCurrentMonth ? (
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-din-primary/10 text-din-primary border border-din-primary/20">
+                Tempo Real
+              </span>
+            ) : (
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                Histórico
+              </span>
+            )}
           </h1>
           <p className="text-xs text-din-muted mt-0.5">
-            Acompanhe o fluxo de caixa, saldos por conta e assistente WhatsApp
+            Acompanhe o fluxo de caixa, saldos por conta e assistente de IA
           </p>
         </div>
 
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => loadData(false)}
-          isLoading={isRefreshing}
-          className="self-start sm:self-auto h-9 min-h-[44px] text-xs px-3"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Atualizar Dados
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+          {/* Navegação de Período */}
+          <div className="flex items-center gap-1 bg-card-secondary border border-border rounded-xl p-1">
+            <button
+              onClick={handlePrevMonth}
+              className="p-1.5 rounded-lg hover:bg-card-hover text-din-muted hover:text-din-text transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+              title="Mês anterior"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={!isCurrentMonth ? handleGoToCurrentMonth : undefined}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-din-text min-w-[130px] justify-center"
+              title={!isCurrentMonth ? 'Clique para ir ao mês atual' : undefined}
+            >
+              <Calendar className="w-3.5 h-3.5 text-din-primary" />
+              <span>{MONTH_NAMES[selectedMonth - 1]} {selectedYear}</span>
+            </button>
+
+            <button
+              onClick={handleNextMonth}
+              disabled={isCurrentMonth}
+              className="p-1.5 rounded-lg hover:bg-card-hover text-din-muted hover:text-din-text transition-colors disabled:opacity-30 disabled:cursor-not-allowed min-h-[36px] min-w-[36px] flex items-center justify-center"
+              title="Próximo mês"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => loadData(false)}
+            isLoading={isRefreshing}
+            className="h-9 min-h-[44px] text-xs px-3"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+        </div>
       </div>
 
       {/* 1. Cards de Resumo / KPIs Gerais */}
