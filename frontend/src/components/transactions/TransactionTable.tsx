@@ -110,10 +110,10 @@ export function TransactionTable({
                     <span className="font-bold text-din-text block group-hover:text-din-primary transition-colors">
                       {tx.description}
                     </span>
-                    {tx.raw_text && (
+                    {tx.raw_message && (
                       <span className="text-[10px] text-din-muted flex items-center gap-1 mt-0.5 max-w-xs truncate">
                         <MessageSquare className="w-2.5 h-2.5 flex-shrink-0 text-din-muted" />
-                        "{tx.raw_text}"
+                        "{tx.raw_message}"
                       </span>
                     )}
                   </td>
@@ -250,10 +250,10 @@ export function TransactionTable({
                 </span>
               </div>
 
-              {tx.raw_text && (
+              {tx.raw_message && (
                 <p className="text-[11px] text-din-muted bg-card-secondary p-2 rounded-xl border border-border flex items-center gap-1.5">
                   <MessageSquare className="w-3 h-3 text-din-muted shrink-0" />
-                  <span className="truncate">"{tx.raw_text}"</span>
+                  <span className="truncate">"{tx.raw_message}"</span>
                 </p>
               )}
 

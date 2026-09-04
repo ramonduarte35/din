@@ -28,6 +28,11 @@ export async function adminWhatsAppRoutes(app: FastifyInstance) {
   app.put('/config', adminWhatsAppController.updateProviderConfig);
   app.post('/meta/test', adminWhatsAppController.testMetaConnection);
 
+  // Provedor Telegram Bot
+  app.get('/telegram/status', adminWhatsAppController.getTelegramStatus);
+  app.post('/telegram/test', adminWhatsAppController.testTelegramConnection);
+  app.post('/telegram/webhook', adminWhatsAppController.setTelegramWebhook);
+
   // Evolution Go Gateway & License
   app.get('/evolution/status', adminWhatsAppController.getEvolutionStatus);
   app.get('/evolution/license', adminWhatsAppController.getEvolutionLicense);

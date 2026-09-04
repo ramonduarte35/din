@@ -28,5 +28,17 @@ export class UsersController {
     const result = await usersService.changePassword(userId, body);
     return reply.send(result);
   }
+
+  async generateTelegramLinkCode(request: FastifyRequest, reply: FastifyReply) {
+    const userId = getUserId(request);
+    const result = await usersService.generateTelegramLinkCode(userId);
+    return reply.send(result);
+  }
+
+  async unlinkTelegram(request: FastifyRequest, reply: FastifyReply) {
+    const userId = getUserId(request);
+    const result = await usersService.unlinkTelegram(userId);
+    return reply.send(result);
+  }
 }
 

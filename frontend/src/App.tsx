@@ -129,6 +129,7 @@ export function App() {
                     <Route path="accounts" element={<Accounts />} />
                     <Route path="simulator" element={<Simulator />} />
                     <Route path="profile" element={<Profile />} />
+                    <Route path="access-denied" element={<AccessDenied />} />
                     <Route
                       path="admin/whatsapp"
                       element={
@@ -142,6 +143,8 @@ export function App() {
                       element={<Navigate to="/admin/whatsapp" replace />}
                     />
                   </Route>
+
+                  <Route path="/access-denied" element={<AccessDenied />} />
 
                   {/* 404 Fallback */}
                   <Route path="*" element={<NotFound />} />

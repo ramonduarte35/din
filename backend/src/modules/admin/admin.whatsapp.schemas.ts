@@ -35,11 +35,25 @@ export const updateWhatsAppConfigSchema = z.object({
   meta_access_token: z.string().optional().nullable(),
   meta_verify_token: z.string().optional().nullable(),
   meta_app_secret: z.string().optional().nullable(),
+  telegram_bot_token: z.string().optional().nullable(),
+  telegram_bot_username: z.string().optional().nullable(),
+  telegram_is_active: z.boolean().optional(),
+  telegram_webhook_secret: z.string().optional().nullable(),
 });
 
 export const testMetaConnectionSchema = z.object({
   meta_phone_number_id: z.string().optional(),
   meta_access_token: z.string().optional(),
+});
+
+export const testTelegramConnectionSchema = z.object({
+  telegram_bot_token: z.string().optional(),
+});
+
+export const setTelegramWebhookSchema = z.object({
+  webhook_url: z.string().url('URL de webhook inválida.').optional(),
+  secret_token: z.string().optional(),
+  telegram_bot_token: z.string().optional(),
 });
 
 export type CreateInstanceInput = z.infer<typeof createInstanceSchema>;
@@ -48,4 +62,6 @@ export type LogsQueryInput = z.infer<typeof logsQuerySchema>;
 export type UpdateSystemSettingsInput = z.infer<typeof updateSystemSettingsSchema>;
 export type UpdateWhatsAppConfigInput = z.infer<typeof updateWhatsAppConfigSchema>;
 export type TestMetaConnectionInput = z.infer<typeof testMetaConnectionSchema>;
+export type TestTelegramConnectionInput = z.infer<typeof testTelegramConnectionSchema>;
+export type SetTelegramWebhookInput = z.infer<typeof setTelegramWebhookSchema>;
 

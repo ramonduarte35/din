@@ -52,6 +52,23 @@ export class WebhooksController {
     }
   }
 
+  // Webhook do Telegram Bot: Recepção de Updates e Mensagens (POST)
+  async handleTelegramWebhook(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const payload = request.body;
+      // Resposta imediata HTTP 200 para o Telegram (obrigatório para evitar retries)
+      reply.status(200).send({ ok: true });
+
+      // Processamento assíncrono
+      webhooksService.processTelegramMessage(payload).catch((err) => {
+        console.error('❌ [Telegram Webhook] Erro no processamento assíncrono:', err);
+      });
+    } catch (error: any) {
+      request.log.error(error);
+      return reply.status(200).send({ ok: true });
+    }
+  }
+
   // Endpoint para testes e simulação de mensagens do WhatsApp diretamente via API
   async simulateWhatsAppMessage(
     request: FastifyRequest<{

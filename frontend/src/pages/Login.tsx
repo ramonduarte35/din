@@ -95,7 +95,6 @@ export function Login() {
                   shape="pill"
                   size="large"
                   text="continue_with"
-                  locale="pt-BR"
                   width="100%"
                 />
               </div>

@@ -2,6 +2,7 @@ import { prisma } from '../../lib/prisma.js';
 import { redis } from '../../lib/redis.js';
 import { evolutionClient } from '../webhooks/evolution.client.js';
 import { metaClient } from '../meta-whatsapp/meta.client.js';
+import { telegramClient } from '../telegram/telegram.client.js';
 import { normalizePhoneNumber } from '../../utils/phone.js';
 import {
   CreateInstanceInput,
@@ -10,6 +11,8 @@ import {
   UpdateSystemSettingsInput,
   UpdateWhatsAppConfigInput,
   TestMetaConnectionInput,
+  TestTelegramConnectionInput,
+  SetTelegramWebhookInput,
 } from './admin.whatsapp.schemas.js';
 
 export class AdminWhatsAppService {
@@ -387,6 +390,10 @@ export class AdminWhatsAppService {
         ...(data.meta_access_token !== undefined && { meta_access_token: data.meta_access_token }),
         ...(data.meta_verify_token !== undefined && { meta_verify_token: data.meta_verify_token }),
         ...(data.meta_app_secret !== undefined && { meta_app_secret: data.meta_app_secret }),
+        ...(data.telegram_bot_token !== undefined && { telegram_bot_token: data.telegram_bot_token }),
+        ...(data.telegram_bot_username !== undefined && { telegram_bot_username: data.telegram_bot_username }),
+        ...(data.telegram_is_active !== undefined && { telegram_is_active: data.telegram_is_active }),
+        ...(data.telegram_webhook_secret !== undefined && { telegram_webhook_secret: data.telegram_webhook_secret }),
       },
     });
 
@@ -395,6 +402,46 @@ export class AdminWhatsAppService {
 
   async testMetaConnection(data?: TestMetaConnectionInput) {
     return await metaClient.testConnection(data?.meta_phone_number_id, data?.meta_access_token);
+  }
+
+  // ─── Provedor Telegram Bot ───────────────────────────────────────
+  async testTelegramConnection(data?: TestTelegramConnectionInput) {
+    return await telegramClient.getMe(data?.telegram_bot_token);
+  }
+
+  async setTelegramWebhook(data?: SetTelegramWebhookInput) {
+    const config = await this.getProviderConfig();
+    const token = data?.telegram_bot_token || config.telegram_bot_token || undefined;
+    const webhookUrl = data?.webhook_url;
+
+    if (!webhookUrl) {
+      throw new Error('URL do webhook é obrigatória.');
+    }
+
+    const secretToken = data?.secret_token || config.telegram_webhook_secret || undefined;
+    return await telegramClient.setWebhook(webhookUrl, secretToken, token);
+  }
+
+  async getTelegramStatus() {
+    const config = await this.getProviderConfig();
+    if (!config.telegram_bot_token) {
+      return {
+        success: false,
+        is_active: false,
+        error: 'Token do Telegram Bot não configurado.',
+      };
+    }
+
+    const botRes = await telegramClient.getMe(config.telegram_bot_token);
+    const webhookRes = await telegramClient.getWebhookInfo(config.telegram_bot_token);
+
+    return {
+      success: botRes.success,
+      bot: botRes.bot,
+      webhook: webhookRes.webhook,
+      is_active: config.telegram_is_active,
+      error: botRes.error || webhookRes.error,
+    };
   }
 }
 

@@ -5,6 +5,9 @@ export interface User {
   name: string;
   email: string;
   phone_number: string | null;
+  telegram_id?: string | null;
+  telegram_username?: string | null;
+  is_telegram_connected?: boolean;
   avatar_url?: string | null;
   google_id?: string | null;
   has_password?: boolean;
@@ -60,6 +63,28 @@ export async function changePasswordRequest(payload: {
   new_password: string;
 }): Promise<{ message: string }> {
   const { data } = await api.post<{ message: string }>('/users/change-password', payload);
+  return data;
+}
+
+export async function generateTelegramLinkCodeRequest(): Promise<{
+  code: string;
+  token: string;
+  deep_link: string | null;
+  bot_username: string | null;
+  expires_in_seconds: number;
+}> {
+  const { data } = await api.post<{
+    code: string;
+    token: string;
+    deep_link: string | null;
+    bot_username: string | null;
+    expires_in_seconds: number;
+  }>('/users/telegram/link-code');
+  return data;
+}
+
+export async function unlinkTelegramAccountRequest(): Promise<{ message: string }> {
+  const { data } = await api.post<{ message: string }>('/users/telegram/unlink');
   return data;
 }
 

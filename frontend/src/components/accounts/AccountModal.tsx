@@ -152,7 +152,7 @@ export function AccountModal({
           ? 'Atualize os dados e saldo da sua conta'
           : 'Cadastre um banco ou carteira para separar seus saldos'
       }
-      size="md"
+      maxWidth="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
         {error && (

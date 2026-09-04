@@ -32,6 +32,8 @@ import {
   UserCheck,
   ShieldAlert,
   Info,
+  Bot,
+  Send,
 } from 'lucide-react';
 import {
   AdminWhatsAppInstance,
@@ -42,6 +44,7 @@ import {
   EvolutionLicenseResponse,
   WhatsAppIntegrationConfig,
   MetaConnectionStatusResponse,
+  TelegramStatusResponse,
   fetchAdminInstances,
   createAdminInstance,
   getAdminInstanceQrCode,
@@ -56,9 +59,13 @@ import {
   activateEvolutionLicense,
   fetchAdminSettings,
   updateAdminSettings,
+  fetchAdminLogs,
   fetchWhatsAppProviderConfig,
   updateWhatsAppProviderConfig,
   testMetaConnection,
+  testTelegramConnection,
+  setTelegramWebhook,
+  fetchTelegramStatus,
 } from '../api/admin';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -72,7 +79,7 @@ export function AdminWhatsApp() {
   const toast = useToast();
   const [instances, setInstances] = useState<AdminWhatsAppInstance[]>([]);
   const [logs, setLogs] = useState<AdminWhatsAppLog[]>([]);
-  const [activeTab, setActiveTab] = useState<'instances' | 'meta' | 'settings' | 'evolution' | 'logs'>('instances');
+  const [activeTab, setActiveTab] = useState<'instances' | 'meta' | 'telegram' | 'settings' | 'evolution' | 'logs'>('instances');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -92,6 +99,18 @@ export function AdminWhatsApp() {
   const [metaAccessToken, setMetaAccessToken] = useState('');
   const [metaVerifyToken, setMetaVerifyToken] = useState('din_meta_verify_token');
   const [metaAppSecret, setMetaAppSecret] = useState('');
+
+  // Telegram Bot state
+  const [telegramBotToken, setTelegramBotToken] = useState('');
+  const [telegramBotUsername, setTelegramBotUsername] = useState('');
+  const [telegramIsActive, setTelegramIsActive] = useState(false);
+  const [telegramSecretToken, setTelegramSecretToken] = useState('');
+  const [telegramWebhookUrl, setTelegramWebhookUrl] = useState('');
+  const [telegramStatus, setTelegramStatus] = useState<TelegramStatusResponse | null>(null);
+  const [isTestingTelegram, setIsTestingTelegram] = useState(false);
+  const [isSavingTelegram, setIsSavingTelegram] = useState(false);
+  const [isSettingTelegramWebhook, setIsSettingTelegramWebhook] = useState(false);
+  const [isTelegramLoading, setIsTelegramLoading] = useState(false);
 
   // Independent loading states
   const [isInstancesLoading, setIsInstancesLoading] = useState(true);
@@ -116,7 +135,7 @@ export function AdminWhatsApp() {
   const [qrCodeData, setQrCodeData] = useState<QrCodeResponse | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
   const [qrCountdown, setQrCountdown] = useState(25);
-  const qrPollingRef = useRef<NodeJS.Timeout | null>(null);
+  const qrPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Form states
   const [createForm, setCreateForm] = useState({
@@ -184,6 +203,18 @@ export function AdminWhatsApp() {
     }
   };
 
+  const loadTelegramStatus = async (silent = false) => {
+    if (!silent) setIsTelegramLoading(true);
+    try {
+      const status = await fetchTelegramStatus();
+      setTelegramStatus(status);
+    } catch (err) {
+      console.error('Erro ao buscar status do Telegram:', err);
+    } finally {
+      setIsTelegramLoading(false);
+    }
+  };
+
   const loadProviderConfig = async (silent = false) => {
     if (!silent) setIsProviderConfigLoading(true);
     try {
@@ -194,6 +225,11 @@ export function AdminWhatsApp() {
       setMetaAccessToken(cfg.meta_access_token || '');
       setMetaVerifyToken(cfg.meta_verify_token || 'din_meta_verify_token');
       setMetaAppSecret(cfg.meta_app_secret || '');
+      setTelegramBotToken(cfg.telegram_bot_token || '');
+      setTelegramBotUsername(cfg.telegram_bot_username || '');
+      setTelegramIsActive(cfg.telegram_is_active || false);
+      setTelegramSecretToken(cfg.telegram_webhook_secret || '');
+      setTelegramWebhookUrl(`${window.location.origin}/api/v1/webhooks/telegram`);
     } catch (err) {
       console.error('Erro ao buscar configuração do provedor WhatsApp:', err);
     } finally {
@@ -207,6 +243,7 @@ export function AdminWhatsApp() {
       loadInstances(false),
       loadSettings(false),
       loadProviderConfig(false),
+      loadTelegramStatus(false),
       loadEvolutionStatus(false),
       loadLogs(false),
     ]);
@@ -217,21 +254,118 @@ export function AdminWhatsApp() {
     loadInstances();
     loadSettings();
     loadProviderConfig();
+    loadTelegramStatus();
     loadEvolutionStatus();
   }, []);
 
-  const handleTabChange = (tab: 'instances' | 'meta' | 'settings' | 'evolution' | 'logs') => {
+  const handleTabChange = (tab: 'instances' | 'meta' | 'telegram' | 'settings' | 'evolution' | 'logs') => {
     setActiveTab(tab);
     if (tab === 'instances') {
       loadInstances(true);
     } else if (tab === 'meta') {
       loadProviderConfig(true);
+    } else if (tab === 'telegram') {
+      loadProviderConfig(true);
+      loadTelegramStatus(true);
     } else if (tab === 'settings') {
       loadSettings(true);
     } else if (tab === 'evolution') {
       loadEvolutionStatus(true);
     } else if (tab === 'logs') {
       loadLogs(true);
+    }
+  };
+
+  const handleSaveTelegramConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingTelegram(true);
+    try {
+      const res = await updateWhatsAppProviderConfig({
+        telegram_bot_token: telegramBotToken.trim() || null,
+        telegram_bot_username: telegramBotUsername.trim().replace(/^@/, '') || null,
+        telegram_is_active: telegramIsActive,
+        telegram_webhook_secret: telegramSecretToken.trim() || null,
+      });
+      setProviderConfig(res.config);
+      toast.success('Configurações do Telegram Bot salvas com sucesso!');
+      showMessage('success', 'Credenciais do Telegram Bot salvas com sucesso!');
+      loadTelegramStatus(true);
+    } catch (err: any) {
+      toast.error('Erro ao salvar credenciais do Telegram.');
+      showMessage('error', 'Falha ao salvar credenciais do Telegram.');
+    } finally {
+      setIsSavingTelegram(false);
+    }
+  };
+
+  const handleToggleTelegramActive = async (checked: boolean) => {
+    setIsSavingTelegram(true);
+    try {
+      const res = await updateWhatsAppProviderConfig({ telegram_is_active: checked });
+      setProviderConfig(res.config);
+      setTelegramIsActive(checked);
+      if (checked) {
+        toast.success('Canal Telegram ATIVADO com sucesso!');
+      } else {
+        toast.info('Canal Telegram DESATIVADO.');
+      }
+      loadTelegramStatus(true);
+    } catch (err) {
+      toast.error('Erro ao alterar status do canal Telegram.');
+    } finally {
+      setIsSavingTelegram(false);
+    }
+  };
+
+  const handleTestTelegram = async () => {
+    setIsTestingTelegram(true);
+    try {
+      const res = await testTelegramConnection({
+        telegram_bot_token: telegramBotToken.trim() || undefined,
+      });
+      if (res.success && res.bot) {
+        toast.success(`Bot conectado: @${res.bot.username || res.bot.first_name}`);
+        showMessage('success', `✅ Conexão com Telegram bem-sucedida! Bot: "${res.bot.first_name}" (@${res.bot.username || 'sem username'}) | ID: ${res.bot.id}`);
+        loadTelegramStatus(true);
+      } else {
+        toast.error(res.error || 'Falha ao validar token do Telegram.');
+        showMessage('error', res.error || 'Token inválido ou inacessível.');
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.message || 'Erro ao testar Telegram';
+      toast.error(msg);
+      showMessage('error', msg);
+    } finally {
+      setIsTestingTelegram(false);
+    }
+  };
+
+  const handleSetTelegramWebhook = async () => {
+    if (!telegramWebhookUrl.trim()) {
+      toast.error('Informe a URL pública de Webhook.');
+      return;
+    }
+    setIsSettingTelegramWebhook(true);
+    try {
+      const res = await setTelegramWebhook({
+        webhook_url: telegramWebhookUrl.trim(),
+        secret_token: telegramSecretToken.trim() || undefined,
+        telegram_bot_token: telegramBotToken.trim() || undefined,
+      });
+      if (res.success) {
+        toast.success('Webhook registrado no Telegram com sucesso!');
+        showMessage('success', `✅ Webhook do Telegram registrado com sucesso para: ${telegramWebhookUrl}`);
+        loadTelegramStatus(true);
+      } else {
+        toast.error(res.error || res.message || 'Erro ao registrar webhook no Telegram.');
+        showMessage('error', res.error || 'Falha ao registrar webhook.');
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.message || 'Erro ao configurar webhook';
+      toast.error(msg);
+      showMessage('error', msg);
+    } finally {
+      setIsSettingTelegramWebhook(false);
     }
   };
 
@@ -247,10 +381,10 @@ export function AdminWhatsApp() {
         meta_app_secret: metaAppSecret.trim() || null,
       });
       setProviderConfig(res.config);
-      toast.show('Credenciais da Meta salvas com sucesso!', 'success');
+      toast.success('Credenciais da Meta salvas com sucesso!');
       showMessage('success', 'Configurações da Meta Cloud API atualizadas com sucesso!');
     } catch (err: any) {
-      toast.show('Erro ao salvar credenciais da Meta.', 'error');
+      toast.error('Erro ao salvar credenciais da Meta.');
       showMessage('error', 'Falha ao salvar credenciais da Meta Cloud API.');
     } finally {
       setIsSavingProviderConfig(false);
@@ -263,10 +397,10 @@ export function AdminWhatsApp() {
       const res = await updateWhatsAppProviderConfig({ active_provider: newProvider });
       setProviderConfig(res.config);
       const provName = newProvider === 'META_OFFICIAL' ? 'API Oficial da Meta (Cloud API)' : 'Evolution Go (QR Code)';
-      toast.show(`Provedor ativo alterado para: ${provName}`, 'success');
+      toast.success(`Provedor ativo alterado para: ${provName}`);
       showMessage('success', `🎉 Provedor principal do WhatsApp alterado para "${provName}" com sucesso!`);
     } catch (err: any) {
-      toast.show('Erro ao alterar provedor do WhatsApp.', 'error');
+      toast.error('Erro ao alterar provedor do WhatsApp.');
     } finally {
       setIsSavingProviderConfig(false);
     }
@@ -281,15 +415,15 @@ export function AdminWhatsApp() {
       });
       setMetaStatus(res);
       if (res.success) {
-        toast.show('Conexão com a Meta verificada com sucesso!', 'success');
+        toast.success('Conexão com a Meta verificada com sucesso!');
         showMessage('success', `✅ Conexão com a Meta bem-sucedida! Número: ${res.displayPhoneNumber || 'OK'} | Nome: ${res.verifiedName || 'Verificado'}`);
       } else {
-        toast.show(res.error || 'Erro na verificação com a Meta', 'error');
+        toast.error(res.error || 'Erro na verificação com a Meta');
         showMessage('error', res.error || 'Falha ao conectar com os servidores da Meta.');
       }
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message || 'Erro ao testar conexão';
-      toast.show(msg, 'error');
+      toast.error(msg);
       showMessage('error', msg);
     } finally {
       setIsTestingMeta(false);
@@ -301,12 +435,11 @@ export function AdminWhatsApp() {
     try {
       const res = await updateAdminSettings({ reply_only_registered: checked });
       setAdminSettings(res.settings);
-      toast.show(
-        checked
-          ? 'Modo restrito ativado: Din responderá apenas a números cadastrados.'
-          : 'Modo público ativado: Din responderá a qualquer número com guia de cadastro.',
-        'success'
-      );
+      if (checked) {
+        toast.success('Modo restrito ativado: Din responderá apenas a números cadastrados.');
+      } else {
+        toast.info('Modo público ativado: Din responderá a qualquer número com guia de cadastro.');
+      }
       showMessage(
         'success',
         checked
@@ -314,7 +447,7 @@ export function AdminWhatsApp() {
           : '✓ Regra desativada: mensagens de remetentes não cadastrados receberão mensagem de boas-vindas.'
       );
     } catch (err: any) {
-      toast.show('Erro ao atualizar configuração.', 'error');
+      toast.error('Erro ao atualizar configuração.');
       showMessage('error', 'Falha ao atualizar configuração de atendimento.');
     } finally {
       setIsUpdatingSetting(false);
@@ -730,6 +863,23 @@ export function AdminWhatsApp() {
           <span>API Oficial Meta (Cloud API)</span>
           {providerConfig?.active_provider === 'META_OFFICIAL' && (
             <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-din-primary/20 text-din-primary border border-din-primary/30">
+              Ativo
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => handleTabChange('telegram')}
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap min-h-[44px] ${
+            activeTab === 'telegram'
+              ? 'border-din-primary text-din-primary bg-din-primary/5'
+              : 'border-transparent text-din-muted hover:text-din-text'
+          }`}
+        >
+          <Send className="w-4 h-4 text-sky-400" />
+          <span>Telegram Bot</span>
+          {providerConfig?.telegram_is_active && (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-sky-500/20 text-sky-400 border border-sky-500/30">
               Ativo
             </span>
           )}
@@ -1263,7 +1413,285 @@ export function AdminWhatsApp() {
         </div>
       )}
 
-      {/* TAB 3: REGRAS DE ATENDIMENTO & CONFIGURAÇÕES */}
+      {/* TAB: TELEGRAM BOT */}
+      {activeTab === 'telegram' && (
+        <div className="space-y-6 animate-fade-in">
+          {/* Card 1: Status & Ativação do Telegram */}
+          <div className="p-6 rounded-3xl bg-card border border-border shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-blue-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-sky-500/20">
+                  <Send className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-bold text-din-text">
+                      Integração Telegram Bot
+                    </h3>
+                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                      TELEGRAM
+                    </span>
+                  </div>
+                  <p className="text-xs text-din-muted mt-0.5">
+                    Receba e processe mensagens financeiras enviadas por texto e áudio no Telegram com IA
+                  </p>
+                </div>
+              </div>
+
+              {/* Toggle de Ativação do Canal */}
+              <div className="flex items-center gap-3 self-start sm:self-auto bg-card-secondary p-2.5 px-4 rounded-2xl border border-border">
+                <div className="text-right">
+                  <span className="text-xs font-bold text-din-text block">
+                    Canal Telegram
+                  </span>
+                  <span className="text-[11px] text-din-muted">
+                    {telegramIsActive ? '🟢 Ativo para usuários' : '⚪ Desativado'}
+                  </span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={telegramIsActive}
+                    onChange={(e) => handleToggleTelegramActive(e.target.checked)}
+                    disabled={isSavingTelegram}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
+                </label>
+              </div>
+            </div>
+
+            {/* Status Card Banner */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div className="p-4 rounded-2xl bg-card-secondary border border-border">
+                <span className="text-[11px] font-semibold text-din-muted uppercase tracking-wider block">
+                  Status do Bot
+                </span>
+                <div className="mt-1 flex items-center gap-2">
+                  {isTelegramLoading ? (
+                    <span className="text-xs text-din-muted flex items-center gap-1.5">
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Verificando...
+                    </span>
+                  ) : telegramStatus?.success && telegramStatus?.bot ? (
+                    <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Conectado (@{telegramStatus.bot.username || 'bot'})
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4 text-amber-400" /> {telegramBotToken ? 'Não autenticado' : 'Token não configurado'}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-card-secondary border border-border">
+                <span className="text-[11px] font-semibold text-din-muted uppercase tracking-wider block">
+                  Nome / Identificador
+                </span>
+                <p className="mt-1 text-xs font-bold text-din-text truncate">
+                  {telegramStatus?.bot?.first_name ? `${telegramStatus.bot.first_name} (ID: ${telegramStatus.bot.id})` : '—'}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-card-secondary border border-border">
+                <span className="text-[11px] font-semibold text-din-muted uppercase tracking-wider block">
+                  Status do Webhook
+                </span>
+                <div className="mt-1 flex items-center gap-2">
+                  {telegramStatus?.webhook?.url ? (
+                    <span className="text-xs font-bold text-sky-400 truncate" title={telegramStatus.webhook.url}>
+                      ✓ Registrado ({telegramStatus.webhook.pending_update_count ?? 0} pendentes)
+                    </span>
+                  ) : (
+                    <span className="text-xs text-din-muted">Não registrado</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Formulário de Credenciais */}
+          <form onSubmit={handleSaveTelegramConfig} className="p-6 rounded-3xl bg-card border border-border shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-din-text flex items-center gap-2">
+                  <Key className="w-5 h-5 text-sky-400" />
+                  <span>Credenciais do Bot (@BotFather)</span>
+                </h3>
+                <p className="text-xs text-din-muted mt-0.5">
+                  Informe o Token gerado pelo @BotFather para habilitar a comunicação com a API do Telegram
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTestTelegram}
+                  disabled={isTestingTelegram || !telegramBotToken.trim()}
+                  className="text-xs flex items-center gap-1.5 min-h-[44px]"
+                >
+                  <Activity className={`w-3.5 h-3.5 text-sky-400 ${isTestingTelegram ? 'animate-spin' : ''}`} />
+                  <span>{isTestingTelegram ? 'Testando...' : 'Testar Conexão'}</span>
+                </Button>
+
+                <Button
+                  type="submit"
+                  size="sm"
+                  isLoading={isSavingTelegram}
+                  className="text-xs bg-sky-500 hover:bg-sky-600 text-slate-950 font-bold min-h-[44px]"
+                >
+                  Salvar Credenciais
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Bot Token */}
+              <div className="md:col-span-2">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-din-text">
+                    Bot API Token (HTTP API) <span className="text-rose-400">*</span>
+                  </label>
+                  <a
+                    href="https://t.me/BotFather"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[11px] text-sky-400 hover:underline flex items-center gap-1 font-medium"
+                  >
+                    <span>Criar bot no @BotFather</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <Input
+                  type="password"
+                  placeholder="Ex: 123456789:ABCdefGHIjklMNOpqrsTUVwxyz123456"
+                  value={telegramBotToken}
+                  onChange={(e) => setTelegramBotToken(e.target.value)}
+                  className="h-11 text-xs font-mono"
+                  required
+                />
+                <p className="text-[11px] text-din-muted mt-1">
+                  Obtido ao enviar <code>/newbot</code> para o <strong>@BotFather</strong> no Telegram.
+                </p>
+              </div>
+
+              {/* Bot Username */}
+              <div>
+                <label className="block text-xs font-semibold text-din-text mb-1.5">
+                  Bot Username (sem @)
+                </label>
+                <Input
+                  placeholder="Ex: DinFinanceBot"
+                  value={telegramBotUsername}
+                  onChange={(e) => setTelegramBotUsername(e.target.value)}
+                  className="h-11 text-xs"
+                />
+                <p className="text-[11px] text-din-muted mt-1">
+                  Utilizado para gerar links diretos de vinculação no perfil do usuário.
+                </p>
+              </div>
+
+              {/* Webhook Secret Token */}
+              <div>
+                <label className="block text-xs font-semibold text-din-text mb-1.5">
+                  Secret Token (Opcional)
+                </label>
+                <Input
+                  type="password"
+                  placeholder="Token secreto para autenticar requisições do Telegram"
+                  value={telegramSecretToken}
+                  onChange={(e) => setTelegramSecretToken(e.target.value)}
+                  className="h-11 text-xs font-mono"
+                />
+                <p className="text-[11px] text-din-muted mt-1">
+                  Cabeçalho <code>X-Telegram-Bot-Api-Secret-Token</code> enviado nos webhooks.
+                </p>
+              </div>
+            </div>
+          </form>
+
+          {/* Card 3: Configuração e Registro de Webhook */}
+          <div className="p-6 rounded-3xl bg-card border border-border shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
+                  <Radio className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-din-text">
+                    Configuração Automática de Webhook
+                  </h3>
+                  <p className="text-xs text-din-muted">
+                    Registre a URL do servidor Din nos servidores do Telegram para receber mensagens em tempo real
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleSetTelegramWebhook}
+                isLoading={isSettingTelegramWebhook}
+                disabled={!telegramBotToken.trim()}
+                className="text-xs bg-sky-500 hover:bg-sky-600 text-slate-950 font-bold min-h-[44px] self-start sm:self-auto"
+              >
+                <Send className="w-3.5 h-3.5 mr-1.5" />
+                <span>Registrar Webhook no Telegram</span>
+              </Button>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-card-secondary border border-border space-y-3">
+              <label className="text-xs font-semibold text-din-muted uppercase tracking-wider block">
+                URL Pública do Webhook do Telegram
+              </label>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <input
+                  type="text"
+                  value={telegramWebhookUrl}
+                  onChange={(e) => setTelegramWebhookUrl(e.target.value)}
+                  className="flex-1 px-3.5 py-2.5 rounded-xl bg-card border border-border font-mono text-xs text-din-text focus:outline-none focus:ring-1 focus:ring-sky-500 min-h-[44px]"
+                  placeholder="https://seu-dominio.com/api/v1/webhooks/telegram"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(telegramWebhookUrl);
+                    setCopiedText('tele_webhook');
+                    toast.success('URL copiada para a área de transferência!');
+                    setTimeout(() => setCopiedText(null), 2000);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-card-hover border border-border text-xs font-bold text-din-text hover:text-sky-400 flex items-center justify-center gap-1.5 min-h-[44px] shrink-0"
+                >
+                  {copiedText === 'tele_webhook' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  <span>Copiar</span>
+                </button>
+              </div>
+              <p className="text-[11px] text-din-muted">
+                ⚠️ O Telegram exige que a URL use protocolo seguro <strong>HTTPS</strong> válido. Em desenvolvimento local, utilize o Ngrok ou Cloudflare Tunnel.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 4: Guia Rápido Passo a Passo */}
+          <div className="p-6 rounded-3xl bg-gradient-to-r from-sky-500/10 via-blue-500/5 to-transparent border border-sky-500/20 shadow-xl space-y-3">
+            <h4 className="text-sm font-bold text-din-text flex items-center gap-2">
+              <HelpCircle className="w-4 h-4 text-sky-400" />
+              <span>Como criar e ativar seu Bot do Telegram em 3 minutos:</span>
+            </h4>
+            <ol className="space-y-2 text-xs text-din-muted list-decimal list-inside leading-relaxed">
+              <li>Abra o Telegram e inicie uma conversa com <strong className="text-din-text">@BotFather</strong>.</li>
+              <li>Envie o comando <code className="text-sky-400">/newbot</code>, escolha um nome (ex: <em>Din Assistente Financeiro</em>) e um username que termine com 'bot' (ex: <em>DinFinanceBot</em>).</li>
+              <li>Copie a chave <strong>HTTP API Token</strong> fornecida pelo BotFather e cole no campo acima.</li>
+              <li>Clique em <strong>Salvar Credenciais</strong> e depois em <strong>Registrar Webhook no Telegram</strong>.</li>
+              <li>Pronto! O bot responderá instantaneamente mensagens de texto e áudio para usuários cadastrados.</li>
+            </ol>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: REGRAS DE ATENDIMENTO & CONFIGURAÇÕES */}
       {activeTab === 'settings' && (
         <div className="space-y-6 animate-fade-in">
           {/* Main Setting Card */}

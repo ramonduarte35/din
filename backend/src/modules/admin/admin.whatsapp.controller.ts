@@ -121,6 +121,28 @@ export class AdminWhatsAppController {
     const result = await adminWhatsAppService.testMetaConnection(body);
     return reply.status(200).send(result);
   }
+
+  // ─── Provedor Telegram Bot ───────────────────────────────────────
+  async testTelegramConnection(request: FastifyRequest, reply: FastifyReply) {
+    const body = request.body as any;
+    const result = await adminWhatsAppService.testTelegramConnection(body);
+    return reply.status(200).send(result);
+  }
+
+  async setTelegramWebhook(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const body = request.body as any;
+      const result = await adminWhatsAppService.setTelegramWebhook(body);
+      return reply.status(200).send(result);
+    } catch (err: any) {
+      return reply.status(400).send({ success: false, message: err.message, error: err.message });
+    }
+  }
+
+  async getTelegramStatus(request: FastifyRequest, reply: FastifyReply) {
+    const result = await adminWhatsAppService.getTelegramStatus();
+    return reply.status(200).send(result);
+  }
 }
 
 export const adminWhatsAppController = new AdminWhatsAppController();

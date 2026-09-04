@@ -90,7 +90,6 @@ export function Register() {
                   shape="pill"
                   size="large"
                   text="signup_with"
-                  locale="pt-BR"
                   width="100%"
                 />
               </div>

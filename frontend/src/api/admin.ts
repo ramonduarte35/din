@@ -180,7 +180,7 @@ export async function updateAdminSettings(payload: {
   return data;
 }
 
-// ─── WhatsApp Provider & Meta Cloud API ──────────────────────────
+// ─── WhatsApp & Telegram Provider Configurations ──────────────────
 export interface WhatsAppIntegrationConfig {
   id: string;
   active_provider: 'EVOLUTION' | 'META_OFFICIAL';
@@ -189,6 +189,10 @@ export interface WhatsAppIntegrationConfig {
   meta_access_token: string | null;
   meta_verify_token: string | null;
   meta_app_secret: string | null;
+  telegram_bot_token: string | null;
+  telegram_bot_username: string | null;
+  telegram_is_active: boolean;
+  telegram_webhook_secret: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -200,6 +204,29 @@ export interface MetaConnectionStatusResponse {
   verifiedName?: string;
   qualityRating?: string;
   status?: string;
+  error?: string;
+}
+
+export interface TelegramBotInfo {
+  id: number;
+  is_bot: boolean;
+  first_name: string;
+  username?: string;
+}
+
+export interface TelegramWebhookInfo {
+  url: string;
+  has_custom_certificate: boolean;
+  pending_update_count: number;
+  last_error_date?: number;
+  last_error_message?: string;
+}
+
+export interface TelegramStatusResponse {
+  success: boolean;
+  bot?: TelegramBotInfo;
+  webhook?: TelegramWebhookInfo;
+  is_active?: boolean;
   error?: string;
 }
 
@@ -227,6 +254,34 @@ export async function testMetaConnection(payload?: {
     '/admin/whatsapp/meta/test',
     payload || {}
   );
+  return data;
+}
+
+// ─── Telegram Bot API ──────────────────────────────────────────────
+export async function testTelegramConnection(payload?: {
+  telegram_bot_token?: string;
+}): Promise<{ success: boolean; bot?: TelegramBotInfo; error?: string }> {
+  const { data } = await api.post<{ success: boolean; bot?: TelegramBotInfo; error?: string }>(
+    '/admin/whatsapp/telegram/test',
+    payload || {}
+  );
+  return data;
+}
+
+export async function setTelegramWebhook(payload: {
+  webhook_url: string;
+  secret_token?: string;
+  telegram_bot_token?: string;
+}): Promise<{ success: boolean; message: string; error?: string }> {
+  const { data } = await api.post<{ success: boolean; message: string; error?: string }>(
+    '/admin/whatsapp/telegram/webhook',
+    payload
+  );
+  return data;
+}
+
+export async function fetchTelegramStatus(): Promise<TelegramStatusResponse> {
+  const { data } = await api.get<TelegramStatusResponse>('/admin/whatsapp/telegram/status');
   return data;
 }
 

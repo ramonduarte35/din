@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { changePasswordRequest } from '../api/auth';
+import {
+  changePasswordRequest,
+  generateTelegramLinkCodeRequest,
+  unlinkTelegramAccountRequest,
+} from '../api/auth';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
@@ -22,10 +26,15 @@ import {
   Sun,
   Moon,
   Sparkle,
+  Send,
+  ExternalLink,
+  Copy,
+  Unlink,
+  Radio,
 } from 'lucide-react';
 
 export function Profile() {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, refreshUser } = useAuth();
   const { theme, setTheme, themes } = useTheme();
 
   // Profile fields
@@ -34,6 +43,19 @@ export function Profile() {
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Telegram fields
+  const [isGeneratingTelegramCode, setIsGeneratingTelegramCode] = useState(false);
+  const [telegramLinkData, setTelegramLinkData] = useState<{
+    code: string;
+    token: string;
+    deep_link: string | null;
+    bot_username: string | null;
+  } | null>(null);
+  const [telegramSuccess, setTelegramSuccess] = useState<string | null>(null);
+  const [telegramError, setTelegramError] = useState<string | null>(null);
+  const [isUnlinkingTelegram, setIsUnlinkingTelegram] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   // Theme change status
   const [themeSuccess, setThemeSuccess] = useState<string | null>(null);
@@ -46,6 +68,44 @@ export function Profile() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const handleGenerateTelegramCode = async () => {
+    setIsGeneratingTelegramCode(true);
+    setTelegramError(null);
+    setTelegramSuccess(null);
+    try {
+      const res = await generateTelegramLinkCodeRequest();
+      setTelegramLinkData(res);
+    } catch (err: any) {
+      setTelegramError(err?.response?.data?.message || 'Erro ao gerar código do Telegram. Verifique se o bot está configurado no painel de administração.');
+    } finally {
+      setIsGeneratingTelegramCode(false);
+    }
+  };
+
+  const handleUnlinkTelegram = async () => {
+    if (!window.confirm('Deseja realmente desvincular sua conta do Telegram?')) return;
+    setIsUnlinkingTelegram(true);
+    setTelegramError(null);
+    setTelegramSuccess(null);
+    try {
+      const res = await unlinkTelegramAccountRequest();
+      setTelegramSuccess(res.message || 'Conta do Telegram desvinculada com sucesso!');
+      setTelegramLinkData(null);
+      await refreshUser();
+      setTimeout(() => setTelegramSuccess(null), 4000);
+    } catch (err: any) {
+      setTelegramError(err?.response?.data?.message || 'Erro ao desvincular conta do Telegram.');
+    } finally {
+      setIsUnlinkingTelegram(false);
+    }
+  };
+
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(`/vincular ${code}`);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2500);
+  };
 
   const handleSubmitProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -357,6 +417,166 @@ export function Profile() {
         </Card>
       </div>
 
+      {/* ✈️ INTEGRAÇÃO COM TELEGRAM BOT */}
+      <Card className="space-y-5 border-border bg-card">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center border border-sky-500/20">
+                <Send className="w-4 h-4 -translate-x-0.5 translate-y-0.5" />
+              </div>
+              <h3 className="text-base font-bold text-din-text tracking-tight">
+                Integração com Telegram Bot
+              </h3>
+            </div>
+            <p className="text-xs text-din-muted mt-0.5">
+              Conecte sua conta do Telegram para registrar transações por texto ou áudios e consultar saldos com Inteligência Artificial.
+            </p>
+          </div>
+
+          <div>
+            {user?.telegram_id || user?.is_telegram_connected ? (
+              <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 inline-flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5" />
+                Telegram Conectado
+              </span>
+            ) : (
+              <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-500/10 text-din-muted border border-border inline-flex items-center gap-1.5">
+                <Radio className="w-3.5 h-3.5" />
+                Desconectado
+              </span>
+            )}
+          </div>
+        </div>
+
+        {telegramSuccess && (
+          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-2 animate-fade-in">
+            <Check className="w-4 h-4 flex-shrink-0" />
+            <span>{telegramSuccess}</span>
+          </div>
+        )}
+
+        {telegramError && (
+          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-medium flex items-center gap-2 animate-fade-in">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{telegramError}</span>
+          </div>
+        )}
+
+        {user?.telegram_id || user?.is_telegram_connected ? (
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-card-secondary border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center font-bold">
+                  TG
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-din-text">
+                    {user.telegram_username ? `@${user.telegram_username}` : `ID: ${user.telegram_id}`}
+                  </p>
+                  <p className="text-[11px] text-din-muted">
+                    Sua conta está vinculada e pronta para receber comandos, mensagens e áudios.
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={handleUnlinkTelegram}
+                isLoading={isUnlinkingTelegram}
+                className="min-h-[44px] self-start sm:self-auto"
+              >
+                <Unlink className="w-4 h-4 mr-1.5" />
+                Desvincular Telegram
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-sky-500/5 border border-sky-500/15 space-y-3">
+              <p className="text-xs text-din-muted leading-relaxed">
+                Você pode vincular sua conta de duas formas simples:
+              </p>
+              <ul className="text-xs space-y-2 text-din-muted">
+                <li className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-400 font-bold flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">1</span>
+                  <span><strong>Link Direto com 1 Clique:</strong> Gere o link de conexão e abra o bot no Telegram para conectar instantaneamente.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-400 font-bold flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">2</span>
+                  <span><strong>Comando ou Contato:</strong> Abra a conversa com o bot no Telegram e envie o comando gerado abaixo ou compartilhe seu contato.</span>
+                </li>
+              </ul>
+            </div>
+
+            {telegramLinkData ? (
+              <div className="p-4 rounded-2xl bg-card-secondary border border-sky-500/30 space-y-4 animate-fade-in">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[11px] text-din-muted font-medium">Seu Código de Vinculação:</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-2xl font-black font-mono text-sky-400 tracking-wider">
+                        {telegramLinkData.code}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyCode(telegramLinkData.code)}
+                        className="px-2.5 py-1.5 rounded-lg bg-card hover:bg-card-hover border border-border text-xs font-medium text-din-text flex items-center gap-1.5 transition-all min-h-[44px]"
+                        title="Copiar comando"
+                      >
+                        {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copiedCode ? 'Copiado!' : 'Copiar'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {telegramLinkData.deep_link || telegramLinkData.bot_username ? (
+                      <a
+                        href={telegramLinkData.deep_link || `https://t.me/${telegramLinkData.bot_username}?start=v_${telegramLinkData.token}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs transition-all shadow-md min-h-[44px]"
+                      >
+                        <Send className="w-4 h-4" />
+                        Abrir no Telegram
+                        <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                      </a>
+                    ) : null}
+
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => refreshUser()}
+                      className="min-h-[44px]"
+                    >
+                      Verificar Conexão
+                    </Button>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-din-muted">
+                  💡 Este código expira em 15 minutos. Após clicar no botão ou enviar <code className="px-1 py-0.5 bg-card rounded font-mono text-sky-300">/vincular {telegramLinkData.code}</code> no Telegram, clique em "Verificar Conexão".
+                </p>
+              </div>
+            ) : (
+              <div className="flex justify-start">
+                <Button
+                  variant="primary"
+                  onClick={handleGenerateTelegramCode}
+                  isLoading={isGeneratingTelegramCode}
+                  className="min-h-[44px] bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Gerar Conexão com Telegram
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
+
       {/* Card de Segurança & Troca de Senha */}
       <Card className="space-y-5 border-border bg-card">
         <div>
@@ -437,23 +657,43 @@ export function Profile() {
         </form>
       </Card>
 
-      {/* Guia de Uso do WhatsApp */}
+      {/* Guia de Canais de Entrada: WhatsApp e Telegram */}
       <Card className="bg-card border-border">
         <div className="flex items-start gap-3">
           <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
             <Info className="w-5 h-5" />
           </div>
-          <div className="space-y-2 text-xs">
-            <h4 className="font-bold text-din-text text-sm">Como funciona o Bot do Din no WhatsApp?</h4>
-            <p className="text-din-muted leading-relaxed">
-              1. Salve qualquer um dos números oficiais do Din exibidos no seu Dashboard na agenda do seu celular.
-              <br />
-              2. Certifique-se de que o seu número pessoal de WhatsApp está cadastrado exatamente igual no campo acima.
-              <br />
-              3. Envie mensagens normais como se estivesse conversando com um amigo (ex: <em>"Gastei 20 conto na padaria"</em> ou <em>"Recebi 1500 de salário"</em>).
-              <br />
-              4. O sistema identificará seu número, extrairá o valor e a categoria com IA e registrará tudo na sua conta instantaneamente!
-            </p>
+          <div className="space-y-3 text-xs">
+            <h4 className="font-bold text-din-text text-sm">Canais de Entrada Din (WhatsApp & Telegram)</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-din-muted leading-relaxed">
+              <div className="p-3 rounded-xl bg-card-secondary border border-border">
+                <p className="font-semibold text-din-text mb-1 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  WhatsApp (Evolution Go ou Oficial Meta)
+                </p>
+                <p>
+                  1. Salve o número oficial do Din na agenda do seu smartphone.
+                  <br />
+                  2. Mantenha seu número de telefone preenchido em <strong>Dados Cadastrais</strong>.
+                  <br />
+                  3. Envie áudios ou textos com seus gastos (ex: <em>"Gastei 25 no almoço"</em>).
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-card-secondary border border-border">
+                <p className="font-semibold text-din-text mb-1 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-sky-400"></span>
+                  Telegram Bot Oficial
+                </p>
+                <p>
+                  1. Vincule sua conta através do botão ou comando <code className="px-1 py-0.5 bg-card rounded font-mono text-sky-300">/vincular</code> acima.
+                  <br />
+                  2. Envie mensagens de voz ou textos diretamente no chat do Bot.
+                  <br />
+                  3. Consulte saldos com <code className="px-1 py-0.5 bg-card rounded font-mono text-sky-300">/saldo</code> ou pergunte sobre suas finanças com IA.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </Card>

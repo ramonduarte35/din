@@ -3,6 +3,7 @@ import { redis } from '../../lib/redis.js';
 import { openai, hasOpenAIConfigured } from '../../lib/openai.js';
 import { evolutionClient } from './evolution.client.js';
 import { metaClient } from '../meta-whatsapp/meta.client.js';
+import { telegramClient } from '../telegram/telegram.client.js';
 import { normalizePhoneNumber, formatPhoneNumberDisplay } from '../../utils/phone.js';
 import { formatBRL, parseCurrencyInput, extractAmountFromText } from '../../utils/currency.js';
 import {
@@ -26,13 +27,19 @@ const billsService = new BillsService();
 
 export class WebhooksService {
   /**
-   * Envio unificado de mensagem via WhatsApp (Evolution Go ou Meta Cloud API Oficial)
+   * Envio unificado de mensagem via canais (Evolution Go, Meta Cloud API Oficial ou Telegram Bot)
    */
   private async sendWhatsAppReply(
     instance: string,
     recipientNumber: string,
-    message: string
+    message: string,
+    options?: { reply_markup?: any }
   ): Promise<boolean> {
+    if (instance.startsWith('telegram:')) {
+      return await telegramClient.sendMessage(recipientNumber, message, {
+        reply_markup: options?.reply_markup,
+      });
+    }
     if (instance.startsWith('meta:')) {
       const phoneNumberId = instance.replace(/^meta:/, '');
       return await metaClient.sendText(recipientNumber, message, { phoneNumberId });
@@ -159,6 +166,277 @@ export class WebhooksService {
 
     return await this.processEvolutionMessage(mockPayload);
   }
+
+  /**
+   * Processamento de eventos e mensagens recebidas do Telegram Bot API (POST /api/v1/webhooks/telegram)
+   */
+  async processTelegramMessage(payload: any) {
+    console.log('📥 [Telegram Webhook] Recebido evento do Telegram:', JSON.stringify(payload, null, 2));
+
+    const updateId = payload?.update_id;
+    const message = payload?.message || payload?.edited_message;
+
+    if (!message) {
+      console.log('⏭️ [Telegram Webhook] Evento sem mensagem (ignorado).');
+      return { status: 'ignored_no_message' };
+    }
+
+    const messageId = String(message.message_id || updateId || Date.now());
+    const chatId = String(message.chat?.id || '');
+    const from = message.from || {};
+    const fromId = String(from.id || chatId);
+    const fromUsername = from.username ? `@${from.username}` : null;
+    const fromName = [from.first_name, from.last_name].filter(Boolean).join(' ') || from.first_name || 'Usuário';
+
+    if (!chatId || !fromId) {
+      return { status: 'invalid_telegram_payload' };
+    }
+
+    // Deduplicação com Redis (24 horas)
+    try {
+      const isDuplicate = await redis.get(`webhook:tele:${fromId}:${messageId}`);
+      if (isDuplicate) {
+        console.log(`⏭️ [Telegram Webhook] Mensagem duplicada ignorada: ${fromId}:${messageId}`);
+        return { status: 'duplicate_ignored' };
+      }
+      await redis.set(`webhook:tele:${fromId}:${messageId}`, '1', 'EX', 86400);
+    } catch (e) {
+      // ignore
+    }
+
+    const instance = 'telegram:bot';
+
+    // 1. Tratar Compartilhamento de Contato (Botão "📱 Compartilhar meu contato")
+    if (message.contact && message.contact.phone_number) {
+      const rawPhone = message.contact.phone_number;
+      const normalizedPhone = normalizePhoneNumber(rawPhone);
+      console.log(`📱 [Telegram Webhook] Contato compartilhado: ${rawPhone} -> ${normalizedPhone} pelo usuário ${fromId}`);
+
+      let user = await prisma.user.findFirst({
+        where: { phone_number: normalizedPhone },
+      });
+
+      if (!user && normalizedPhone.startsWith('55')) {
+        const ddd = normalizedPhone.slice(2, 4);
+        const rest = normalizedPhone.slice(4);
+        if (rest.length === 9 && rest.startsWith('9')) {
+          user = await prisma.user.findFirst({ where: { phone_number: `55${ddd}${rest.slice(1)}` } });
+        } else if (rest.length === 8) {
+          user = await prisma.user.findFirst({ where: { phone_number: `55${ddd}9${rest}` } });
+        }
+      }
+
+      if (user) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            telegram_id: fromId,
+            telegram_username: fromUsername,
+          },
+        });
+
+        const replyMsg =
+          `🎉 *Parabéns, ${user.name}! Conta vinculada com sucesso!* 💎\n\n` +
+          `Agora seu Telegram está conectado diretamente ao seu Din.\n\n` +
+          `Você já pode enviar mensagens de texto ou áudios como:\n` +
+          `• "Gastei 45 no almoço no Nubank"\n` +
+          `• "Recebi 4000 de salário no Itaú"\n` +
+          `• "Agendar conta de luz 180 vencimento sexta"\n` +
+          `• "Qual meu saldo?"\n` +
+          `• "Quais contas tenho a pagar?"`;
+
+        await this.sendWhatsAppReply(instance, chatId, replyMsg, {
+          reply_markup: { remove_keyboard: true },
+        });
+
+        return { status: 'telegram_account_linked_by_contact', userId: user.id };
+      } else {
+        const replyMsg =
+          `⚠️ *Conta não encontrada!*\n\n` +
+          `Não encontramos nenhum usuário cadastrado no Din com o telefone *${formatPhoneNumberDisplay(normalizedPhone)}*.\n\n` +
+          `👉 Acesse o painel web para criar sua conta ou cadastrar seu número de telefone em seu perfil.`;
+
+        await this.sendWhatsAppReply(instance, chatId, replyMsg, {
+          reply_markup: { remove_keyboard: true },
+        });
+
+        return { status: 'telegram_contact_user_not_found' };
+      }
+    }
+
+    // 2. Extrair Texto / Áudio
+    let textContent = message.text || message.caption || '';
+    let origin: TransactionOrigin = TransactionOrigin.TELEGRAM_TEXT;
+
+    if (message.voice || message.audio) {
+      const voiceFileId = message.voice?.file_id || message.audio?.file_id;
+      if (voiceFileId) {
+        console.log(`🎙️ [Telegram Webhook] Mensagem de voz recebida. FileID: ${voiceFileId}`);
+        origin = TransactionOrigin.TELEGRAM_AUDIO;
+        if (hasOpenAIConfigured() && openai) {
+          try {
+            const media = await telegramClient.downloadVoiceAudio(voiceFileId);
+            if (media) {
+              const file = new File([media.buffer], 'voice.ogg', { type: media.mimeType });
+              const transcription = await openai.audio.transcriptions.create({
+                file,
+                model: 'whisper-1',
+                language: 'pt',
+              });
+              textContent = transcription.text;
+              console.log(`🗣️ [Telegram Webhook] Áudio transcrito via Whisper: "${textContent}"`);
+            }
+          } catch (audioErr) {
+            console.error('❌ [Telegram Webhook] Falha ao transcrever áudio do Telegram:', audioErr);
+          }
+        }
+      }
+    }
+
+    const trimmedText = textContent.trim();
+    if (!trimmedText) {
+      return { status: 'empty_telegram_message' };
+    }
+
+    // 3. Verificar Comandos de Início e Vinculação (/start, /vincular)
+    if (trimmedText.startsWith('/start') || trimmedText.startsWith('/vincular')) {
+      const parts = trimmedText.split(/\s+/);
+      const param = parts[1]?.trim();
+
+      // Se passou parâmetro de vinculação (ex: /start v_ABC123 ou /start ABC123)
+      if (param) {
+        const cleanParam = param.toUpperCase();
+        let targetUserId: string | null = null;
+
+        try {
+          targetUserId = await redis.get(`tele_link:${param}`);
+          if (!targetUserId) {
+            targetUserId = await redis.get(`tele_link:${cleanParam}`);
+          }
+        } catch (e) {}
+
+        if (targetUserId) {
+          const user = await prisma.user.findUnique({ where: { id: targetUserId } });
+          if (user) {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: {
+                telegram_id: fromId,
+                telegram_username: fromUsername,
+              },
+            });
+
+            try {
+              await redis.del(`tele_link:${param}`);
+              await redis.del(`tele_link:${cleanParam}`);
+            } catch (e) {}
+
+            const replyMsg =
+              `🎉 *Conta vinculada com sucesso, ${user.name}!* 💎\n\n` +
+              `Seu Telegram agora está conectado à sua conta do Din.\n\n` +
+              `Você já pode começar a registrar gastos, receitas e agendamentos enviando textos ou áudios aqui no chat!`;
+
+            await this.sendWhatsAppReply(instance, chatId, replyMsg, {
+              reply_markup: { remove_keyboard: true },
+            });
+
+            return { status: 'telegram_linked_via_token', userId: user.id };
+          }
+        }
+      }
+
+      // Se o usuário já estiver vinculado
+      const existingUser = await prisma.user.findUnique({
+        where: { telegram_id: fromId },
+      });
+
+      if (existingUser) {
+        const replyMsg =
+          `👋 *Olá, ${existingUser.name}!* 💎\n\n` +
+          `Sou o seu assistente financeiro inteligente do Din no Telegram.\n\n` +
+          `Você pode me enviar a qualquer momento mensagens de texto ou áudios como:\n` +
+          `• "Gastei 50 no almoço no Nubank"\n` +
+          `• "Recebi 3500 de salário no Itaú"\n` +
+          `• "Agendar boleto de luz 150 vencimento 20/09"\n` +
+          `• "Paguei a conta de luz com o saldo do Santander"\n` +
+          `• "Qual meu saldo?"\n` +
+          `• "Quais contas tenho a pagar?"\n\n` +
+          `Seus registros são sincronizados instantaneamente com o painel web! 🚀`;
+
+        await this.sendWhatsAppReply(instance, chatId, replyMsg);
+        return { status: 'start_acknowledged_linked_user' };
+      }
+
+      // Se NÃO estiver vinculado, enviar mensagem de convite com botão de compartilhamento
+      const replyMsg =
+        `👋 *Olá, ${fromName}! Bem-vindo ao Din no Telegram!* 💎\n\n` +
+        `Para começar a registrar suas finanças automaticamente com Inteligência Artificial, precisamos conectar este chat à sua conta do Din.\n\n` +
+        `Escolha uma das opções abaixo:\n` +
+        `1️⃣ Clique no botão abaixo para *Compartilhar seu contato* (caso use o mesmo número de telefone cadastrado no Din)\n` +
+        `2️⃣ Ou acesse seu *Perfil no painel web*, gere um código de vinculação e envie aqui no formato:\n` +
+        `\`/vincular CÓDIGO\``;
+
+      await this.sendWhatsAppReply(instance, chatId, replyMsg, {
+        reply_markup: {
+          keyboard: [[{ text: '📱 Compartilhar meu contato', request_contact: true }]],
+          resize_keyboard: true,
+          one_time_keyboard: true,
+        },
+      });
+
+      return { status: 'unlinked_user_prompted' };
+    }
+
+    // 4. Buscar Usuário pelo Telegram ID
+    const user = await prisma.user.findUnique({
+      where: { telegram_id: fromId },
+    });
+
+    if (!user) {
+      console.log(`⚠️ [Telegram Webhook] Usuário não vinculado para o Telegram ID: ${fromId}`);
+
+      await prisma.whatsAppLog.create({
+        data: {
+          sender_number: `tele_${fromId}`,
+          target_instance: instance,
+          message_body: trimmedText,
+          status: WhatsAppLogStatus.USER_NOT_FOUND,
+        },
+      });
+
+      const replyOnlyRegistered = await this.getReplyOnlyRegisteredSetting();
+      if (replyOnlyRegistered) {
+        console.log(`⏭️ [Telegram Webhook] Ignorando usuário não vinculado: regra ativa.`);
+        return { status: 'unregistered_ignored' };
+      }
+
+      const replyMsg =
+        `👋 *Olá! Não identificamos uma conta do Din vinculada a este Telegram.*\n\n` +
+        `Para vincular sua conta, compartilhe seu contato pelo botão abaixo ou acesse seu painel web em *Perfil > Conectar ao Telegram*.`;
+
+      await this.sendWhatsAppReply(instance, chatId, replyMsg, {
+        reply_markup: {
+          keyboard: [[{ text: '📱 Compartilhar meu contato', request_contact: true }]],
+          resize_keyboard: true,
+          one_time_keyboard: true,
+        },
+      });
+
+      return { status: 'user_not_found_notified' };
+    }
+
+    // Atualizar username se alterado
+    if (fromUsername && user.telegram_username !== fromUsername) {
+      prisma.user.update({
+        where: { id: user.id },
+        data: { telegram_username: fromUsername },
+      }).catch(() => {});
+    }
+
+    // 5. Encaminhar para o pipeline unificado de processamento
+    return await this.processUserFinancialMessage(user, instance, chatId, trimmedText, origin, `tele_${fromId}`);
+  }
+
   async processEvolutionMessage(payload: any) {
     console.log('📥 [Webhook] Recebido evento do Evolution:', JSON.stringify(payload, null, 2));
 
@@ -319,6 +597,8 @@ export class WebhooksService {
       (typeof data === 'string' ? data : '') ||
       '';
 
+    const origin: TransactionOrigin = data?.origin || payload?.origin || TransactionOrigin.WHATSAPP_TEXT;
+
     if (!messageContent || messageContent.trim() === '') {
       console.log('⏭️ [Webhook] Mensagem sem texto legível.');
       return { status: 'empty_message' };
@@ -385,28 +665,46 @@ export class WebhooksService {
       return { status: 'user_not_found_notified' };
     }
 
-    // 2. Verificar Plano PRO
+    // 2. Encaminhar para o pipeline financeiro unificado
+    return await this.processUserFinancialMessage(user, instance, remoteJid, trimmedText, origin, normalizedSender);
+  }
+
+  /**
+   * Pipeline Financeiro Unificado (WhatsApp Evolution, WhatsApp Meta e Telegram Bot)
+   */
+  async processUserFinancialMessage(
+    user: any,
+    instance: string,
+    remoteJid: string,
+    trimmedText: string,
+    origin: TransactionOrigin = TransactionOrigin.WHATSAPP_TEXT,
+    senderIdentifier?: string
+  ) {
+    const senderLogKey = senderIdentifier || (instance.startsWith('telegram:') ? `tele_${user.telegram_id || remoteJid}` : remoteJid);
+
+    // 1. Verificar Plano PRO
     if (user.subscription_tier !== SubscriptionTier.PRO) {
-      console.log(`🔒 [Webhook] Usuário "${user.email}" (${user.id}) não possui plano PRO.`);
+      console.log(`🔒 [Financial Pipeline] Usuário "${user.email}" (${user.id}) não possui plano PRO.`);
       await prisma.whatsAppLog.create({
         data: {
-          sender_number: normalizedSender,
+          sender_number: senderLogKey,
           target_instance: instance,
           message_body: trimmedText,
           status: WhatsAppLogStatus.PRO_REQUIRED,
         },
       });
 
+      const channelName = instance.startsWith('telegram:') ? 'Telegram' : 'WhatsApp';
       const replyMsg =
         `👋 *Olá, ${user.name}!* ⭐\n\n` +
-        `O registro automático e inteligência artificial via WhatsApp é um recurso exclusivo do *Plano PRO* do Din.\n\n` +
-        `🚀 Acesse seu painel web para fazer o upgrade e ter acesso ilimitado ao seu assistente financeiro no WhatsApp!`;
+        `O registro automático e inteligência artificial via ${channelName} é um recurso exclusivo do *Plano PRO* do Din.\n\n` +
+        `🚀 Acesse seu painel web para fazer o upgrade e ter acesso ilimitado ao seu assistente financeiro no ${channelName}!`;
 
       await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
       return { status: 'pro_required' };
     }
 
-    // 3. Buscar contas bancárias do usuário (com provisionamento automático de conta padrão)
+    // 2. Buscar contas bancárias do usuário (com provisionamento automático de conta padrão)
     let userAccounts = await prisma.account.findMany({
       where: { user_id: user.id },
       orderBy: [{ is_default: 'desc' }, { created_at: 'asc' }],
@@ -427,22 +725,22 @@ export class WebhooksService {
       userAccounts = [defaultAcc];
     }
 
-    // 4. Processamento de Linguagem Natural / IA com suporte a múltiplas contas e contas a pagar
+    // 3. Processamento de Linguagem Natural / IA com suporte a múltiplas contas e contas a pagar
     let extraction: AIExtractionResponse;
 
     try {
       extraction = await this.extractWithAI(trimmedText, userAccounts);
     } catch (aiError) {
-      console.error('❌ [Webhook] Erro no pipeline de IA:', aiError);
+      console.error('❌ [Financial Pipeline] Erro no pipeline de IA:', aiError);
       extraction = this.fallbackLocalParser(trimmedText, userAccounts);
     }
 
-    console.log('🤖 [Webhook] Resultado da Extração:', JSON.stringify(extraction, null, 2));
+    console.log('🤖 [Financial Pipeline] Resultado da Extração:', JSON.stringify(extraction, null, 2));
 
     // Salvar Log
     await prisma.whatsAppLog.create({
       data: {
-        sender_number: normalizedSender,
+        sender_number: senderLogKey,
         target_instance: instance,
         message_body: trimmedText,
         status:
@@ -453,7 +751,7 @@ export class WebhooksService {
       },
     });
 
-    // 5. Executar Ação Baseada na Intenção
+    // 4. Executar Ação Baseada na Intenção
 
     // Cenário A: Consulta de Saldo / Resumo
     if (extraction.intent === 'balance_query') {
@@ -483,7 +781,8 @@ export class WebhooksService {
         remoteJid,
         extraction.transactions,
         trimmedText,
-        userAccounts
+        userAccounts,
+        origin
       );
     }
 
@@ -1305,7 +1604,8 @@ export class WebhooksService {
     remoteJid: string,
     transactions: any[],
     rawText: string,
-    userAccounts: any[]
+    userAccounts: any[],
+    origin: TransactionOrigin = TransactionOrigin.WHATSAPP_TEXT
   ) {
     const userCategories = await prisma.category.findMany({
       where: {
@@ -1364,17 +1664,18 @@ export class WebhooksService {
       }
 
       const txDate = item.date ? new Date(item.date) : new Date();
+      const defaultDesc = instance.startsWith('telegram:') ? 'Transação Telegram' : 'Transação WhatsApp';
 
       const createdTx = await prisma.transaction.create({
         data: {
           user_id: user.id,
           account_id: targetAccount.id,
           category_id: category.id,
-          description: item.description || 'Transação WhatsApp',
+          description: item.description || defaultDesc,
           amount: item.amount,
           type,
           date: txDate,
-          origin: TransactionOrigin.WHATSAPP_TEXT,
+          origin,
           received_on_number: instance,
           raw_message: rawText,
         },

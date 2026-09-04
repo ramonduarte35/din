@@ -22,6 +22,8 @@ enum TransactionOrigin {
   MANUAL
   WHATSAPP_TEXT
   WHATSAPP_AUDIO
+  TELEGRAM_TEXT
+  TELEGRAM_AUDIO
 }
 
 enum CategoryType {
@@ -68,6 +70,8 @@ model User {
   email             String           @unique
   password_hash     String?
   phone_number      String?          @unique
+  telegram_id       String?          @unique
+  telegram_username String?
   avatar_url        String?
   google_id         String?          @unique
   subscription_tier SubscriptionTier @default(FREE)
@@ -212,15 +216,19 @@ model SystemSetting {
 }
 
 model WhatsAppIntegrationConfig {
-  id                   String               @id @default(uuid())
-  active_provider      WhatsAppProviderType @default(EVOLUTION)
-  meta_phone_number_id String?
-  meta_waba_id         String?
-  meta_access_token    String?              @db.Text
-  meta_verify_token    String?
-  meta_app_secret      String?
-  created_at           DateTime             @default(now())
-  updated_at           DateTime             @updatedAt
+  id                      String               @id @default(uuid())
+  active_provider         WhatsAppProviderType @default(EVOLUTION)
+  meta_phone_number_id    String?
+  meta_waba_id            String?
+  meta_access_token       String?              @db.Text
+  meta_verify_token       String?
+  meta_app_secret         String?
+  telegram_bot_token      String?              @db.Text
+  telegram_bot_username   String?
+  telegram_is_active      Boolean              @default(false)
+  telegram_webhook_secret String?
+  created_at              DateTime             @default(now())
+  updated_at              DateTime             @updatedAt
 
   @@map("whatsapp_integration_configs")
 }
