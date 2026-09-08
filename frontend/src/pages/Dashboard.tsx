@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SummaryCards } from '../components/dashboard/SummaryCards';
 import { FinancialHealthWidget } from '../components/dashboard/FinancialHealthWidget';
+import { BudgetOverviewCard } from '../components/dashboard/BudgetOverviewCard';
 import { AccountsWidget } from '../components/dashboard/AccountsWidget';
 import { BillsWidget } from '../components/dashboard/BillsWidget';
 import { CategoryChart } from '../components/dashboard/CategoryChart';
@@ -169,8 +170,11 @@ export function Dashboard() {
       {/* 1. Cards de Resumo / KPIs Gerais */}
       <SummaryCards summary={summary} isLoading={isLoading} />
 
-      {/* 2. Score de Saúde Financeira com IA */}
-      <FinancialHealthWidget summary={summary} isLoading={isLoading} />
+      {/* 2. Score de Saúde Financeira com IA & Orçamentos */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <FinancialHealthWidget summary={summary} isLoading={isLoading} />
+        <BudgetOverviewCard month={selectedMonth} year={selectedYear} />
+      </div>
 
       {/* 3. Widget de Contas Bancárias & Saldos Separados */}
       <AccountsWidget accounts={accounts} isLoading={isLoading} />

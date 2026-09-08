@@ -7,6 +7,7 @@ import {
   CalendarClock,
   Layers,
   Target,
+  PieChart,
   Bot,
   User as UserIcon,
   LogOut,
@@ -51,6 +52,11 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
       to: '/categories',
       label: 'Categorias',
       icon: Layers,
+    },
+    {
+      to: '/budgets',
+      label: 'Orçamentos',
+      icon: PieChart,
     },
     {
       to: '/goals',

@@ -16,6 +16,7 @@ const Transactions = lazy(() => import('./pages/Transactions').then((m) => ({ de
 const Accounts = lazy(() => import('./pages/Accounts').then((m) => ({ default: m.Accounts })));
 const Categories = lazy(() => import('./pages/Categories').then((m) => ({ default: m.Categories })));
 const Goals = lazy(() => import('./pages/Goals').then((m) => ({ default: m.Goals })));
+const Budgets = lazy(() => import('./pages/Budgets').then((m) => ({ default: m.Budgets })));
 const Bills = lazy(() => import('./pages/Bills').then((m) => ({ default: m.Bills })));
 const Profile = lazy(() => import('./pages/Profile').then((m) => ({ default: m.Profile })));
 const Simulator = lazy(() => import('./pages/Simulator').then((m) => ({ default: m.Simulator })));
@@ -141,6 +142,7 @@ export function App() {
                       <Route path="bills" element={<Bills />} />
                       <Route path="accounts" element={<Accounts />} />
                       <Route path="categories" element={<Categories />} />
+                      <Route path="budgets" element={<Budgets />} />
                       <Route path="goals" element={<Goals />} />
                       <Route path="simulator" element={<Simulator />} />
                       <Route path="profile" element={<Profile />} />

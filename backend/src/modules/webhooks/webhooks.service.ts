@@ -23,8 +23,10 @@ import {
   WhatsAppLogStatus,
 } from '@prisma/client';
 import { BillsService } from '../bills/bills.service.js';
+import { BudgetsService } from '../budgets/budgets.service.js';
 
 const billsService = new BillsService();
+const budgetsService = new BudgetsService();
 
 export class WebhooksService {
   /**
@@ -1689,6 +1691,23 @@ export class WebhooksService {
       }
       const updatedAccBalance = Number(targetAccount.initial_balance) + accIncome - accExpense;
 
+      let budgetAlertText = '';
+      if (type === TransactionType.EXPENSE && category.id) {
+        try {
+          const budgetCheck = await budgetsService.checkCategoryBudgetAlert(user.id, category.id, txDate);
+          if (budgetCheck?.has_budget) {
+            if (budgetCheck.is_exceeded) {
+              const diff = budgetCheck.total_spent - budgetCheck.budgeted_amount;
+              budgetAlertText = `\n🚨 *Alerta de Orçamento:* Você estourou o teto de *${budgetCheck.category_name}* em ${formatBRL(diff)} (${budgetCheck.percentage}% consumido)!`;
+            } else if (budgetCheck.is_warning) {
+              budgetAlertText = `\n⚠️ *Atenção:* Você atingiu ${budgetCheck.percentage}% do orçamento de *${budgetCheck.category_name}* (restam ${formatBRL(budgetCheck.remaining_amount)}).`;
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+
       const typeLabel = type === TransactionType.INCOME ? '🟢 Receita' : '🔴 Despesa';
       registeredItems.push(
         `📌 *Tipo:* ${typeLabel}\n` +
@@ -1696,7 +1715,8 @@ export class WebhooksService {
         `💵 *Valor:* ${formatBRL(Number(createdTx.amount))}\n` +
         `🏷️ *Categoria:* ${category.name}\n` +
         `🏦 *Conta:* ${targetAccount.name}\n` +
-        `💰 *Saldo da Conta:* ${formatBRL(updatedAccBalance)}`
+        `💰 *Saldo da Conta:* ${formatBRL(updatedAccBalance)}` +
+        budgetAlertText
       );
     }
 
