@@ -18,6 +18,7 @@ export const aiExtractedBillSchema = z.object({
   suggested_category: z.string().optional(),
   barcode: z.string().optional(),
   notes: z.string().optional(),
+  total_installments: z.number().int().min(1).max(120).optional(),
 });
 
 // Schema para OpenAI Structured Outputs: Pagamento/Liquidação de Conta

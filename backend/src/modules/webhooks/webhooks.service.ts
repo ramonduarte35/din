@@ -1221,6 +1221,7 @@ export class WebhooksService {
         category_id: category?.id,
         barcode: billData.barcode,
         notes: billData.notes,
+        total_installments: billData.total_installments,
       });
 
       const formattedDate = formatDateBR(createdBill.due_date);
@@ -1232,10 +1233,16 @@ export class WebhooksService {
       else if (diffDays > 1) daysNotice = `(Vence em ${diffDays} dias)`;
       else daysNotice = `(Atrasada há ${Math.abs(diffDays)} dias)`;
 
+      const installmentsInfo =
+        billData.total_installments && billData.total_installments > 1
+          ? `🔢 *Parcelamento:* ${billData.total_installments}x de ${formatBRL(Number(createdBill.amount))} (próximos meses agendados)\n`
+          : '';
+
       const replyMsg =
         `📅 *Conta a Pagar Agendada com Sucesso!*\n\n` +
         `📝 *Descrição:* ${createdBill.description}\n` +
         `💵 *Valor:* ${formatBRL(Number(createdBill.amount))}\n` +
+        installmentsInfo +
         `🗓️ *Vencimento:* ${formattedDate} ${daysNotice}\n` +
         `🏷️ *Categoria:* ${category?.name || 'Geral'}\n\n` +
         `💡 _Quando efetuar o pagamento, basta avisar por aqui (ex: "paguei ${createdBill.description} no Nubank") para lançar a despesa na sua conta!_`;

@@ -179,11 +179,14 @@ model Bill {
   due_date       DateTime
   paid_date      DateTime?
   status         BillStatus  @default(PENDING)
-  barcode        String?
-  notes          String?     @db.Text
-  is_recurring   Boolean     @default(false)
-  created_at     DateTime    @default(now())
-  updated_at     DateTime    @updatedAt
+  barcode            String?
+  notes              String?     @db.Text
+  is_recurring       Boolean     @default(false)
+  installment_number Int?
+  total_installments Int?
+  group_id           String?
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @updatedAt
 
   user        User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
   category    Category?    @relation(fields: [category_id], references: [id], onDelete: SetNull)
@@ -193,6 +196,7 @@ model Bill {
   @@index([user_id, due_date])
   @@index([user_id, status])
   @@index([user_id, status, due_date])
+  @@index([user_id, group_id])
   @@map("bills")
 }
 

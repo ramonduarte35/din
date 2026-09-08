@@ -6,7 +6,7 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { CurrencyInput } from '../ui/CurrencyInput';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Layers, Calendar } from 'lucide-react';
 import { formatDateToISO, formatCurrencyInput, parseCurrencyInput } from '../../lib/utils';
 
 interface BillModalProps {
@@ -29,6 +29,7 @@ export const BillModal: React.FC<BillModalProps> = ({
   const [accountId, setAccountId] = useState('');
   const [barcode, setBarcode] = useState('');
   const [notes, setNotes] = useState('');
+  const [totalInstallments, setTotalInstallments] = useState(1);
   const [categories, setCategories] = useState<any[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(false);
@@ -50,6 +51,7 @@ export const BillModal: React.FC<BillModalProps> = ({
       } else {
         setDescription('');
         setAmount('');
+        setTotalInstallments(1);
         // Padrão: 5 dias a partir de hoje
         const defaultDate = new Date();
         defaultDate.setDate(defaultDate.getDate() + 5);
@@ -98,7 +100,7 @@ export const BillModal: React.FC<BillModalProps> = ({
     setError(null);
 
     try {
-      const payload = {
+      const payload: any = {
         description: description.trim(),
         amount: numAmount,
         due_date: dueDate,
@@ -111,6 +113,7 @@ export const BillModal: React.FC<BillModalProps> = ({
       if (bill) {
         await updateBill(bill.id, payload);
       } else {
+        payload.total_installments = totalInstallments > 1 ? totalInstallments : 1;
         await createBill(payload);
       }
 
@@ -210,6 +213,53 @@ export const BillModal: React.FC<BillModalProps> = ({
             </select>
           </div>
         </div>
+
+        {!bill && (
+          <div className="p-3.5 bg-card border border-border rounded-2xl space-y-2.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-din-text flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-din-primary" />
+                <span>Parcelamento / Repetição</span>
+              </label>
+              {totalInstallments > 1 && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-din-primary/10 text-din-primary border border-din-primary/20">
+                  {totalInstallments} parcelas mensais
+                </span>
+              )}
+            </div>
+
+            <select
+              value={totalInstallments}
+              onChange={(e) => setTotalInstallments(parseInt(e.target.value, 10))}
+              className="w-full bg-background border border-border rounded-xl px-3.5 py-2.5 text-sm text-din-text focus:outline-none focus:ring-2 focus:ring-din-primary/40 focus:border-din-primary min-h-[44px]"
+            >
+              <option value={1}>1x - Parcela única (Sem parcelar)</option>
+              <option value={2}>2x - 2 parcelas mensais</option>
+              <option value={3}>3x - 3 parcelas mensais</option>
+              <option value={4}>4x - 4 parcelas mensais</option>
+              <option value={5}>5x - 5 parcelas mensais</option>
+              <option value={6}>6x - 6 parcelas mensais</option>
+              <option value={10}>10x - 10 parcelas mensais</option>
+              <option value={12}>12x - 12 parcelas (1 ano)</option>
+              <option value={18}>18x - 18 parcelas</option>
+              <option value={24}>24x - 24 parcelas (2 anos)</option>
+              <option value={36}>36x - 36 parcelas (3 anos)</option>
+              <option value={48}>48x - 48 parcelas (4 anos)</option>
+              <option value={60}>60x - 60 parcelas (5 anos)</option>
+            </select>
+
+            {totalInstallments > 1 && (
+              <div className="text-[11px] text-din-muted bg-background/80 p-2.5 rounded-xl border border-border/80 flex items-start gap-2">
+                <Calendar className="w-4 h-4 text-din-primary shrink-0 mt-0.5" />
+                <span>
+                  Serão criadas <strong>{totalInstallments} contas</strong> de{' '}
+                  <strong className="text-din-text">{amount ? amount : 'R$ 0,00'}</strong> nos meses seguintes, todas agendadas para o dia{' '}
+                  <strong className="text-din-text">{dueDate ? dueDate.split('-')[2] : '—'}</strong>.
+                </span>
+              </div>
+            )}
+          </div>
+        )}
 
         <div>
           <label className="block text-xs font-medium text-din-text mb-1">

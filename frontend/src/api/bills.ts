@@ -17,6 +17,9 @@ export interface Bill {
   barcode?: string | null;
   notes?: string | null;
   is_recurring: boolean;
+  installment_number?: number | null;
+  total_installments?: number | null;
+  group_id?: string | null;
   created_at: string;
   updated_at: string;
   category?: {
@@ -83,6 +86,7 @@ export interface CreateBillData {
   barcode?: string | null;
   notes?: string | null;
   is_recurring?: boolean;
+  total_installments?: number;
 }
 
 export interface PayBillData {

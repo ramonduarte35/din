@@ -12,6 +12,7 @@ export const createBillSchema = z.object({
   barcode: z.string().max(255).optional().nullable(),
   notes: z.string().max(1000).optional().nullable(),
   is_recurring: z.boolean().optional(),
+  total_installments: z.number().int().min(1, 'Mínimo de 1 parcela').max(120, 'Máximo de 120 parcelas').optional().default(1),
 });
 
 export const updateBillSchema = z.object({
@@ -25,6 +26,8 @@ export const updateBillSchema = z.object({
   barcode: z.string().max(255).optional().nullable(),
   notes: z.string().max(1000).optional().nullable(),
   is_recurring: z.boolean().optional(),
+  installment_number: z.number().int().min(1).optional().nullable(),
+  total_installments: z.number().int().min(1).optional().nullable(),
   status: z.nativeEnum(BillStatus).optional(),
 });
 

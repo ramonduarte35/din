@@ -494,6 +494,11 @@ export const Bills: React.FC = () => {
                         <span className={`text-[11px] px-2.5 py-0.5 rounded-full border font-semibold ${badgeStyle}`}>
                           {badgeText}
                         </span>
+                        {bill.total_installments && bill.total_installments > 1 && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-din-primary/10 text-din-primary border border-din-primary/20 whitespace-nowrap">
+                            Parcela {bill.installment_number || 1}/{bill.total_installments}
+                          </span>
+                        )}
                       </div>
 
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-din-muted">
