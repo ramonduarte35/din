@@ -269,9 +269,9 @@ export function Simulator() {
                 type="button"
                 onClick={handleClearChat}
                 title="Limpar Chat"
-                className="p-2 rounded-xl bg-card hover:bg-card-hover text-din-muted hover:text-din-text border border-border transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                className="p-2.5 rounded-xl bg-card hover:bg-card-hover text-din-muted hover:text-din-text border border-border transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation shrink-0"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -347,8 +347,9 @@ export function Simulator() {
               {currentExamples.map((ex, idx) => (
                 <button
                   key={idx}
+                  type="button"
                   onClick={() => handleSend(ex)}
-                  className="w-full text-left p-2.5 rounded-xl bg-card-secondary hover:bg-card-hover border border-border hover:border-din-primary/40 text-xs text-din-muted hover:text-din-text transition-all flex items-center justify-between group min-h-[40px]"
+                  className="w-full text-left p-2.5 rounded-xl bg-card-secondary hover:bg-card-hover border border-border hover:border-din-primary/40 text-xs text-din-muted hover:text-din-text transition-all flex items-center justify-between group min-h-[44px] touch-manipulation"
                 >
                   <span className="truncate">{ex.startsWith('/') ? <strong className="text-din-text">{ex}</strong> : `"${ex}"`}</span>
                   <span className={`text-[10px] opacity-0 group-hover:opacity-100 font-semibold transition-opacity shrink-0 ml-2 ${

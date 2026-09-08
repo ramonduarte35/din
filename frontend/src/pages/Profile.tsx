@@ -409,7 +409,7 @@ export function Profile() {
             )}
 
             <div className="pt-2 flex justify-end">
-              <Button type="submit" variant="emerald" isLoading={isLoading} className="min-h-[44px]">
+              <Button type="submit" variant="emerald" isLoading={isLoading} className="w-full sm:w-auto min-h-[44px]">
                 Salvar Alterações
               </Button>
             </div>
@@ -485,7 +485,7 @@ export function Profile() {
                 size="sm"
                 onClick={handleUnlinkTelegram}
                 isLoading={isUnlinkingTelegram}
-                className="min-h-[44px] self-start sm:self-auto"
+                className="w-full sm:w-auto min-h-[44px]"
               >
                 <Unlink className="w-4 h-4 mr-1.5" />
                 Desvincular Telegram
@@ -522,7 +522,7 @@ export function Profile() {
                       <button
                         type="button"
                         onClick={() => handleCopyCode(telegramLinkData.code)}
-                        className="px-2.5 py-1.5 rounded-lg bg-card hover:bg-card-hover border border-border text-xs font-medium text-din-text flex items-center gap-1.5 transition-all min-h-[44px]"
+                        className="px-2.5 py-1.5 rounded-lg bg-card hover:bg-card-hover border border-border text-xs font-medium text-din-text flex items-center gap-1.5 transition-all min-h-[44px] touch-manipulation"
                         title="Copiar comando"
                       >
                         {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -531,13 +531,13 @@ export function Profile() {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     {telegramLinkData.deep_link || telegramLinkData.bot_username ? (
                       <a
                         href={telegramLinkData.deep_link || `https://t.me/${telegramLinkData.bot_username}?start=v_${telegramLinkData.token}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs transition-all shadow-md min-h-[44px]"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs transition-all shadow-md min-h-[44px]"
                       >
                         <Send className="w-4 h-4" />
                         Abrir no Telegram
@@ -549,7 +549,7 @@ export function Profile() {
                       variant="secondary"
                       size="sm"
                       onClick={() => refreshUser()}
-                      className="min-h-[44px]"
+                      className="w-full sm:w-auto min-h-[44px]"
                     >
                       Verificar Conexão
                     </Button>
@@ -566,7 +566,7 @@ export function Profile() {
                   variant="primary"
                   onClick={handleGenerateTelegramCode}
                   isLoading={isGeneratingTelegramCode}
-                  className="min-h-[44px] bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold"
+                  className="w-full sm:w-auto min-h-[44px] bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold"
                 >
                   <Send className="w-4 h-4 mr-2" />
                   Gerar Conexão com Telegram
@@ -648,7 +648,7 @@ export function Profile() {
               variant="secondary"
               isLoading={isChangingPassword}
               disabled={(user?.has_password && !currentPassword) || !newPassword || !confirmNewPassword}
-              className="min-h-[44px]"
+              className="w-full sm:w-auto min-h-[44px]"
             >
               <KeyRound className="w-4 h-4 mr-1.5" />
               {user?.has_password ? 'Atualizar Senha' : 'Salvar Senha'}

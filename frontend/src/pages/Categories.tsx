@@ -258,7 +258,7 @@ export function Categories() {
                         setIsModalOpen(true);
                       }}
                       title="Editar Categoria"
-                      className="p-2.5 rounded-xl bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center border border-border"
+                      className="p-2.5 rounded-xl bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center border border-border touch-manipulation"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
@@ -267,7 +267,7 @@ export function Categories() {
                       type="button"
                       onClick={() => handleDelete(cat)}
                       title="Excluir Categoria"
-                      className="p-2.5 rounded-xl bg-card-secondary hover:bg-red-500/20 text-din-muted hover:text-red-400 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center border border-border"
+                      className="p-2.5 rounded-xl bg-card-secondary hover:bg-red-500/20 text-din-muted hover:text-red-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center border border-border touch-manipulation"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

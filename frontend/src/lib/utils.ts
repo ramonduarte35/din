@@ -16,6 +16,53 @@ export function formatCurrency(value: number | string | null | undefined): strin
   }).format(num);
 }
 
+/**
+ * Formata um valor numérico ou dígitos digitados para o formato monetário BRL (ex: "1.234,56")
+ */
+export function formatCurrencyInput(value: number | string | null | undefined, allowZero = false): string {
+  if (value === '' || value === undefined || value === null) return '';
+  if (typeof value === 'number') {
+    if (isNaN(value)) return '';
+    if (value === 0 && !allowZero) return '';
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  }
+
+  const str = String(value).trim();
+  if (/^\d+(\.\d+)?$/.test(str) && str.includes('.')) {
+    const parsed = parseFloat(str);
+    if (!isNaN(parsed)) {
+      if (parsed === 0 && !allowZero) return '';
+      return new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(parsed);
+    }
+  }
+
+  const clean = str.replace(/\D/g, '');
+  if (!clean) return '';
+  const num = parseInt(clean, 10) / 100;
+  if (num === 0 && !allowZero) return '';
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(num);
+}
+
+/**
+ * Converte a string com máscara monetária (ex: "1.234,56") para número float real
+ */
+export function parseCurrencyInput(value: string | number | null | undefined): number {
+  if (value === '' || value === undefined || value === null) return 0;
+  if (typeof value === 'number') return isNaN(value) ? 0 : value;
+  const clean = String(value).replace(/\D/g, '');
+  if (!clean) return 0;
+  return parseInt(clean, 10) / 100;
+}
+
 export function formatDate(dateString: string | Date | null | undefined): string {
   if (!dateString) return '-';
 

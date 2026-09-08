@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
+import { CurrencyInput } from '../ui/CurrencyInput';
 import { Button } from '../ui/Button';
 import {
   Account,
@@ -8,6 +9,7 @@ import {
   createAccountRequest,
   updateAccountRequest,
 } from '../../api/accounts';
+import { formatCurrencyInput, parseCurrencyInput } from '../../lib/utils';
 import {
   Landmark,
   CreditCard,
@@ -81,7 +83,7 @@ export function AccountModal({
         setType(accountToEdit.type);
         setColor(accountToEdit.color || '#8b5cf6');
         setIcon(accountToEdit.icon || 'Landmark');
-        setInitialBalance(accountToEdit.initial_balance.toString());
+        setInitialBalance(formatCurrencyInput(accountToEdit.initial_balance, true));
         setIsDefault(accountToEdit.is_default);
       } else {
         setName('');
@@ -104,11 +106,7 @@ export function AccountModal({
       return;
     }
 
-    const parsedBalance = parseFloat(initialBalance.replace(',', '.'));
-    if (isNaN(parsedBalance)) {
-      setError('Informe um saldo inicial numérico válido.');
-      return;
-    }
+    const parsedBalance = parseCurrencyInput(initialBalance);
 
     setIsLoading(true);
 
@@ -200,22 +198,15 @@ export function AccountModal({
         </div>
 
         {/* Saldo Inicial */}
-        <div>
-          <label className="block text-xs font-semibold text-din-text mb-1.5">
-            Saldo Inicial (R$)
-          </label>
-          <Input
-            type="text"
-            inputMode="decimal"
-            value={initialBalance}
-            onChange={(e) => setInitialBalance(e.target.value)}
-            placeholder="0,00"
-            className="h-11 text-sm"
-          />
-          <span className="text-[11px] text-din-muted mt-1 block">
-            Saldo que você já possui nesta conta antes dos lançamentos.
-          </span>
-        </div>
+        <CurrencyInput
+          label="Saldo Inicial (R$)"
+          value={initialBalance}
+          onChange={(e) => setInitialBalance(e.target.value)}
+          placeholder="0,00"
+          allowZero
+          hint="Saldo que você já possui nesta conta antes dos lançamentos."
+          className="h-11 text-sm"
+        />
 
         {/* Cores */}
         <div>
@@ -230,7 +221,7 @@ export function AccountModal({
                 title={p.name}
                 onClick={() => setColor(p.color)}
                 style={{ backgroundColor: p.color }}
-                className={`w-8 h-8 rounded-full border-2 transition-transform min-h-[32px] min-w-[32px] flex items-center justify-center ${
+                className={`w-9 h-9 sm:w-8 sm:h-8 rounded-full border-2 transition-transform min-h-[38px] min-w-[38px] flex items-center justify-center touch-manipulation ${
                   color === p.color ? 'border-din-text scale-110 shadow-lg' : 'border-transparent opacity-80 hover:opacity-100'
                 }`}
               >
@@ -254,7 +245,7 @@ export function AccountModal({
                   key={item.name}
                   type="button"
                   onClick={() => setIcon(item.name)}
-                  className={`p-2 rounded-xl border text-xs font-medium transition-all flex items-center gap-1.5 min-h-[44px] px-3 ${
+                  className={`p-2 rounded-xl border text-xs font-medium transition-all flex items-center gap-1.5 min-h-[44px] px-3 touch-manipulation ${
                     isSelected
                       ? 'border-din-primary bg-din-primary/15 text-din-primary shadow-sm'
                       : 'border-border bg-card-secondary text-din-muted hover:border-din-primary/40'
@@ -270,7 +261,7 @@ export function AccountModal({
 
         {/* Tornar Conta Padrão */}
         <div className="pt-2 border-t border-border">
-          <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-card-hover transition-colors min-h-[44px]">
+          <label className="flex items-center gap-3 cursor-pointer p-2 rounded-xl hover:bg-card-hover transition-colors min-h-[44px] touch-manipulation">
             <input
               type="checkbox"
               checked={isDefault}
@@ -295,7 +286,7 @@ export function AccountModal({
             variant="ghost"
             onClick={onClose}
             disabled={isLoading}
-            className="min-h-[44px]"
+            className="flex-1 sm:flex-initial min-h-[44px]"
           >
             Cancelar
           </Button>
@@ -303,7 +294,7 @@ export function AccountModal({
             type="submit"
             variant="primary"
             isLoading={isLoading}
-            className="min-h-[44px] px-6"
+            className="flex-1 sm:flex-initial min-h-[44px] px-6"
           >
             {isEditing ? 'Salvar Alterações' : 'Criar Conta'}
           </Button>

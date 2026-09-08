@@ -318,18 +318,18 @@ export function Goals() {
                           setEditingGoal(goal);
                           setIsGoalModalOpen(true);
                         }}
-                        className="p-2 rounded-xl bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center border border-border"
+                        className="p-2.5 rounded-xl bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center border border-border touch-manipulation"
                         title="Editar Meta"
                       >
-                        <Edit2 className="w-3.5 h-3.5" />
+                        <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDelete(goal)}
-                        className="p-2 rounded-xl bg-card-secondary hover:bg-red-500/20 text-din-muted hover:text-red-400 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center border border-border"
+                        className="p-2.5 rounded-xl bg-card-secondary hover:bg-red-500/20 text-din-muted hover:text-red-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center border border-border touch-manipulation"
                         title="Excluir Meta"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>

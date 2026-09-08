@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
+import { CurrencyInput } from '../ui/CurrencyInput';
 import { Button } from '../ui/Button';
 import { Goal, createGoalRequest, updateGoalRequest } from '../../api/goals';
 import { useToast } from '../../contexts/ToastContext';
-import { formatDateToISO } from '../../lib/utils';
+import { formatDateToISO, formatCurrencyInput, parseCurrencyInput } from '../../lib/utils';
 import {
   Target,
   PiggyBank,
@@ -71,15 +72,15 @@ export function GoalModal({ isOpen, onClose, onSuccess, goalToEdit }: GoalModalP
     if (isOpen) {
       if (goalToEdit) {
         setTitle(goalToEdit.title);
-        setTargetAmount(goalToEdit.target_amount.toString());
-        setCurrentAmount(goalToEdit.current_amount.toString());
+        setTargetAmount(formatCurrencyInput(goalToEdit.target_amount));
+        setCurrentAmount(formatCurrencyInput(goalToEdit.current_amount, true));
         setDeadline(goalToEdit.deadline ? formatDateToISO(goalToEdit.deadline) : '');
         setColor(goalToEdit.color || '#10b981');
         setIcon(goalToEdit.icon || 'Target');
       } else {
         setTitle('');
         setTargetAmount('');
-        setCurrentAmount('0');
+        setCurrentAmount('');
         setDeadline('');
         setColor('#10b981');
         setIcon('Target');
@@ -92,15 +93,15 @@ export function GoalModal({ isOpen, onClose, onSuccess, goalToEdit }: GoalModalP
     e.preventDefault();
     setError(null);
 
-    const parsedTarget = parseFloat(targetAmount.replace(',', '.'));
-    const parsedCurrent = parseFloat(currentAmount.replace(',', '.') || '0');
+    const parsedTarget = parseCurrencyInput(targetAmount);
+    const parsedCurrent = parseCurrencyInput(currentAmount);
 
     if (!title.trim()) {
       setError('O título da meta é obrigatório.');
       return;
     }
 
-    if (isNaN(parsedTarget) || parsedTarget <= 0) {
+    if (parsedTarget <= 0) {
       setError('Informe um valor alvo válido e positivo.');
       return;
     }
@@ -164,29 +165,22 @@ export function GoalModal({ isOpen, onClose, onSuccess, goalToEdit }: GoalModalP
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Valor Alvo */}
-          <Input
+          <CurrencyInput
             label="Valor Alvo (R$)"
-            type="number"
-            step="0.01"
-            min="0.01"
             placeholder="0,00"
             value={targetAmount}
             onChange={(e) => setTargetAmount(e.target.value)}
-            icon={<DollarSign className="w-4 h-4" />}
             required
             className="h-11 text-sm"
           />
 
           {/* Valor Inicial Guardado */}
-          <Input
+          <CurrencyInput
             label="Valor Atual Guardado (R$)"
-            type="number"
-            step="0.01"
-            min="0"
             placeholder="0,00"
             value={currentAmount}
             onChange={(e) => setCurrentAmount(e.target.value)}
-            icon={<PiggyBank className="w-4 h-4" />}
+            allowZero
             className="h-11 text-sm"
           />
         </div>
@@ -212,7 +206,7 @@ export function GoalModal({ isOpen, onClose, onSuccess, goalToEdit }: GoalModalP
                 key={c}
                 type="button"
                 onClick={() => setColor(c)}
-                className="w-8 h-8 rounded-xl flex items-center justify-center transition-transform hover:scale-110 shadow-md min-h-[32px] min-w-[32px]"
+                className="w-9 h-9 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center transition-transform hover:scale-110 shadow-md min-h-[38px] min-w-[38px] touch-manipulation"
                 style={{ backgroundColor: c }}
               >
                 {color === c && <Check className="w-4 h-4 text-white drop-shadow-md" />}
@@ -232,7 +226,7 @@ export function GoalModal({ isOpen, onClose, onSuccess, goalToEdit }: GoalModalP
                 key={iconName}
                 type="button"
                 onClick={() => setIcon(iconName)}
-                className={`p-2.5 rounded-xl flex items-center justify-center transition-all min-h-[44px] ${
+                className={`p-2.5 rounded-xl flex items-center justify-center transition-all min-h-[44px] touch-manipulation ${
                   icon === iconName
                     ? 'bg-din-primary text-white shadow-md shadow-din-primary/30'
                     : 'bg-card text-din-muted hover:text-din-text hover:bg-card-hover border border-border'
@@ -247,14 +241,14 @@ export function GoalModal({ isOpen, onClose, onSuccess, goalToEdit }: GoalModalP
         {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
 
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
-          <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading} className="min-h-[44px]">
+          <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading} className="flex-1 sm:flex-initial min-h-[44px]">
             Cancelar
           </Button>
           <Button
             type="submit"
             variant="emerald"
             isLoading={isLoading}
-            className="min-h-[44px] px-6"
+            className="flex-1 sm:flex-initial min-h-[44px] px-6"
           >
             {isEditing ? 'Salvar Alterações' : 'Criar Meta'}
           </Button>

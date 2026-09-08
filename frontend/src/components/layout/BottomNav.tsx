@@ -73,7 +73,7 @@ export function BottomNav({ onOpenQuickAction }: BottomNavProps) {
             type="button"
             onClick={onOpenQuickAction}
             aria-label="Adicionar Novo Lançamento"
-            className="w-13 h-13 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 flex items-center justify-center shadow-lg shadow-emerald-500/40 ring-4 ring-background active:scale-95 transition-all"
+            className="w-14 h-14 shrink-0 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 flex items-center justify-center shadow-lg shadow-emerald-500/40 ring-4 ring-background active:scale-95 transition-all touch-manipulation"
           >
             <Plus className="w-6 h-6 stroke-[2.5]" />
           </button>

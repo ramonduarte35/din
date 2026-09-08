@@ -59,7 +59,8 @@ export function QuickActionModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-xl text-din-muted hover:text-din-text hover:bg-card-hover transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+            aria-label="Fechar"
+            className="p-2 rounded-xl text-din-muted hover:text-din-text hover:bg-card-hover transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation"
           >
             <X className="w-5 h-5" />
           </button>
@@ -74,7 +75,7 @@ export function QuickActionModal({
               onClose();
               onSelectNewTransaction();
             }}
-            className="w-full p-4 rounded-2xl bg-card-secondary border border-border hover:border-din-primary/40 hover:bg-card-hover transition-all flex items-center justify-between group text-left min-h-[56px]"
+            className="w-full p-4 rounded-2xl bg-card-secondary border border-border hover:border-din-primary/40 hover:bg-card-hover transition-all flex items-center justify-between group text-left min-h-[56px] touch-manipulation"
           >
             <div className="flex items-center gap-3.5">
               <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
@@ -97,7 +98,7 @@ export function QuickActionModal({
               onClose();
               onSelectNewBill();
             }}
-            className="w-full p-4 rounded-2xl bg-card-secondary border border-border hover:border-amber-500/40 hover:bg-card-hover transition-all flex items-center justify-between group text-left min-h-[56px]"
+            className="w-full p-4 rounded-2xl bg-card-secondary border border-border hover:border-amber-500/40 hover:bg-card-hover transition-all flex items-center justify-between group text-left min-h-[56px] touch-manipulation"
           >
             <div className="flex items-center gap-3.5">
               <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500/20 to-orange-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform">
@@ -120,7 +121,7 @@ export function QuickActionModal({
               onClose();
               onSelectNewAccount();
             }}
-            className="w-full p-4 rounded-2xl bg-card-secondary border border-border hover:border-sky-500/40 hover:bg-card-hover transition-all flex items-center justify-between group text-left min-h-[56px]"
+            className="w-full p-4 rounded-2xl bg-card-secondary border border-border hover:border-sky-500/40 hover:bg-card-hover transition-all flex items-center justify-between group text-left min-h-[56px] touch-manipulation"
           >
             <div className="flex items-center gap-3.5">
               <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-sky-500/20 to-indigo-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 group-hover:scale-105 transition-transform">

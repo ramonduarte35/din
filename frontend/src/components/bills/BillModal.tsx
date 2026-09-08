@@ -5,8 +5,9 @@ import { fetchAccounts, Account } from '../../api/accounts';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { CurrencyInput } from '../ui/CurrencyInput';
 import { AlertCircle } from 'lucide-react';
-import { formatDateToISO } from '../../lib/utils';
+import { formatDateToISO, formatCurrencyInput, parseCurrencyInput } from '../../lib/utils';
 
 interface BillModalProps {
   isOpen: boolean;
@@ -40,7 +41,7 @@ export const BillModal: React.FC<BillModalProps> = ({
 
       if (bill) {
         setDescription(bill.description);
-        setAmount(bill.amount.toString());
+        setAmount(formatCurrencyInput(bill.amount));
         setDueDate(bill.due_date ? formatDateToISO(bill.due_date) : '');
         setCategoryId(bill.category_id || '');
         setAccountId(bill.account_id || '');
@@ -76,14 +77,14 @@ export const BillModal: React.FC<BillModalProps> = ({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const numAmount = parseFloat(amount.replace(',', '.'));
+    const numAmount = parseCurrencyInput(amount);
 
     if (!description.trim()) {
       setError('A descrição da conta é obrigatória.');
       return;
     }
 
-    if (isNaN(numAmount) || numAmount <= 0) {
+    if (numAmount <= 0) {
       setError('Informe um valor válido e positivo.');
       return;
     }
@@ -153,17 +154,12 @@ export const BillModal: React.FC<BillModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-din-text mb-1">
-              Valor (R$) <span className="text-din-primary">*</span>
-            </label>
-            <Input
-              type="number"
-              step="0.01"
+            <CurrencyInput
+              label="Valor (R$)"
               placeholder="0,00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               required
-              className="text-base"
             />
           </div>
 

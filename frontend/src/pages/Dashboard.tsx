@@ -108,20 +108,21 @@ export function Dashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           {/* Navegação de Período */}
-          <div className="flex items-center gap-1 bg-card-secondary border border-border rounded-xl p-1">
+          <div className="flex items-center gap-1 bg-card-secondary border border-border rounded-xl p-1 flex-1 sm:flex-initial justify-between sm:justify-start">
             <button
               onClick={handlePrevMonth}
-              className="p-1.5 rounded-lg hover:bg-card-hover text-din-muted hover:text-din-text transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+              className="p-2 rounded-lg hover:bg-card-hover text-din-muted hover:text-din-text transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 touch-manipulation"
               title="Mês anterior"
+              aria-label="Mês anterior"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
 
             <button
               onClick={!isCurrentMonth ? handleGoToCurrentMonth : undefined}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-din-text min-w-[130px] justify-center"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-din-text flex-1 sm:flex-initial sm:min-w-[130px] justify-center min-h-[44px] touch-manipulation"
               title={!isCurrentMonth ? 'Clique para ir ao mês atual' : undefined}
             >
               <Calendar className="w-3.5 h-3.5 text-din-primary" />
@@ -131,34 +132,37 @@ export function Dashboard() {
             <button
               onClick={handleNextMonth}
               disabled={isCurrentMonth}
-              className="p-1.5 rounded-lg hover:bg-card-hover text-din-muted hover:text-din-text transition-colors disabled:opacity-30 disabled:cursor-not-allowed min-h-[36px] min-w-[36px] flex items-center justify-center"
+              className="p-2 rounded-lg hover:bg-card-hover text-din-muted hover:text-din-text transition-colors disabled:opacity-30 disabled:cursor-not-allowed min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 touch-manipulation"
               title="Próximo mês"
+              aria-label="Próximo mês"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setIsReportModalOpen(true)}
-            className="h-9 min-h-[44px] text-xs px-3 border-border hover:border-din-primary/40 text-din-text hover:text-din-primary"
-            title="Exportar demonstrativo executivo mensal em PDF"
-          >
-            <FileText className="w-3.5 h-3.5 mr-1.5 text-din-primary" />
-            Relatório PDF
-          </Button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsReportModalOpen(true)}
+              className="flex-1 sm:flex-initial h-10 min-h-[44px] text-xs px-3.5 border-border hover:border-din-primary/40 text-din-text hover:text-din-primary"
+              title="Exportar demonstrativo executivo mensal em PDF"
+            >
+              <FileText className="w-3.5 h-3.5 mr-1.5 text-din-primary" />
+              Relatório PDF
+            </Button>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => loadData(false)}
-            isLoading={isRefreshing}
-            className="h-9 min-h-[44px] text-xs px-3"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Atualizar
-          </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => loadData(false)}
+              isLoading={isRefreshing}
+              className="flex-1 sm:flex-initial h-10 min-h-[44px] text-xs px-3.5"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Atualizar
+            </Button>
+          </div>
         </div>
       </div>
 

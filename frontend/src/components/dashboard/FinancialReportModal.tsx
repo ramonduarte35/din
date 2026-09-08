@@ -72,17 +72,18 @@ export function FinancialReportModal({
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 shrink-0">
             <Button
               onClick={handlePrint}
-              className="py-2 px-4 min-h-[40px] text-xs font-bold bg-din-primary hover:bg-din-primary-hover text-slate-950 shadow-md flex items-center space-x-1.5"
+              className="py-2 px-3 sm:px-4 min-h-[44px] text-xs font-bold bg-din-primary hover:bg-din-primary-hover text-slate-950 shadow-md flex items-center space-x-1.5 touch-manipulation shrink-0"
             >
               <Printer className="w-4 h-4" />
-              <span>Imprimir / Salvar PDF</span>
+              <span className="hidden sm:inline">Imprimir / Salvar PDF</span>
+              <span className="sm:hidden">PDF</span>
             </Button>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-din-muted hover:text-din-text hover:bg-card-hover transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
+              className="p-2.5 rounded-xl text-din-muted hover:text-din-text hover:bg-card-hover transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation shrink-0"
               title="Fechar"
             >
               <X className="w-5 h-5" />

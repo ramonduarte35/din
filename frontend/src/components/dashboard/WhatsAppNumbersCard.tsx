@@ -85,21 +85,22 @@ export function WhatsAppNumbersCard({ systemNumbers, isLoading, userPhone }: Wha
                   rel="noopener noreferrer"
                   className="flex-1"
                 >
-                  <Button variant="emerald" size="sm" className="w-full text-xs py-1.5 h-8">
-                    <MessageSquare className="w-3.5 h-3.5" />
+                  <Button variant="emerald" size="sm" className="w-full text-xs py-2 min-h-[44px]">
+                    <MessageSquare className="w-3.5 h-3.5 mr-1" />
                     <span>Chamar</span>
                     <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
                   </Button>
                 </a>
                 <button
+                  type="button"
                   onClick={() => handleCopy(num.id, num.phone_number)}
                   title="Copiar número"
-                  className="p-2 rounded-lg bg-card hover:bg-card-hover text-din-muted hover:text-din-text border border-border transition-colors h-8 flex items-center justify-center aspect-square"
+                  className="p-2.5 rounded-xl bg-card hover:bg-card-hover text-din-muted hover:text-din-text border border-border transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation shrink-0"
                 >
                   {copiedId === num.id ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    <Check className="w-4 h-4 text-emerald-500" />
                   ) : (
-                    <Copy className="w-3.5 h-3.5" />
+                    <Copy className="w-4 h-4" />
                   )}
                 </button>
               </div>

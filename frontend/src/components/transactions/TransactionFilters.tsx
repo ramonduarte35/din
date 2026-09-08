@@ -60,35 +60,35 @@ export function TransactionFiltersBar({
         <button
           type="button"
           onClick={() => setQuickRange('today')}
-          className="px-2.5 py-1 rounded-lg bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text border border-border transition-colors flex-shrink-0"
+          className="px-3 py-1.5 rounded-lg bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text border border-border transition-colors flex-shrink-0 min-h-[38px] flex items-center justify-center touch-manipulation font-medium"
         >
           Hoje
         </button>
         <button
           type="button"
           onClick={() => setQuickRange('7days')}
-          className="px-2.5 py-1 rounded-lg bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text border border-border transition-colors flex-shrink-0"
+          className="px-3 py-1.5 rounded-lg bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text border border-border transition-colors flex-shrink-0 min-h-[38px] flex items-center justify-center touch-manipulation font-medium"
         >
           Últimos 7 dias
         </button>
         <button
           type="button"
           onClick={() => setQuickRange('this_month')}
-          className="px-2.5 py-1 rounded-lg bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text border border-border transition-colors flex-shrink-0"
+          className="px-3 py-1.5 rounded-lg bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text border border-border transition-colors flex-shrink-0 min-h-[38px] flex items-center justify-center touch-manipulation font-medium"
         >
           Este Mês
         </button>
         <button
           type="button"
           onClick={() => setQuickRange('last_month')}
-          className="px-2.5 py-1 rounded-lg bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text border border-border transition-colors flex-shrink-0"
+          className="px-3 py-1.5 rounded-lg bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text border border-border transition-colors flex-shrink-0 min-h-[38px] flex items-center justify-center touch-manipulation font-medium"
         >
           Mês Anterior
         </button>
         <button
           type="button"
           onClick={() => setQuickRange('all')}
-          className="px-2.5 py-1 rounded-lg bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text border border-border transition-colors flex-shrink-0"
+          className="px-3 py-1.5 rounded-lg bg-card-secondary hover:bg-card-hover text-din-muted hover:text-din-text border border-border transition-colors flex-shrink-0 min-h-[38px] flex items-center justify-center touch-manipulation font-medium"
         >
           Todo Período
         </button>

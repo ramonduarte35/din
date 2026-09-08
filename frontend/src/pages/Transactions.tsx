@@ -160,12 +160,12 @@ export function Transactions() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap w-full sm:w-auto">
           <Button
             variant="secondary"
             size="sm"
             onClick={handleExportCSV}
-            className="h-10 px-3.5 min-h-[44px] text-xs font-semibold"
+            className="flex-1 sm:flex-initial h-10 px-3.5 min-h-[44px] text-xs font-semibold"
           >
             <Download className="w-4 h-4 mr-1.5 text-slate-300" />
             Exportar CSV
@@ -175,7 +175,7 @@ export function Transactions() {
             variant="emerald"
             size="sm"
             onClick={openNewTransactionModal}
-            className="h-10 px-4 min-h-[44px] shadow-lg shadow-emerald-500/20 font-semibold"
+            className="flex-1 sm:flex-initial h-10 px-4 min-h-[44px] shadow-lg shadow-emerald-500/20 font-semibold"
           >
             <Plus className="w-4 h-4 mr-1.5" />
             Nova Transação

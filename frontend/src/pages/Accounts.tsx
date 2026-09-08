@@ -132,12 +132,12 @@ export function Accounts() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
             variant="secondary"
             size="sm"
             onClick={loadAccounts}
-            className="h-10 min-h-[44px] text-xs"
+            className="flex-1 sm:flex-initial h-10 min-h-[44px] text-xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isLoading ? 'animate-spin' : ''}`} />
             Atualizar
@@ -147,7 +147,7 @@ export function Accounts() {
             variant="emerald"
             size="sm"
             onClick={handleOpenCreate}
-            className="h-10 min-h-[44px] text-xs px-4 shadow-lg shadow-emerald-500/20 font-semibold"
+            className="flex-1 sm:flex-initial h-10 min-h-[44px] text-xs px-4 shadow-lg shadow-emerald-500/20 font-semibold"
           >
             <Plus className="w-4 h-4 mr-1.5" />
             Nova Conta
@@ -210,62 +210,41 @@ export function Accounts() {
           variant="emerald"
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {accounts.map((account) => {
-            const IconComponent = ICON_MAP[account.icon] || Landmark;
             const isNegative = (account.current_balance || 0) < 0;
 
             return (
               <Card
                 key={account.id}
-                className="p-5 flex flex-col justify-between relative overflow-hidden group hover:border-din-primary/40 transition-all bg-card border-border shadow-lg rounded-3xl"
+                className="p-5 border border-border bg-card rounded-3xl shadow-lg hover:border-din-primary/40 transition-all flex flex-col justify-between"
               >
-                {/* Linha superior com cor do banco */}
-                <div
-                  className="absolute top-0 left-0 right-0 h-1.5"
-                  style={{ backgroundColor: account.color || '#10b981' }}
-                />
-
                 <div>
-                  {/* Topo do Card */}
-                  <div className="flex items-start justify-between gap-3 mb-4">
-                    <div className="flex items-center gap-3">
+                  {/* Topo do Card: Nome e Tag Padrão */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
                       <div
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform"
-                        style={{
-                          backgroundColor: `${account.color || '#10b981'}20`,
-                          color: account.color || '#10b981',
-                          border: `1px solid ${account.color || '#10b981'}40`,
-                        }}
+                        className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold shrink-0 shadow-md"
+                        style={{ backgroundColor: account.color || '#10b981' }}
                       >
-                        <IconComponent className="w-6 h-6" />
+                        <Landmark className="w-5 h-5" />
                       </div>
-
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-base text-din-text group-hover:text-din-primary transition-colors">
-                            {account.name}
-                          </h3>
-                          {account.is_default && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm">
-                              <Star className="w-3 h-3 fill-amber-400" /> Padrão
-                            </span>
-                          )}
-                        </div>
-
-                        <span className="text-xs text-din-muted">
-                          {account.type === 'CHECKING'
-                            ? 'Conta Corrente'
-                            : account.type === 'SAVINGS'
-                            ? 'Poupança'
-                            : account.type === 'INVESTMENT'
-                            ? 'Investimentos'
-                            : account.type === 'CREDIT_CARD'
-                            ? 'Cartão de Crédito'
-                            : 'Carteira Física'}
+                        <h4 className="font-bold text-din-text text-base truncate max-w-[150px]">
+                          {account.name}
+                        </h4>
+                        <span className="text-xs text-din-muted capitalize">
+                          {account.type.toLowerCase()}
                         </span>
                       </div>
                     </div>
+
+                    {account.is_default && (
+                      <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] font-bold flex items-center gap-1 shrink-0">
+                        <Star className="w-3 h-3 fill-amber-400" />
+                        Padrão
+                      </span>
+                    )}
                   </div>
 
                   {/* Saldo Atual */}
@@ -288,8 +267,9 @@ export function Accounts() {
                   <div>
                     {!account.is_default && (
                       <button
+                        type="button"
                         onClick={() => handleSetDefault(account)}
-                        className="text-xs font-semibold text-din-muted hover:text-amber-300 flex items-center gap-1 transition-colors min-h-[44px] sm:min-h-0 items-center"
+                        className="text-xs font-semibold text-din-muted hover:text-amber-300 flex items-center gap-1.5 transition-colors min-h-[44px] py-2 px-1 touch-manipulation"
                       >
                         <Star className="w-3.5 h-3.5" />
                         <span>Definir Padrão</span>
@@ -300,9 +280,9 @@ export function Accounts() {
                   <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="icon"
                       onClick={() => handleOpenEdit(account)}
-                      className="h-9 w-9 p-0 min-h-[44px] min-w-[44px] rounded-xl text-din-muted hover:text-din-text"
+                      className="rounded-xl text-din-muted hover:text-din-text"
                       title="Editar Conta"
                     >
                       <Edit2 className="w-4 h-4" />
@@ -310,10 +290,10 @@ export function Accounts() {
 
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="icon"
                       onClick={() => handleDelete(account)}
                       disabled={deletingId === account.id || accounts.length <= 1}
-                      className="h-9 w-9 p-0 min-h-[44px] min-w-[44px] rounded-xl text-din-muted hover:text-rose-500 hover:bg-rose-500/10"
+                      className="rounded-xl text-din-muted hover:text-rose-500 hover:bg-rose-500/10"
                       title="Excluir Conta"
                     >
                       <Trash2 className="w-4 h-4" />

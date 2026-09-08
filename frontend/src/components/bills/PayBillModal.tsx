@@ -4,8 +4,9 @@ import { Account, fetchAccounts } from '../../api/accounts';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { CurrencyInput } from '../ui/CurrencyInput';
 import { Landmark, CreditCard, Wallet, PiggyBank, Check, Calendar, AlertCircle } from 'lucide-react';
-import { formatCurrency, formatDate, formatDateToISO } from '../../lib/utils';
+import { formatCurrency, formatDate, formatDateToISO, formatCurrencyInput, parseCurrencyInput } from '../../lib/utils';
 
 interface PayBillModalProps {
   isOpen: boolean;
@@ -32,7 +33,7 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
     if (isOpen && bill) {
       setError(null);
       setPaidDate(formatDateToISO(new Date()));
-      setPaidAmount(bill.amount.toString());
+      setPaidAmount(formatCurrencyInput(bill.amount));
       loadAccounts();
     }
   }, [isOpen, bill]);
@@ -82,8 +83,8 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
       return;
     }
 
-    const numAmount = parseFloat(paidAmount.replace(',', '.'));
-    if (isNaN(numAmount) || numAmount <= 0) {
+    const numAmount = parseCurrencyInput(paidAmount);
+    if (numAmount <= 0) {
       setError('Informe um valor válido.');
       return;
     }
@@ -215,10 +216,8 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-din-text mb-1">Valor Pago (R$)</label>
-            <Input
-              type="number"
-              step="0.01"
+            <CurrencyInput
+              label="Valor Pago (R$)"
               value={paidAmount}
               onChange={(e) => setPaidAmount(e.target.value)}
               placeholder="0,00"
@@ -232,7 +231,7 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
           <div className="p-3 bg-card-secondary border border-border rounded-xl text-xs text-din-muted flex items-center space-x-2">
             <span className="text-din-primary font-semibold">ℹ️ Nota:</span>
             <span>
-              Uma despesa de <strong>{formatCurrency(parseFloat(paidAmount) || bill.amount)}</strong> será lançada no <strong>{selectedAccount.name}</strong> e o saldo será atualizado.
+              Uma despesa de <strong>{formatCurrency(parseCurrencyInput(paidAmount) || bill.amount)}</strong> será lançada no <strong>{selectedAccount.name}</strong> e o saldo será atualizado.
             </span>
           </div>
         )}

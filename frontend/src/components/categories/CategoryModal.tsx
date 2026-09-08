@@ -202,7 +202,7 @@ export function CategoryModal({ isOpen, onClose, onSuccess, categoryToEdit }: Ca
                 key={c}
                 type="button"
                 onClick={() => setColor(c)}
-                className="w-8 h-8 rounded-xl flex items-center justify-center transition-transform hover:scale-110 shadow-md min-h-[32px] min-w-[32px]"
+                className="w-9 h-9 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center transition-transform hover:scale-110 shadow-md min-h-[38px] min-w-[38px] touch-manipulation"
                 style={{ backgroundColor: c }}
               >
                 {color === c && <Check className="w-4 h-4 text-white drop-shadow-md" />}
@@ -222,7 +222,7 @@ export function CategoryModal({ isOpen, onClose, onSuccess, categoryToEdit }: Ca
                 key={iconName}
                 type="button"
                 onClick={() => setIcon(iconName)}
-                className={`p-2.5 rounded-xl flex items-center justify-center transition-all min-h-[44px] ${
+                className={`p-2.5 rounded-xl flex items-center justify-center transition-all min-h-[44px] touch-manipulation ${
                   icon === iconName
                     ? 'bg-din-primary text-white shadow-md shadow-din-primary/30'
                     : 'bg-card text-din-muted hover:text-din-text hover:bg-card-hover border border-border'
@@ -254,14 +254,14 @@ export function CategoryModal({ isOpen, onClose, onSuccess, categoryToEdit }: Ca
         {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
 
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
-          <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading} className="min-h-[44px]">
+          <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading} className="flex-1 sm:flex-initial min-h-[44px]">
             Cancelar
           </Button>
           <Button
             type="submit"
             variant="emerald"
             isLoading={isLoading}
-            className="min-h-[44px] px-6"
+            className="flex-1 sm:flex-initial min-h-[44px] px-6"
           >
             {isEditing ? 'Salvar Alterações' : 'Criar Categoria'}
           </Button>

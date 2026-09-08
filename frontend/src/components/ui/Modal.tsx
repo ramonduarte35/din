@@ -60,7 +60,9 @@ export function Modal({ isOpen, onClose, title, description, children, maxWidth 
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-din-muted hover:text-din-text hover:bg-card-hover transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+            className="p-2 rounded-xl text-din-muted hover:text-din-text hover:bg-card-hover transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0 touch-manipulation"
+            title="Fechar Modal"
+            aria-label="Fechar"
           >
             <X className="w-5 h-5" />
           </button>

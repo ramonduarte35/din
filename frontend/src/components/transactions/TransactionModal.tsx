@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
+import { CurrencyInput } from '../ui/CurrencyInput';
 import { Button } from '../ui/Button';
 import {
   createTransactionRequest,
@@ -12,7 +13,7 @@ import { getCategoriesRequest, Category } from '../../api/categories';
 import { getAccountsRequest, Account } from '../../api/accounts';
 import { enqueue } from '../../lib/offlineQueue';
 import { useToast } from '../../contexts/ToastContext';
-import { formatDateToISO } from '../../lib/utils';
+import { formatDateToISO, formatCurrencyInput, parseCurrencyInput } from '../../lib/utils';
 import {
   TrendingUp,
   TrendingDown,
@@ -54,7 +55,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
       if (transactionToEdit) {
         setType(transactionToEdit.type);
         setDescription(transactionToEdit.description);
-        setAmount(transactionToEdit.amount.toString());
+        setAmount(formatCurrencyInput(transactionToEdit.amount));
         setAccountId(transactionToEdit.account_id || '');
         setCategoryId(transactionToEdit.category_id || '');
         setDate(formatDateToISO(transactionToEdit.date));
@@ -103,8 +104,8 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
     e.preventDefault();
     setError(null);
 
-    const parsedAmount = parseFloat(amount.replace(',', '.'));
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+    const parsedAmount = parseCurrencyInput(amount);
+    if (parsedAmount <= 0) {
       setError('Informe um valor válido e positivo.');
       return;
     }
@@ -246,14 +247,14 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
       <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
         {/* Toggle Tipo: Despesa vs Receita vs Transferência */}
         {!isEditing && (
-          <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-card-secondary border border-border min-h-[44px]">
+          <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-card-secondary border border-border min-h-[48px]">
             <button
               type="button"
               onClick={() => {
                 setType('EXPENSE');
                 setCategoryId('');
               }}
-              className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all min-h-[40px] ${
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all min-h-[44px] touch-manipulation ${
                 type === 'EXPENSE'
                   ? 'bg-rose-500 text-white shadow-md shadow-rose-500/25'
                   : 'text-din-muted hover:text-din-text'
@@ -268,7 +269,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
                 setType('INCOME');
                 setCategoryId('');
               }}
-              className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all min-h-[40px] ${
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all min-h-[44px] touch-manipulation ${
                 type === 'INCOME'
                   ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25'
                   : 'text-din-muted hover:text-din-text'
@@ -283,14 +284,14 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
                 setType('TRANSFER');
                 setCategoryId('');
               }}
-              className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all min-h-[40px] ${
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all min-h-[44px] touch-manipulation ${
                 type === 'TRANSFER'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
                   : 'text-din-muted hover:text-din-text'
               }`}
             >
               <ArrowLeftRight className="w-3.5 h-3.5" />
-              <span>Transferir</span>
+              <span>Transf.</span>
             </button>
           </div>
         )}
@@ -312,15 +313,11 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Valor */}
-          <Input
+          <CurrencyInput
             label="Valor (R$)"
-            type="number"
-            step="0.01"
-            min="0.01"
             placeholder="0,00"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            icon={<DollarSign className="w-4 h-4" />}
             required
             className="h-11 text-sm"
           />
@@ -440,14 +437,14 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
         {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
 
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
-          <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading} className="min-h-[44px]">
+          <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading} className="flex-1 sm:flex-initial min-h-[44px]">
             Cancelar
           </Button>
           <Button
             type="submit"
             variant={type === 'EXPENSE' ? 'danger' : type === 'INCOME' ? 'emerald' : 'primary'}
             isLoading={isLoading}
-            className="min-h-[44px] px-6"
+            className="flex-1 sm:flex-initial min-h-[44px] px-6"
           >
             {isEditing
               ? 'Salvar Alterações'

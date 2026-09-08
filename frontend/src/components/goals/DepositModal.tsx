@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
+import { CurrencyInput } from '../ui/CurrencyInput';
 import { Button } from '../ui/Button';
 import { Goal, depositGoalRequest } from '../../api/goals';
 import { useToast } from '../../contexts/ToastContext';
 import { usePrivacy } from '../../contexts/PrivacyContext';
 import { DollarSign, PiggyBank, Plus } from 'lucide-react';
+import { formatCurrencyInput, parseCurrencyInput } from '../../lib/utils';
 
 interface DepositModalProps {
   isOpen: boolean;
@@ -25,14 +27,14 @@ export function DepositModal({ isOpen, onClose, onSuccess, goal }: DepositModalP
   if (!goal) return null;
 
   const handleQuickAdd = (value: number) => {
-    setAmount(value.toString());
+    setAmount(formatCurrencyInput(value));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsedAmount = parseFloat(amount.replace(',', '.'));
+    const parsedAmount = parseCurrencyInput(amount);
 
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+    if (parsedAmount <= 0) {
       setError('Informe um valor de aporte positivo.');
       return;
     }
@@ -77,7 +79,7 @@ export function DepositModal({ isOpen, onClose, onSuccess, goal }: DepositModalP
                 key={val}
                 type="button"
                 onClick={() => handleQuickAdd(val)}
-                className="py-2 px-3 rounded-xl bg-card-secondary hover:bg-card-hover border border-border text-xs font-bold text-din-text hover:text-emerald-400 transition-all min-h-[40px]"
+                className="py-2 px-1 sm:px-3 rounded-xl bg-card-secondary hover:bg-card-hover border border-border text-xs font-bold text-din-text hover:text-emerald-400 transition-all min-h-[44px] touch-manipulation flex items-center justify-center"
               >
                 +{maskValue(val)}
               </button>
@@ -86,15 +88,11 @@ export function DepositModal({ isOpen, onClose, onSuccess, goal }: DepositModalP
         </div>
 
         {/* Input de Valor Customizado */}
-        <Input
+        <CurrencyInput
           label="Valor do Aporte (R$)"
-          type="number"
-          step="0.01"
-          min="0.01"
           placeholder="0,00"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          icon={<DollarSign className="w-4 h-4" />}
           required
           className="h-12 text-base font-bold font-mono"
         />
@@ -102,14 +100,14 @@ export function DepositModal({ isOpen, onClose, onSuccess, goal }: DepositModalP
         {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
 
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
-          <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading} className="min-h-[44px]">
+          <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading} className="flex-1 sm:flex-initial min-h-[44px]">
             Cancelar
           </Button>
           <Button
             type="submit"
             variant="emerald"
             isLoading={isLoading}
-            className="min-h-[44px] px-6"
+            className="flex-1 sm:flex-initial min-h-[44px] px-6"
           >
             <Plus className="w-4 h-4 mr-1.5" />
             Confirmar Aporte

@@ -2303,7 +2303,7 @@ export function AdminWhatsApp() {
                   <p className="text-[11px] text-slate-400">{selectedInstance?.label}</p>
                 </div>
               </div>
-              <button onClick={handleCloseQrModal} className="p-1 rounded-lg text-slate-400 hover:text-white">
+              <button onClick={handleCloseQrModal} className="p-2.5 rounded-xl text-slate-400 hover:text-white min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation" title="Fechar">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -2368,7 +2368,7 @@ export function AdminWhatsApp() {
 
             {/* Modal Footer */}
             <div className="pt-3 border-t border-slate-800 flex justify-end">
-              <Button variant="outline" size="sm" onClick={handleCloseQrModal}>
+              <Button variant="outline" size="sm" onClick={handleCloseQrModal} className="w-full sm:w-auto min-h-[44px]">
                 Fechar
               </Button>
             </div>
@@ -2389,7 +2389,7 @@ export function AdminWhatsApp() {
                 </div>
                 <h3 className="text-base font-bold text-white">Criar Nova Instância WhatsApp</h3>
               </div>
-              <button onClick={() => setIsCreateModalOpen(false)} className="p-1 rounded-lg text-slate-400 hover:text-white">
+              <button onClick={() => setIsCreateModalOpen(false)} className="p-2.5 rounded-xl text-slate-400 hover:text-white min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation" title="Fechar">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -2447,10 +2447,10 @@ export function AdminWhatsApp() {
               </div>
 
               <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => setIsCreateModalOpen(false)}>
+                <Button type="button" variant="outline" size="sm" onClick={() => setIsCreateModalOpen(false)} className="flex-1 sm:flex-initial min-h-[44px]">
                   Cancelar
                 </Button>
-                <Button type="submit" size="sm" disabled={formSubmitting} className="bg-emerald-500 text-slate-950 font-bold">
+                <Button type="submit" size="sm" disabled={formSubmitting} className="flex-1 sm:flex-initial min-h-[44px] bg-emerald-500 text-slate-950 font-bold">
                   {formSubmitting ? 'Criando...' : 'Criar Instância'}
                 </Button>
               </div>
@@ -2475,7 +2475,7 @@ export function AdminWhatsApp() {
                   <p className="text-[11px] text-slate-400 font-mono">{selectedInstance.instance_name}</p>
                 </div>
               </div>
-              <button onClick={() => setIsEditModalOpen(false)} className="p-1 rounded-lg text-slate-400 hover:text-white">
+              <button onClick={() => setIsEditModalOpen(false)} className="p-2.5 rounded-xl text-slate-400 hover:text-white min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation" title="Fechar">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -2517,10 +2517,10 @@ export function AdminWhatsApp() {
               </div>
 
               <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => setIsEditModalOpen(false)}>
+                <Button type="button" variant="outline" size="sm" onClick={() => setIsEditModalOpen(false)} className="flex-1 sm:flex-initial min-h-[44px]">
                   Cancelar
                 </Button>
-                <Button type="submit" size="sm" disabled={formSubmitting} className="bg-emerald-500 text-slate-950 font-bold">
+                <Button type="submit" size="sm" disabled={formSubmitting} className="flex-1 sm:flex-initial min-h-[44px] bg-emerald-500 text-slate-950 font-bold">
                   {formSubmitting ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
               </div>
