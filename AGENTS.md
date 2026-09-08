@@ -37,3 +37,10 @@ Este arquivo contém as diretrizes mandatórias de desenvolvimento para este rep
 - **NÃO SE DEVE injetar dados de usuários demo, transações fictícias ou contas fake via seeds ou migrations.**
 - Os seeds (`prisma/seed.ts`) e migrations devem conter única e exclusivamente as categorias globais padrão (`user_id: null`) e o usuário Administrador definido no `.env`.
 - Novos usuários devem se cadastrar de forma limpa e orgânica através da tela de cadastro (`/register`).
+
+---
+
+## 🚫 5. Nunca Verificar nem Inspecionar Pastas node_modules
+- **É terminantemente proibido ler, listar, auditar, buscar (`grep`), inspecionar ou verificar qualquer conteúdo dentro de diretórios `node_modules` no projeto Din (seja na raiz, em `frontend/node_modules` ou em `backend/node_modules`).**
+- Todas as operações de busca e auditoria de código/segurança devem focar estritamente no código fonte proprietário da aplicação (`src/`, `prisma/`, configurações na raiz, etc.).
+
