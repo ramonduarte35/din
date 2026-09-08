@@ -14,6 +14,7 @@ import { TableSkeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
 import { BillModal } from '../components/bills/BillModal';
 import { PayBillModal } from '../components/bills/PayBillModal';
+import { AdSenseBanner } from '../components/ads/AdSenseBanner';
 import { useConfirm } from '../contexts/ConfirmContext';
 import { useToast } from '../contexts/ToastContext';
 import { usePrivacy } from '../contexts/PrivacyContext';
@@ -605,6 +606,8 @@ export const Bills: React.FC = () => {
               </Card>
             );
           })}
+          
+          <AdSenseBanner format="horizontal" className="mt-6" />
         </div>
       )}
 

@@ -192,6 +192,17 @@ export function Login() {
             </NavLink>
           </div>
         </div>
+
+        {/* Footer Legal Links */}
+        <div className="mt-6 text-center text-[11px] text-din-muted/70 flex items-center justify-center gap-3">
+          <NavLink to="/terms" className="hover:text-din-text hover:underline py-1">
+            Termos de Uso
+          </NavLink>
+          <span>•</span>
+          <NavLink to="/privacy" className="hover:text-din-text hover:underline py-1">
+            Política de Privacidade
+          </NavLink>
+        </div>
       </div>
     </div>
   );

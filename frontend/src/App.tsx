@@ -22,6 +22,8 @@ const Profile = lazy(() => import('./pages/Profile').then((m) => ({ default: m.P
 const Simulator = lazy(() => import('./pages/Simulator').then((m) => ({ default: m.Simulator })));
 const AdminWhatsApp = lazy(() => import('./pages/AdminWhatsApp').then((m) => ({ default: m.AdminWhatsApp })));
 const AccessDenied = lazy(() => import('./pages/AccessDenied').then((m) => ({ default: m.AccessDenied })));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy })));
+const TermsOfUse = lazy(() => import('./pages/TermsOfUse').then((m) => ({ default: m.TermsOfUse })));
 const NotFound = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
 
 function PageLoader() {
@@ -161,7 +163,11 @@ export function App() {
                       />
                     </Route>
 
-                    <Route path="/access-denied" element={<AccessDenied />} />
+                    {/* Compliance & Public Information Routes */}
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/politica-de-privacidade" element={<Navigate to="/privacy" replace />} />
+                    <Route path="/terms" element={<TermsOfUse />} />
+                    <Route path="/termos-de-uso" element={<Navigate to="/terms" replace />} />
 
                     {/* 404 Fallback */}
                     <Route path="*" element={<NotFound />} />
