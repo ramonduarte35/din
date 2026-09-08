@@ -6,13 +6,14 @@ import {
   updateBudgetSchema,
   copyBudgetsSchema,
 } from './budgets.schemas.js';
+import { getUserId } from '../../middleware/auth.middleware.js';
 
 const budgetsService = new BudgetsService();
 
 export class BudgetsController {
   async list(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const userId = request.user.userId;
+      const userId = getUserId(request);
       const query = listBudgetsQuerySchema.parse(request.query);
       const result = await budgetsService.getMonthlyBudgets(userId, query.month, query.year);
       return reply.status(200).send(result);
@@ -27,7 +28,7 @@ export class BudgetsController {
 
   async upsert(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const userId = request.user.userId;
+      const userId = getUserId(request);
       const data = upsertBudgetSchema.parse(request.body);
       const result = await budgetsService.upsertBudget(userId, data);
       return reply.status(200).send(result);
@@ -42,7 +43,7 @@ export class BudgetsController {
 
   async update(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
     try {
-      const userId = request.user.userId;
+      const userId = getUserId(request);
       const { id } = request.params;
       const data = updateBudgetSchema.parse(request.body);
       const result = await budgetsService.updateBudget(userId, id, data);
@@ -58,7 +59,7 @@ export class BudgetsController {
 
   async delete(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
     try {
-      const userId = request.user.userId;
+      const userId = getUserId(request);
       const { id } = request.params;
       const result = await budgetsService.deleteBudget(userId, id);
       return reply.status(200).send(result);
@@ -73,7 +74,7 @@ export class BudgetsController {
 
   async copyPrevious(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const userId = request.user.userId;
+      const userId = getUserId(request);
       const data = copyBudgetsSchema.parse(request.body);
       const result = await budgetsService.copyFromPreviousMonth(userId, data);
       return reply.status(200).send(result);

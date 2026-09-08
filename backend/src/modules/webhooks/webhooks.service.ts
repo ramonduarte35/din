@@ -1221,7 +1221,7 @@ export class WebhooksService {
         category_id: category?.id,
         barcode: billData.barcode,
         notes: billData.notes,
-        total_installments: billData.total_installments,
+        total_installments: billData.total_installments ?? 1,
       });
 
       const formattedDate = formatDateBR(createdBill.due_date);
