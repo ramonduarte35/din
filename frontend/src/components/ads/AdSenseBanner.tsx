@@ -24,13 +24,13 @@ export const AdSenseBanner: React.FC<AdSenseBannerProps> = ({
   const adRef = useRef<HTMLModElement | null>(null);
   const isLoaded = useRef(false);
 
-  // Se o usuário for PRO, nenhuma publicidade é exibida (experiência 100% livre de anúncios)
-  if (user?.subscription_tier === 'PRO') {
-    return null;
-  }
-
   const clientId = import.meta.env.VITE_ADSENSE_CLIENT_ID || 'ca-pub-0000000000000000';
   const isProduction = import.meta.env.PROD && !clientId.includes('0000000000000000');
+
+  // Em produção com AdSense ativo, assinantes PRO navegam 100% livres de anúncios
+  if (isProduction && user?.subscription_tier === 'PRO') {
+    return null;
+  }
 
   useEffect(() => {
     if (!isProduction) return;

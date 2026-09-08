@@ -82,7 +82,7 @@ export function TransactionTable({
             {transactions.map((tx, index) => {
               const isIncome = tx.type === 'INCOME';
               const isWhatsApp = tx.origin.startsWith('WHATSAPP');
-              const showAdAfter = (index + 1) % 6 === 0 && index !== transactions.length - 1;
+              const showAdAfter = (index + 1) % 4 === 0 && index !== transactions.length - 1;
 
               return (
                 <React.Fragment key={tx.id}>
@@ -227,7 +227,7 @@ export function TransactionTable({
         {transactions.map((tx, index) => {
           const isIncome = tx.type === 'INCOME';
           const isWhatsApp = tx.origin.startsWith('WHATSAPP');
-          const showAdAfter = (index + 1) % 6 === 0 && index !== transactions.length - 1;
+          const showAdAfter = (index + 1) % 4 === 0 && index !== transactions.length - 1;
 
           return (
             <React.Fragment key={tx.id}>
@@ -336,6 +336,11 @@ export function TransactionTable({
           );
         })}
       </div>
+
+      {/* Banner de rodapé da listagem quando há poucas transações para intercalar */}
+      {transactions.length > 0 && transactions.length < 4 && (
+        <AdSenseBanner format="horizontal" className="my-2" />
+      )}
 
       {/* Paginação */}
       {pagination.totalPages > 1 && (
