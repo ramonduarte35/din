@@ -285,20 +285,20 @@ export const Bills: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-din-muted">
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                  <span className="text-xs font-bold uppercase tracking-wider text-din-muted whitespace-nowrap">
                     Progresso de Quitação do Mês
                   </span>
                   {isAllPaid ? (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap inline-flex items-center shrink-0">
                       100% Liquidado 🎉
                     </span>
                   ) : hasOverdue ? (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 whitespace-nowrap inline-flex items-center shrink-0">
                       Atenção: Vencimentos Pendentes
                     </span>
                   ) : (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 whitespace-nowrap inline-flex items-center shrink-0">
                       Em Andamento
                     </span>
                   )}
@@ -308,11 +308,11 @@ export const Bills: React.FC = () => {
                 </p>
               </div>
 
-              <div className="text-left sm:text-right">
-                <span className="text-2xl sm:text-3xl font-black font-mono text-din-text">
+              <div className="text-left sm:text-right shrink-0">
+                <span className="text-2xl sm:text-3xl font-black font-mono text-din-text whitespace-nowrap">
                   {percentPaidAmount}%
                 </span>
-                <span className="text-xs text-din-muted block">do valor total liquidado</span>
+                <span className="text-xs text-din-muted block whitespace-nowrap">do valor total liquidado</span>
               </div>
             </div>
 
@@ -335,26 +335,26 @@ export const Bills: React.FC = () => {
             </div>
 
             {/* Legenda visual mobile friendly */}
-            <div className="flex flex-wrap items-center justify-between gap-2 mt-3 text-xs text-din-muted">
-              <div className="flex items-center gap-4 flex-wrap">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-3 text-xs text-din-muted">
+              <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+                <span className="flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block shrink-0" />
                   <span>Pagas: <strong className="text-din-text">{maskValue(paidAmount)}</strong></span>
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
+                <span className="flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block shrink-0" />
                   <span>A Vencer: <strong className="text-din-text">{maskValue(pendingAmount)}</strong></span>
                 </span>
                 {overdueAmount > 0 && (
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" />
+                  <span className="flex items-center gap-1.5 whitespace-nowrap">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block shrink-0" />
                     <span>Vencidas: <strong className="text-rose-400">{maskValue(overdueAmount)}</strong></span>
                   </span>
                 )}
               </div>
 
               {pendingAmount > 0 && (
-                <span className="text-amber-400 font-medium">
+                <span className="text-amber-400 font-medium whitespace-nowrap">
                   Faltam {maskValue(pendingAmount + overdueAmount)} para quitar o mês
                 </span>
               )}

@@ -203,7 +203,7 @@ export function Goals() {
       </div>
 
       {/* Filtros de Abas */}
-      <div className="flex items-center space-x-2 border-b border-border pb-3">
+      <div className="flex items-center space-x-2 border-b border-border pb-3 overflow-x-auto no-scrollbar">
         {[
           { key: 'ALL', label: `Todas (${goals.length})` },
           { key: 'ACTIVE', label: `Em Andamento (${goals.length - completedCount})` },
@@ -211,8 +211,9 @@ export function Goals() {
         ].map((tab) => (
           <button
             key={tab.key}
+            type="button"
             onClick={() => setActiveTab(tab.key as any)}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all min-h-[40px] ${
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all min-h-[44px] sm:min-h-[40px] whitespace-nowrap shrink-0 touch-manipulation ${
               activeTab === tab.key
                 ? 'bg-din-primary text-white font-bold shadow-md shadow-din-primary/20'
                 : 'bg-card-secondary text-din-muted hover:text-din-text hover:bg-card-hover'
