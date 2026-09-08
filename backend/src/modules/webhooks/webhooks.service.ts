@@ -34,11 +34,12 @@ export class WebhooksService {
     instance: string,
     recipientNumber: string,
     message: string,
-    options?: { reply_markup?: any }
+    options?: { reply_markup?: any; parse_mode?: 'HTML' | 'Markdown' | 'MarkdownV2' }
   ): Promise<boolean> {
     if (instance.startsWith('telegram:')) {
       return await telegramClient.sendMessage(recipientNumber, message, {
         reply_markup: options?.reply_markup,
+        parse_mode: options?.parse_mode || 'Markdown',
       });
     }
     if (instance.startsWith('meta:')) {

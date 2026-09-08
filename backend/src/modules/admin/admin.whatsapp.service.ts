@@ -411,7 +411,7 @@ export class AdminWhatsAppService {
 
   async setTelegramWebhook(data?: SetTelegramWebhookInput) {
     const config = await this.getProviderConfig();
-    const token = data?.telegram_bot_token || config.telegram_bot_token || undefined;
+    const token = data?.telegram_bot_token || config.telegram_bot_token || process.env.TELEGRAM_BOT_TOKEN || undefined;
     const webhookUrl = data?.webhook_url;
 
     if (!webhookUrl) {
@@ -424,7 +424,8 @@ export class AdminWhatsAppService {
 
   async getTelegramStatus() {
     const config = await this.getProviderConfig();
-    if (!config.telegram_bot_token) {
+    const token = config.telegram_bot_token || process.env.TELEGRAM_BOT_TOKEN;
+    if (!token) {
       return {
         success: false,
         is_active: false,
@@ -432,14 +433,14 @@ export class AdminWhatsAppService {
       };
     }
 
-    const botRes = await telegramClient.getMe(config.telegram_bot_token);
-    const webhookRes = await telegramClient.getWebhookInfo(config.telegram_bot_token);
+    const botRes = await telegramClient.getMe(token);
+    const webhookRes = await telegramClient.getWebhookInfo(token);
 
     return {
       success: botRes.success,
       bot: botRes.bot,
       webhook: webhookRes.webhook,
-      is_active: config.telegram_is_active,
+      is_active: config.telegram_is_active || (!!token && botRes.success),
       error: botRes.error || webhookRes.error,
     };
   }

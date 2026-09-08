@@ -50,7 +50,13 @@ export class TelegramClient {
       return token.trim();
     }
     const config = await this.getConfig();
-    return config?.telegram_bot_token?.trim() || null;
+    if (config?.telegram_bot_token && config.telegram_bot_token.trim()) {
+      return config.telegram_bot_token.trim();
+    }
+    if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_BOT_TOKEN.trim()) {
+      return process.env.TELEGRAM_BOT_TOKEN.trim();
+    }
+    return null;
   }
 
   /**
@@ -214,16 +220,40 @@ export class TelegramClient {
       }
 
       console.log(`📤 [Telegram Client] Enviando mensagem para ChatID "${chatId}"...`);
-      const response = await axios.post(url, payload, {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 15000,
-      });
+      try {
+        const response = await axios.post(url, payload, {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 15000,
+        });
 
-      if (response.data?.ok) {
-        console.log(`✅ [Telegram Client] Mensagem enviada com sucesso para ${chatId}`);
-        return true;
+        if (response.data?.ok) {
+          console.log(`✅ [Telegram Client] Mensagem enviada com sucesso para ${chatId}`);
+          return true;
+        }
+        return false;
+      } catch (postErr: any) {
+        const errorDesc = postErr.response?.data?.description || postErr.message;
+        const isParseError =
+          payload.parse_mode &&
+          (postErr.response?.status === 400 ||
+            errorDesc?.toLowerCase().includes('entity') ||
+            errorDesc?.toLowerCase().includes('parse') ||
+            errorDesc?.toLowerCase().includes('tag'));
+
+        if (isParseError) {
+          console.warn(`⚠️ [Telegram Client] Erro de formatação (${errorDesc}). Reenviando como texto simples...`);
+          delete payload.parse_mode;
+          const retryRes = await axios.post(url, payload, {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 15000,
+          });
+          if (retryRes.data?.ok) {
+            console.log(`✅ [Telegram Client] Mensagem de texto simples entregue com sucesso para ${chatId}`);
+            return true;
+          }
+        }
+        throw postErr;
       }
-      return false;
     } catch (err: any) {
       console.error('❌ [Telegram Client] Erro ao enviar mensagem:', err.response?.data || err.message);
       return false;
