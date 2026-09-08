@@ -1,6 +1,7 @@
 import { BillStatus, TransactionType, TransactionOrigin, Prisma } from '@prisma/client';
 import { CreateBillInput, UpdateBillInput, PayBillInput, ListBillsQueryInput } from './bills.schemas.js';
 import { prisma } from '../../lib/prisma.js';
+import { getDiffDays } from '../../utils/date.js';
 
 
 export class BillsService {
@@ -111,16 +112,12 @@ export class BillsService {
       }),
     ]);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     // Mapear contas com status dinâmico para OVERDUE se estiverem vencidas e pendentes
     const formattedBills = bills.map((bill) => {
       let currentStatus = bill.status;
-      const billDueDate = new Date(bill.due_date);
-      billDueDate.setHours(0, 0, 0, 0);
+      const diffDays = getDiffDays(bill.due_date);
 
-      if (bill.status === BillStatus.PENDING && billDueDate < today) {
+      if (bill.status === BillStatus.PENDING && diffDays < 0) {
         currentStatus = BillStatus.OVERDUE;
       }
 
@@ -186,8 +183,7 @@ export class BillsService {
 
     for (const bill of allBills) {
       const amount = Number(bill.amount);
-      const billDueDate = new Date(bill.due_date);
-      billDueDate.setHours(0, 0, 0, 0);
+      const diffDays = getDiffDays(bill.due_date);
 
       if (bill.status === BillStatus.PAID) {
         // Apenas soma pagas do mês selecionado
@@ -196,14 +192,14 @@ export class BillsService {
           totalPaidCount++;
         }
       } else if (bill.status === BillStatus.PENDING) {
-        if (billDueDate < today) {
+        if (diffDays < 0) {
           totalOverdueAmount += amount;
           totalOverdueCount++;
         } else {
           totalPendingAmount += amount;
           totalPendingCount++;
 
-          if (billDueDate >= today && billDueDate <= in7Days) {
+          if (diffDays >= 0 && diffDays <= 7) {
             upcomingBills.push({
               ...bill,
               amount,
@@ -250,13 +246,9 @@ export class BillsService {
       throw new Error('Conta a pagar não encontrada');
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const billDueDate = new Date(bill.due_date);
-    billDueDate.setHours(0, 0, 0, 0);
-
     let currentStatus = bill.status;
-    if (bill.status === BillStatus.PENDING && billDueDate < today) {
+    const diffDays = getDiffDays(bill.due_date);
+    if (bill.status === BillStatus.PENDING && diffDays < 0) {
       currentStatus = BillStatus.OVERDUE;
     }
 

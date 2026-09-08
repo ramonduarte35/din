@@ -3,6 +3,7 @@ import { TransactionsSummary } from '../../api/transactions';
 import { Account } from '../../api/accounts';
 import { Button } from '../ui/Button';
 import { Printer, Download, X, Sparkles, TrendingUp, TrendingDown, DollarSign, Wallet, Calendar, ShieldCheck, Tag } from 'lucide-react';
+import { formatDate } from '../../lib/utils';
 
 interface FinancialReportModalProps {
   isOpen: boolean;
@@ -250,7 +251,7 @@ export function FinancialReportModal({
                   </thead>
                   <tbody className="divide-y divide-border/60">
                     {summary.recent_transactions.slice(0, 10).map((t) => {
-                      const d = new Date(t.date).toLocaleDateString('pt-BR');
+                      const d = formatDate(t.date);
                       const isIncome = t.type === 'INCOME';
                       return (
                         <tr key={t.id} className="hover:bg-card-hover/30">

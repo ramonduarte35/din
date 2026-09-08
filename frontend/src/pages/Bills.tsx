@@ -17,6 +17,7 @@ import { PayBillModal } from '../components/bills/PayBillModal';
 import { useConfirm } from '../contexts/ConfirmContext';
 import { useToast } from '../contexts/ToastContext';
 import { usePrivacy } from '../contexts/PrivacyContext';
+import { formatDate, getDiffDays } from '../lib/utils';
 import {
   CalendarClock,
   Plus,
@@ -438,11 +439,7 @@ export const Bills: React.FC = () => {
       ) : (
         <div className="space-y-3">
           {bills.map((bill) => {
-            const dueDate = new Date(bill.due_date);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            dueDate.setHours(0, 0, 0, 0);
-            const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            const diffDays = getDiffDays(bill.due_date);
 
             const isPaid = bill.status === 'PAID';
             const isOverdue = !isPaid && diffDays < 0;
@@ -502,7 +499,7 @@ export const Bills: React.FC = () => {
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-din-muted">
                         <span className="flex items-center space-x-1">
                           <Calendar className="w-3.5 h-3.5 text-din-muted" />
-                          <span>Vencimento: {new Date(bill.due_date).toLocaleDateString('pt-BR')}</span>
+                          <span>Vencimento: {formatDate(bill.due_date)}</span>
                         </span>
 
                         {bill.category && (

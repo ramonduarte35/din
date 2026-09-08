@@ -1,6 +1,7 @@
 import { prisma } from '../../lib/prisma.js';
 import { redis } from '../../lib/redis.js';
 import { formatBRL } from '../../utils/currency.js';
+import { formatDateBR, getDiffDays } from '../../utils/date.js';
 import { telegramClient } from '../telegram/telegram.client.js';
 import { metaClient } from '../meta-whatsapp/meta.client.js';
 import { evolutionClient } from './../webhooks/evolution.client.js';
@@ -59,14 +60,11 @@ export class BillsNotificationService {
     const dueToday: typeof bills = [];
     const upcoming: typeof bills = [];
 
-    const todayEnd = new Date(today);
-    todayEnd.setHours(23, 59, 59, 999);
-
     for (const bill of bills) {
-      const dueDate = new Date(bill.due_date);
-      if (dueDate < today) {
+      const diffDays = getDiffDays(bill.due_date);
+      if (diffDays < 0) {
         overdue.push(bill);
-      } else if (dueDate <= todayEnd) {
+      } else if (diffDays === 0) {
         dueToday.push(bill);
       } else {
         upcoming.push(bill);
@@ -96,7 +94,7 @@ export class BillsNotificationService {
     if (overdue.length > 0) {
       msg += `⚠️ *VENCIDAS / EM ATRASO:*\n`;
       for (const bill of overdue) {
-        const d = new Date(bill.due_date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        const d = formatDateBR(bill.due_date);
         msg += `• ${bill.description} — *${formatBRL(Number(bill.amount))}* (venceu em ${d})\n`;
       }
       msg += `\n`;
@@ -113,7 +111,7 @@ export class BillsNotificationService {
     if (upcoming.length > 0) {
       msg += `⏳ *PRÓXIMOS DIAS:*\n`;
       for (const bill of upcoming) {
-        const d = new Date(bill.due_date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        const d = formatDateBR(bill.due_date);
         msg += `• ${bill.description} — *${formatBRL(Number(bill.amount))}* (${d})\n`;
       }
       msg += `\n`;

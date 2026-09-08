@@ -18,6 +18,22 @@ export function formatCurrency(value: number | string | null | undefined): strin
 
 export function formatDate(dateString: string | Date | null | undefined): string {
   if (!dateString) return '-';
+
+  if (typeof dateString === 'string') {
+    const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      const [, year, month, day] = match;
+      return `${day}/${month}/${year}`;
+    }
+  }
+
+  if (dateString instanceof Date) {
+    const d = String(dateString.getDate()).padStart(2, '0');
+    const m = String(dateString.getMonth() + 1).padStart(2, '0');
+    const y = dateString.getFullYear();
+    return `${d}/${m}/${y}`;
+  }
+
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return '-';
 
@@ -26,6 +42,59 @@ export function formatDate(dateString: string | Date | null | undefined): string
     month: '2-digit',
     year: 'numeric',
   }).format(date);
+}
+
+/**
+ * Converte data para formato YYYY-MM-DD no calendário local para inputs type="date"
+ */
+export function formatDateToISO(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return '';
+
+  if (typeof dateInput === 'string') {
+    const match = dateInput.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      return `${match[1]}-${match[2]}-${match[3]}`;
+    }
+  }
+
+  const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  if (isNaN(date.getTime())) return '';
+
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * Faz parse de data retornando um Date local no início do dia (00:00:00)
+ */
+export function parseDate(dateInput: string | Date | null | undefined): Date | null {
+  if (!dateInput) return null;
+
+  if (typeof dateInput === 'string') {
+    const match = dateInput.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      const [, y, m, d] = match;
+      return new Date(Number(y), Number(m) - 1, Number(d), 0, 0, 0, 0);
+    }
+  }
+
+  const d = dateInput instanceof Date ? dateInput : new Date(dateInput);
+  if (isNaN(d.getTime())) return null;
+
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+}
+
+/**
+ * Calcula a diferença em dias entre a data alvo e a data de hoje
+ */
+export function getDiffDays(dateInput: string | Date | null | undefined): number {
+  const targetDate = parseDate(dateInput);
+  if (!targetDate) return 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 export function formatDateTime(dateString: string | Date | null | undefined): string {

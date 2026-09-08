@@ -14,6 +14,7 @@ import { Plus, Download } from 'lucide-react';
 import { useLayout } from '../components/layout/AppLayout';
 import { useConfirm } from '../contexts/ConfirmContext';
 import { useToast } from '../contexts/ToastContext';
+import { formatDate, formatDateToISO } from '../lib/utils';
 
 export function Transactions() {
   const { openNewTransactionModal, refreshKey, triggerRefresh } = useLayout();
@@ -119,7 +120,7 @@ export function Transactions() {
           : t.origin === 'TELEGRAM_AUDIO' ? 'Telegram (Áudio)'
           : 'Manual';
         return [
-          new Date(t.date).toLocaleDateString('pt-BR'),
+          formatDate(t.date),
           `"${(t.description || '').replace(/"/g, '""')}"`,
           t.type === 'INCOME' ? 'Receita' : 'Despesa',
           t.amount.toFixed(2).replace('.', ','),
@@ -134,7 +135,7 @@ export function Transactions() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `extrato_din_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `extrato_din_${formatDateToISO(new Date())}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

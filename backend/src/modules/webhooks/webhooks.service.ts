@@ -6,6 +6,7 @@ import { metaClient } from '../meta-whatsapp/meta.client.js';
 import { telegramClient } from '../telegram/telegram.client.js';
 import { normalizePhoneNumber, formatPhoneNumberDisplay } from '../../utils/phone.js';
 import { formatBRL, parseCurrencyInput, extractAmountFromText } from '../../utils/currency.js';
+import { formatDateBR, getDiffDays } from '../../utils/date.js';
 import {
   AIExtractionResponse,
   AIExtractedBill,
@@ -1219,13 +1220,8 @@ export class WebhooksService {
         notes: billData.notes,
       });
 
-      const dueDateObj = new Date(createdBill.due_date);
-      const formattedDate = dueDateObj.toLocaleDateString('pt-BR');
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const diffTime = dueDateObj.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const formattedDate = formatDateBR(createdBill.due_date);
+      const diffDays = getDiffDays(createdBill.due_date);
 
       let daysNotice = '';
       if (diffDays === 0) daysNotice = '(Vence hoje!)';
@@ -1278,13 +1274,9 @@ export class WebhooksService {
       const overdueList: string[] = [];
       const upcomingList: string[] = [];
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
       for (const bill of pendingBills) {
-        const dDate = new Date(bill.due_date);
-        const formattedDate = dDate.toLocaleDateString('pt-BR');
-        const diffDays = Math.ceil((dDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const formattedDate = formatDateBR(bill.due_date);
+        const diffDays = getDiffDays(bill.due_date);
 
         if (diffDays < 0) {
           overdueList.push(

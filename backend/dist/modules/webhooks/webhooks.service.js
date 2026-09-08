@@ -9,6 +9,7 @@ const meta_client_js_1 = require("../meta-whatsapp/meta.client.js");
 const telegram_client_js_1 = require("../telegram/telegram.client.js");
 const phone_js_1 = require("../../utils/phone.js");
 const currency_js_1 = require("../../utils/currency.js");
+const date_js_1 = require("../../utils/date.js");
 const webhooks_schemas_js_1 = require("./webhooks.schemas.js");
 const client_1 = require("@prisma/client");
 const bills_service_js_1 = require("../bills/bills.service.js");
@@ -1040,12 +1041,8 @@ class WebhooksService {
                 barcode: billData.barcode,
                 notes: billData.notes,
             });
-            const dueDateObj = new Date(createdBill.due_date);
-            const formattedDate = dueDateObj.toLocaleDateString('pt-BR');
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const diffTime = dueDateObj.getTime() - today.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const formattedDate = (0, date_js_1.formatDateBR)(createdBill.due_date);
+            const diffDays = (0, date_js_1.getDiffDays)(createdBill.due_date);
             let daysNotice = '';
             if (diffDays === 0)
                 daysNotice = '(Vence hoje!)';
@@ -1087,12 +1084,9 @@ class WebhooksService {
             }
             const overdueList = [];
             const upcomingList = [];
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
             for (const bill of pendingBills) {
-                const dDate = new Date(bill.due_date);
-                const formattedDate = dDate.toLocaleDateString('pt-BR');
-                const diffDays = Math.ceil((dDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                const formattedDate = (0, date_js_1.formatDateBR)(bill.due_date);
+                const diffDays = (0, date_js_1.getDiffDays)(bill.due_date);
                 if (diffDays < 0) {
                     overdueList.push(`⚠️ *${bill.description}*\n` +
                         `   💵 ${(0, currency_js_1.formatBRL)(bill.amount)} | 🗓️ Venceu em ${formattedDate} (${Math.abs(diffDays)}d atrás)`);

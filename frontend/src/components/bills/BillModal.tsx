@@ -6,6 +6,7 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { AlertCircle } from 'lucide-react';
+import { formatDateToISO } from '../../lib/utils';
 
 interface BillModalProps {
   isOpen: boolean;
@@ -40,7 +41,7 @@ export const BillModal: React.FC<BillModalProps> = ({
       if (bill) {
         setDescription(bill.description);
         setAmount(bill.amount.toString());
-        setDueDate(bill.due_date ? bill.due_date.split('T')[0] : '');
+        setDueDate(bill.due_date ? formatDateToISO(bill.due_date) : '');
         setCategoryId(bill.category_id || '');
         setAccountId(bill.account_id || '');
         setBarcode(bill.barcode || '');
@@ -51,7 +52,7 @@ export const BillModal: React.FC<BillModalProps> = ({
         // Padrão: 5 dias a partir de hoje
         const defaultDate = new Date();
         defaultDate.setDate(defaultDate.getDate() + 5);
-        setDueDate(defaultDate.toISOString().split('T')[0]);
+        setDueDate(formatDateToISO(defaultDate));
         setCategoryId('');
         setAccountId('');
         setBarcode('');
@@ -99,7 +100,7 @@ export const BillModal: React.FC<BillModalProps> = ({
       const payload = {
         description: description.trim(),
         amount: numAmount,
-        due_date: new Date(dueDate + 'T12:00:00Z').toISOString(),
+        due_date: dueDate,
         category_id: categoryId || null,
         account_id: accountId || null,
         barcode: barcode.trim() || null,

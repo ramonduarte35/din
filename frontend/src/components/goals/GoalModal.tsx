@@ -4,6 +4,7 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Goal, createGoalRequest, updateGoalRequest } from '../../api/goals';
 import { useToast } from '../../contexts/ToastContext';
+import { formatDateToISO } from '../../lib/utils';
 import {
   Target,
   PiggyBank,
@@ -72,7 +73,7 @@ export function GoalModal({ isOpen, onClose, onSuccess, goalToEdit }: GoalModalP
         setTitle(goalToEdit.title);
         setTargetAmount(goalToEdit.target_amount.toString());
         setCurrentAmount(goalToEdit.current_amount.toString());
-        setDeadline(goalToEdit.deadline ? new Date(goalToEdit.deadline).toISOString().split('T')[0] : '');
+        setDeadline(goalToEdit.deadline ? formatDateToISO(goalToEdit.deadline) : '');
         setColor(goalToEdit.color || '#10b981');
         setIcon(goalToEdit.icon || 'Target');
       } else {

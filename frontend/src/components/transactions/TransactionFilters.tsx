@@ -3,6 +3,7 @@ import { Search, Filter, X, Calendar, Clock } from 'lucide-react';
 import { TransactionFilters, TransactionType, TransactionOrigin } from '../../api/transactions';
 import { Category } from '../../api/categories';
 import { Button } from '../ui/Button';
+import { formatDateToISO } from '../../lib/utils';
 
 interface TransactionFiltersProps {
   filters: TransactionFilters;
@@ -27,21 +28,21 @@ export function TransactionFiltersBar({
 
   const setQuickRange = (preset: 'today' | '7days' | 'this_month' | 'last_month' | 'all') => {
     const now = new Date();
-    const todayISO = now.toISOString().split('T')[0];
+    const todayISO = formatDateToISO(now);
 
     if (preset === 'today') {
       onChange({ ...filters, start_date: todayISO, end_date: todayISO, page: 1 });
     } else if (preset === '7days') {
       const d7 = new Date();
       d7.setDate(d7.getDate() - 7);
-      onChange({ ...filters, start_date: d7.toISOString().split('T')[0], end_date: todayISO, page: 1 });
+      onChange({ ...filters, start_date: formatDateToISO(d7), end_date: todayISO, page: 1 });
     } else if (preset === 'this_month') {
-      const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+      const start = formatDateToISO(new Date(now.getFullYear(), now.getMonth(), 1));
+      const end = formatDateToISO(new Date(now.getFullYear(), now.getMonth() + 1, 0));
       onChange({ ...filters, start_date: start, end_date: end, page: 1 });
     } else if (preset === 'last_month') {
-      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
-      const end = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
+      const start = formatDateToISO(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+      const end = formatDateToISO(new Date(now.getFullYear(), now.getMonth(), 0));
       onChange({ ...filters, start_date: start, end_date: end, page: 1 });
     } else if (preset === 'all') {
       onChange({ ...filters, start_date: undefined, end_date: undefined, page: 1 });

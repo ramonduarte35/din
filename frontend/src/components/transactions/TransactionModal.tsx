@@ -12,6 +12,7 @@ import { getCategoriesRequest, Category } from '../../api/categories';
 import { getAccountsRequest, Account } from '../../api/accounts';
 import { enqueue } from '../../lib/offlineQueue';
 import { useToast } from '../../contexts/ToastContext';
+import { formatDateToISO } from '../../lib/utils';
 import {
   TrendingUp,
   TrendingDown,
@@ -39,7 +40,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
   const [accountId, setAccountId] = useState<string>('');
   const [toAccountId, setToAccountId] = useState<string>('');
   const [categoryId, setCategoryId] = useState<string>('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(formatDateToISO(new Date()));
 
   const toast = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -56,7 +57,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
         setAmount(transactionToEdit.amount.toString());
         setAccountId(transactionToEdit.account_id || '');
         setCategoryId(transactionToEdit.category_id || '');
-        setDate(new Date(transactionToEdit.date).toISOString().split('T')[0]);
+        setDate(formatDateToISO(transactionToEdit.date));
       } else {
         resetForm();
       }
@@ -70,7 +71,7 @@ export function TransactionModal({ isOpen, onClose, onSuccess, transactionToEdit
     setAccountId('');
     setToAccountId('');
     setCategoryId('');
-    setDate(new Date().toISOString().split('T')[0]);
+    setDate(formatDateToISO(new Date()));
     setError(null);
   };
 

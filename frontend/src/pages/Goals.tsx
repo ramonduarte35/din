@@ -9,6 +9,7 @@ import { DepositModal } from '../components/goals/DepositModal';
 import { useConfirm } from '../contexts/ConfirmContext';
 import { useToast } from '../contexts/ToastContext';
 import { usePrivacy } from '../contexts/PrivacyContext';
+import { getDiffDays } from '../lib/utils';
 import {
   Target,
   Plus,
@@ -251,9 +252,7 @@ export function Goals() {
             let deadlineText = '';
             let isDeadlinePassed = false;
             if (goal.deadline) {
-              const d = new Date(goal.deadline);
-              const now = new Date();
-              const diffDays = Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+              const diffDays = getDiffDays(goal.deadline);
               if (diffDays < 0) {
                 deadlineText = 'Prazo expirado';
                 isDeadlinePassed = true;

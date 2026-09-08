@@ -5,6 +5,7 @@ import { Button } from '../ui/Button';
 import { PayBillModal } from '../bills/PayBillModal';
 import { BillsWidgetSkeleton } from '../ui/Skeleton';
 import { usePrivacy } from '../../contexts/PrivacyContext';
+import { getDiffDays } from '../../lib/utils';
 import { CalendarClock, AlertTriangle, ArrowRight, CheckCircle2, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -87,11 +88,7 @@ export const BillsWidget: React.FC = () => {
         ) : (
           <div className="space-y-2.5">
             {upcomingBills.slice(0, 3).map((bill) => {
-              const dueDate = new Date(bill.due_date);
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              dueDate.setHours(0, 0, 0, 0);
-              const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+              const diffDays = getDiffDays(bill.due_date);
 
               let badgeText = '';
               let badgeColor = '';

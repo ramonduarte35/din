@@ -5,7 +5,7 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Landmark, CreditCard, Wallet, PiggyBank, Check, Calendar, AlertCircle } from 'lucide-react';
-import { formatCurrency } from '../../lib/utils';
+import { formatCurrency, formatDate, formatDateToISO } from '../../lib/utils';
 
 interface PayBillModalProps {
   isOpen: boolean;
@@ -22,7 +22,7 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
 }) => {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
-  const [paidDate, setPaidDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [paidDate, setPaidDate] = useState<string>(formatDateToISO(new Date()));
   const [paidAmount, setPaidAmount] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [accountsLoading, setAccountsLoading] = useState(false);
@@ -31,7 +31,7 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
   useEffect(() => {
     if (isOpen && bill) {
       setError(null);
-      setPaidDate(new Date().toISOString().split('T')[0]);
+      setPaidDate(formatDateToISO(new Date()));
       setPaidAmount(bill.amount.toString());
       loadAccounts();
     }
@@ -94,7 +94,7 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
     try {
       await payBill(bill.id, {
         account_id: selectedAccountId,
-        paid_date: paidDate ? new Date(paidDate + 'T12:00:00Z').toISOString() : undefined,
+        paid_date: paidDate ? paidDate : undefined,
         amount: numAmount,
       });
       onSuccess();
@@ -134,7 +134,7 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
           </div>
           <div className="flex items-center space-x-2 text-xs text-din-muted pt-1">
             <Calendar className="w-3.5 h-3.5 text-din-muted" />
-            <span>Vencimento: {new Date(bill.due_date).toLocaleDateString('pt-BR')}</span>
+            <span>Vencimento: {formatDate(bill.due_date)}</span>
             {bill.category && (
               <>
                 <span>•</span>
