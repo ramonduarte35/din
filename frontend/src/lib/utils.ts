@@ -16,6 +16,8 @@ export function formatCurrency(value: number | string | null | undefined): strin
   }).format(num);
 }
 
+export const formatBRL = formatCurrency;
+
 /**
  * Formata um valor numérico ou dígitos digitados para o formato monetário BRL (ex: "1.234,56")
  */
