@@ -102,11 +102,12 @@ export class BillsController {
     }
   }
 
-  async delete(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
+  async delete(request: FastifyRequest<{ Params: { id: string }; Querystring: { scope?: string } }>, reply: FastifyReply) {
     try {
       const userId = getUserId(request);
       const { id } = request.params;
-      const result = await billsService.deleteBill(userId, id);
+      const scope = (request.query as any).scope === 'ALL' ? 'ALL' : 'SINGLE';
+      const result = await billsService.deleteBill(userId, id, scope);
       return reply.send(result);
     } catch (error: any) {
       return reply.status(400).send({ message: error.message || 'Erro ao excluir conta a pagar' });

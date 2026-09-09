@@ -504,7 +504,7 @@ export class BillsService {
   /**
    * Excluir conta a pagar
    */
-  async deleteBill(userId: string, id: string) {
+  async deleteBill(userId: string, id: string, scope: 'SINGLE' | 'ALL' = 'SINGLE') {
     const bill = await prisma.bill.findFirst({
       where: { id, user_id: userId },
     });
@@ -514,6 +514,37 @@ export class BillsService {
     }
 
     return await prisma.$transaction(async (tx) => {
+      // Se escopo ALL e a conta pertence a um grupo de parcelamento
+      if (scope === 'ALL' && bill.group_id) {
+        // Buscar todas as parcelas do grupo pertencentes ao usuário
+        const groupBills = await tx.bill.findMany({
+          where: { group_id: bill.group_id, user_id: userId },
+          select: { id: true, transaction_id: true },
+        });
+
+        // Remover transações vinculadas (pagamentos já realizados)
+        const transactionIds = groupBills
+          .map((b) => b.transaction_id)
+          .filter(Boolean) as string[];
+
+        if (transactionIds.length > 0) {
+          await tx.transaction.deleteMany({
+            where: { id: { in: transactionIds } },
+          });
+        }
+
+        await tx.bill.deleteMany({
+          where: { group_id: bill.group_id, user_id: userId },
+        });
+
+        return {
+          success: true,
+          deleted: groupBills.length,
+          message: `${groupBills.length} parcela(s) excluída(s) com sucesso`,
+        };
+      }
+
+      // Escopo SINGLE: excluir somente esta parcela
       if (bill.transaction_id) {
         await tx.transaction.delete({
           where: { id: bill.transaction_id },
@@ -521,7 +552,7 @@ export class BillsService {
       }
 
       await tx.bill.delete({ where: { id } });
-      return { success: true, message: 'Conta a pagar excluída com sucesso' };
+      return { success: true, deleted: 1, message: 'Conta a pagar excluída com sucesso' };
     });
   }
 }

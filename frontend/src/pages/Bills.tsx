@@ -115,30 +115,77 @@ export const Bills: React.FC = () => {
   }
 
   async function handleDelete(bill: Bill) {
-    const ok = await confirm({
-      title: 'Excluir Conta a Pagar',
-      message: `Deseja realmente excluir a conta "${bill.description}"? Esta ação removerá o compromisso financeiro do sistema.`,
-      confirmText: 'Excluir Conta',
-      cancelText: 'Cancelar',
-      variant: 'danger',
-    });
+    const isInstallment = bill.total_installments && bill.total_installments > 1;
 
-    if (!ok) return;
+    // Para parcelamentos: perguntar o escopo antes de confirmar
+    let scope: 'SINGLE' | 'ALL' = 'SINGLE';
+    if (isInstallment) {
+      const installmentInfo = `Parcela ${bill.installment_number ?? 1} de ${bill.total_installments}`;
+      const chooseAll = await confirm({
+        title: 'Excluir Parcelamento',
+        message: (
+          <div className="space-y-3">
+            <p className="text-sm text-din-muted">
+              A conta <strong className="text-din-text">"{bill.description}"</strong> é um parcelamento ({installmentInfo}).
+            </p>
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs">
+              Clique em <strong>Excluir Todas</strong> para remover todas as {bill.total_installments} parcelas,
+              ou em <strong>Só Esta</strong> para excluir apenas esta parcela.
+            </div>
+          </div>
+        ),
+        confirmText: 'Excluir Todas',
+        cancelText: 'Só Esta Parcela',
+        variant: 'danger',
+      });
 
-    // Atualização otimista: remove imediatamente da tela sem esperar requisição
+      // ok = true → "Excluir Todas" | ok = false (cancelar) → mas precisamos distinguir
+      // Usamos confirm cancelText como "Só Esta Parcela" — se false, ainda prosseguimos com SINGLE
+      // Para isso precisamos de uma segunda confirm se o usuário realmente quer cancelar tudo
+      if (chooseAll === false) {
+        // Pode ser "só esta" ou fechar o modal — confirmamos a intenção SINGLE
+        const confirmSingle = await confirm({
+          title: 'Excluir Apenas Esta Parcela',
+          message: `Confirma a exclusão apenas da parcela ${bill.installment_number ?? 1}/${bill.total_installments} de "${bill.description}"?`,
+          confirmText: 'Excluir Esta Parcela',
+          cancelText: 'Cancelar',
+          variant: 'danger',
+        });
+        if (!confirmSingle) return;
+        scope = 'SINGLE';
+      } else if (chooseAll === true) {
+        scope = 'ALL';
+      } else {
+        return; // Cancelado
+      }
+    } else {
+      // Conta simples: confirmação normal
+      const ok = await confirm({
+        title: 'Excluir Conta a Pagar',
+        message: `Deseja realmente excluir a conta "${bill.description}"? Esta ação removerá o compromisso financeiro do sistema.`,
+        confirmText: 'Excluir Conta',
+        cancelText: 'Cancelar',
+        variant: 'danger',
+      });
+      if (!ok) return;
+    }
+
+    // Atualização otimista
     const previousBills = [...bills];
-    setBills((prev) => prev.filter((b) => b.id !== bill.id));
+    if (scope === 'ALL') {
+      setBills((prev) => prev.filter((b) => b.group_id !== bill.group_id));
+    } else {
+      setBills((prev) => prev.filter((b) => b.id !== bill.id));
+    }
 
     try {
-      await deleteBill(bill.id);
-      toast.success('Conta excluída com sucesso!');
-      // Atualiza apenas o resumo (contadores/valores) sem re-buscar a lista,
-      // para não sobrescrever a remoção otimista com dados antigos do servidor.
-      fetchBillSummary(month, year)
-        .then(setSummary)
-        .catch(() => {});
+      await deleteBill(bill.id, scope);
+      const msg = scope === 'ALL'
+        ? `Todas as parcelas de "${bill.description.replace(/ \(\d+\/\d+\)$/, '')}" foram excluídas!`
+        : 'Conta excluída com sucesso!';
+      toast.success(msg);
+      fetchBillSummary(month, year).then(setSummary).catch(() => {});
     } catch (err: any) {
-      // Rollback se falhar
       setBills(previousBills);
       console.error('Erro ao excluir conta:', err);
       toast.error('Erro ao excluir conta', err?.response?.data?.message);
@@ -415,13 +462,23 @@ export const Bills: React.FC = () => {
             <select
               value={month}
               onChange={(e) => setMonth(parseInt(e.target.value, 10))}
-              className="bg-card-secondary border border-border rounded-xl px-3 py-2 text-xs text-din-text focus:outline-none focus:ring-1 focus:ring-din-primary min-h-[44px] sm:min-h-[40px]"
+              className="bg-card-secondary border border-border rounded-xl px-2 py-2 text-xs text-din-text focus:outline-none focus:ring-1 focus:ring-din-primary min-h-[44px] sm:min-h-[40px]"
             >
               {[
                 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
                 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
               ].map((m, idx) => (
                 <option key={idx + 1} value={idx + 1}>{m}</option>
+              ))}
+            </select>
+
+            <select
+              value={year}
+              onChange={(e) => setYear(parseInt(e.target.value, 10))}
+              className="bg-card-secondary border border-border rounded-xl px-2 py-2 text-xs text-din-text focus:outline-none focus:ring-1 focus:ring-din-primary min-h-[44px] sm:min-h-[40px]"
+            >
+              {Array.from({ length: 4 }, (_, i) => new Date().getFullYear() - 1 + i).map((y) => (
+                <option key={y} value={y}>{y}</option>
               ))}
             </select>
           </div>

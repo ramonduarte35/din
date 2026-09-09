@@ -120,8 +120,8 @@ export async function updateBill(id: string, billData: Partial<CreateBillData>):
   return data;
 }
 
-export async function deleteBill(id: string): Promise<void> {
-  await api.delete(`/bills/${id}`);
+export async function deleteBill(id: string, scope: 'SINGLE' | 'ALL' = 'SINGLE'): Promise<void> {
+  await api.delete(`/bills/${id}`, { params: { scope } });
 }
 
 export async function payBill(id: string, payData: PayBillData): Promise<{ bill: Bill; transaction: any }> {
