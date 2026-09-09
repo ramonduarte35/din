@@ -146,7 +146,7 @@ export function Budgets() {
       message: `Deseja importar todos os limites definidos no mês anterior (${MONTH_NAMES[prevM - 1]} de ${prevY}) para ${MONTH_NAMES[selectedMonth - 1]} de ${selectedYear}?`,
       confirmText: 'Copiar Agora',
       cancelText: 'Cancelar',
-      variant: 'primary',
+      variant: 'info',
     });
 
     if (!ok) return;
@@ -530,42 +530,37 @@ export function Budgets() {
               })}
             </div>
           ) : (
-            <EmptyState
-              icon={PieChart}
-              title={
-                filterStatus !== 'ALL'
-                  ? 'Nenhum orçamento neste filtro'
-                  : 'Nenhum orçamento definido para este mês'
-              }
-              description={
-                filterStatus !== 'ALL'
-                  ? 'Altere o filtro de visualização para ver outras categorias.'
-                  : 'Defina limites mensais para suas categorias de despesa e evite surpresas no final do mês.'
-              }
-              action={
-                filterStatus === 'ALL' ? (
-                  <div className="flex items-center gap-3 flex-wrap justify-center mt-2">
-                    <Button
-                      variant="primary"
-                      onClick={() => handleOpenCreate()}
-                      className="min-h-[44px]"
-                    >
-                      <Plus className="w-4 h-4 mr-1.5" />
-                      Definir Primeiro Teto
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleCopyPreviousMonth}
-                      isLoading={isCopying}
-                      className="min-h-[44px]"
-                    >
-                      <Copy className="w-4 h-4 mr-1.5 text-din-primary" />
-                      Copiar do Mês Anterior
-                    </Button>
-                  </div>
-                ) : undefined
-              }
-            />
+            <>
+              <EmptyState
+                icon={<PieChart className="w-8 h-8" />}
+                title={
+                  filterStatus !== 'ALL'
+                    ? 'Nenhum orçamento neste filtro'
+                    : 'Nenhum orçamento definido para este mês'
+                }
+                description={
+                  filterStatus !== 'ALL'
+                    ? 'Altere o filtro de visualização para ver outras categorias.'
+                    : 'Defina limites mensais para suas categorias de despesa e evite surpresas no final do mês.'
+                }
+                actionText={filterStatus === 'ALL' ? 'Definir Primeiro Teto' : undefined}
+                onAction={filterStatus === 'ALL' ? () => handleOpenCreate() : undefined}
+                variant="indigo"
+              />
+              {filterStatus === 'ALL' && (
+                <div className="flex justify-center mt-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleCopyPreviousMonth}
+                    isLoading={isCopying}
+                    className="min-h-[44px]"
+                  >
+                    <Copy className="w-4 h-4 mr-1.5 text-din-primary" />
+                    Copiar do Mês Anterior
+                  </Button>
+                </div>
+              )}
+            </>
           )}
 
           {/* Categorias sem Orçamento (Atalho Rápido para Adicionar) */}
