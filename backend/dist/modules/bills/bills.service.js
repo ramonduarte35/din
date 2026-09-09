@@ -465,7 +465,7 @@ class BillsService {
             where: { id, user_id: userId },
         });
         if (!bill) {
-            throw new Error('Conta a pagar não encontrada');
+            return { success: true, deleted: 0, message: 'Conta a pagar já foi excluída' };
         }
         return await prisma_js_1.prisma.$transaction(async (tx) => {
             // Se escopo ALL e a conta pertence a um parcelamento

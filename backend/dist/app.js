@@ -51,6 +51,12 @@ function buildApp() {
     });
     // Registro de Rotas com prefixo /api/v1
     app.register(async (v1) => {
+        // Garantir que respostas da API nunca fiquem em cache no navegador ou proxies
+        v1.addHook('onSend', async (_request, reply) => {
+            reply.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            reply.header('Pragma', 'no-cache');
+            reply.header('Expires', '0');
+        });
         v1.register(auth_routes_js_1.authRoutes, { prefix: '/auth' });
         v1.register(users_routes_js_1.usersRoutes, { prefix: '/users' });
         v1.register(categories_routes_js_1.categoriesRoutes, { prefix: '/categories' });

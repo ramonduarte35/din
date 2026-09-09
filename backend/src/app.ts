@@ -53,6 +53,13 @@ export function buildApp() {
   // Registro de Rotas com prefixo /api/v1
   app.register(
     async (v1) => {
+      // Garantir que respostas da API nunca fiquem em cache no navegador ou proxies
+      v1.addHook('onSend', async (_request, reply) => {
+        reply.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        reply.header('Pragma', 'no-cache');
+        reply.header('Expires', '0');
+      });
+
       v1.register(authRoutes, { prefix: '/auth' });
       v1.register(usersRoutes, { prefix: '/users' });
       v1.register(categoriesRoutes, { prefix: '/categories' });

@@ -516,7 +516,7 @@ export class BillsService {
     });
 
     if (!bill) {
-      throw new Error('Conta a pagar não encontrada');
+      return { success: true, deleted: 0, message: 'Conta a pagar já foi excluída' };
     }
 
     return await prisma.$transaction(async (tx) => {

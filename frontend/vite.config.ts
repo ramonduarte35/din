@@ -92,36 +92,8 @@ export default defineConfig({
         // Pre-cache: app shell (HTML, JS, CSS, ícones)
         globPatterns: ['**/*.{js,css,html,ico,png,jpg,svg,woff2}'],
         // Runtime cache: estratégias por rota
+        // Runtime cache: estratégias por rota (apenas fontes e estáticos, NUNCA rotas da API)
         runtimeCaching: [
-          // ── API: Fundo de rede + cache de fallback (Network First) ────────
-          // Se offline → usa o cache da última resposta bem-sucedida
-          {
-            urlPattern: /^https?:\/\/.+\/api\/v1\/(transactions\/summary|accounts|categories|bills\/summary)/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'din-api-summary-cache',
-              networkTimeoutSeconds: 8,
-              expiration: {
-                maxEntries: 30,
-                maxAgeSeconds: 60 * 60 * 24, // 24 horas
-              },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          // ── API: Lista de transações e contas (StaleWhileRevalidate) ──────
-          // Entrega do cache imediatamente, atualiza em background
-          {
-            urlPattern: /^https?:\/\/.+\/api\/v1\/(transactions|bills)\b/,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'din-api-lists-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 4, // 4 horas
-              },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
           // ── Google Fonts (CacheFirst — raramente muda) ────────────────────
           {
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/,
