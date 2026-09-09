@@ -22,6 +22,7 @@ const envSchema = zod_1.z.object({
     EVOLUTION_API_URL: zod_1.z.string().default('http://evolution-go:4000'),
     EVOLUTION_GLOBAL_API_KEY: zod_1.z.string().default('din_evolution_global_key_2026'),
     EVOLUTION_WEBHOOK_SECRET: zod_1.z.string().default('din_webhook_secret_2026'),
+    TELEGRAM_BOT_TOKEN: zod_1.z.string().optional().default(''),
     GOOGLE_CLIENT_ID: zod_1.z.string().optional().default(''),
     GOOGLE_CLIENT_SECRET: zod_1.z.string().optional().default(''),
 });

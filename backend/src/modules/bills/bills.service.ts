@@ -1,7 +1,7 @@
 import { BillStatus, TransactionType, TransactionOrigin, Prisma } from '@prisma/client';
 import { CreateBillInput, UpdateBillInput, PayBillInput, ListBillsQueryInput } from './bills.schemas.js';
 import { prisma } from '../../lib/prisma.js';
-import { getDiffDays } from '../../utils/date.js';
+import { getDiffDays, parseDateSafe } from '../../utils/date.js';
 import { randomUUID } from 'crypto';
 
 export class BillsService {
@@ -33,7 +33,7 @@ export class BillsService {
     }
 
     const totalInstallments = data.total_installments && data.total_installments > 1 ? data.total_installments : 1;
-    const baseDate = new Date(data.due_date);
+    const baseDate = parseDateSafe(data.due_date) || new Date(data.due_date);
     const baseYear = baseDate.getFullYear();
     const baseMonth = baseDate.getMonth();
     const baseDay = baseDate.getDate();
@@ -46,16 +46,17 @@ export class BillsService {
 
       for (let i = 1; i <= totalInstallments; i++) {
         // Calcular vencimento para cada mês subsequente
-        const targetDate = new Date(baseYear, baseMonth + (i - 1), 1);
+        const targetDate = new Date(baseYear, baseMonth + (i - 1), 1, 12, 0, 0, 0);
         const daysInTargetMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0).getDate();
         const targetDay = Math.min(baseDay, daysInTargetMonth);
         const installmentDueDate = new Date(
           targetDate.getFullYear(),
           targetDate.getMonth(),
           targetDay,
-          baseDate.getHours(),
-          baseDate.getMinutes(),
-          baseDate.getSeconds()
+          12,
+          0,
+          0,
+          0
         );
 
         // Se a descrição já tiver numeração (ex: 1/12), mantém; caso contrário anexa (1/N)
@@ -92,13 +93,15 @@ export class BillsService {
       return createdBills[0];
     }
 
+    const singleDueDate = new Date(baseYear, baseMonth, baseDay, 12, 0, 0, 0);
+
     // Parcela única (padrão)
     return await prisma.bill.create({
       data: {
         user_id: userId,
         description: cleanDescription,
         amount: new Prisma.Decimal(data.amount),
-        due_date: baseDate,
+        due_date: singleDueDate,
         category_id: data.category_id || null,
         account_id: data.account_id || null,
         barcode: data.barcode?.trim() || null,
@@ -354,7 +357,7 @@ export class BillsService {
 
     if (data.description !== undefined) updateData.description = data.description.trim();
     if (data.amount !== undefined) updateData.amount = new Prisma.Decimal(data.amount);
-    if (data.due_date !== undefined) updateData.due_date = new Date(data.due_date);
+    if (data.due_date !== undefined) updateData.due_date = parseDateSafe(data.due_date) || new Date(data.due_date);
     if (data.category_id !== undefined) updateData.category = data.category_id ? { connect: { id: data.category_id } } : { disconnect: true };
     if (data.account_id !== undefined) updateData.account = data.account_id ? { connect: { id: data.account_id } } : { disconnect: true };
     if (data.barcode !== undefined) updateData.barcode = data.barcode?.trim() || null;

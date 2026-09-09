@@ -14,6 +14,7 @@ exports.createBillSchema = zod_1.z.object({
     barcode: zod_1.z.string().max(255).optional().nullable(),
     notes: zod_1.z.string().max(1000).optional().nullable(),
     is_recurring: zod_1.z.boolean().optional(),
+    total_installments: zod_1.z.number().int().min(1, 'Mínimo de 1 parcela').max(120, 'Máximo de 120 parcelas').optional().default(1),
 });
 exports.updateBillSchema = zod_1.z.object({
     description: zod_1.z.string().min(1).max(255).optional(),
@@ -26,6 +27,8 @@ exports.updateBillSchema = zod_1.z.object({
     barcode: zod_1.z.string().max(255).optional().nullable(),
     notes: zod_1.z.string().max(1000).optional().nullable(),
     is_recurring: zod_1.z.boolean().optional(),
+    installment_number: zod_1.z.number().int().min(1).optional().nullable(),
+    total_installments: zod_1.z.number().int().min(1).optional().nullable(),
     status: zod_1.z.nativeEnum(client_1.BillStatus).optional(),
 });
 exports.payBillSchema = zod_1.z.object({

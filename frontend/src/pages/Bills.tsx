@@ -83,11 +83,11 @@ export const Bills: React.FC = () => {
   }
 
   useEffect(() => {
-    loadData();
+    loadData(true);
   }, [activeTab, search, month, year]);
 
-  async function loadData() {
-    setLoading(true);
+  async function loadData(showLoading = true) {
+    if (showLoading) setLoading(true);
     try {
       const params: any = { month, year };
       if (search.trim()) params.search = search.trim();
@@ -110,7 +110,7 @@ export const Bills: React.FC = () => {
       console.error('Erro ao carregar contas a pagar:', err);
       toast.error('Erro ao carregar contas a pagar.');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }
 
@@ -125,11 +125,17 @@ export const Bills: React.FC = () => {
 
     if (!ok) return;
 
+    // Atualização otimista: remove imediatamente da tela sem esperar requisição
+    const previousBills = [...bills];
+    setBills((prev) => prev.filter((b) => b.id !== bill.id));
+
     try {
       await deleteBill(bill.id);
       toast.success('Conta excluída com sucesso!');
-      loadData();
+      await loadData(false);
     } catch (err: any) {
+      // Rollback se falhar
+      setBills(previousBills);
       console.error('Erro ao excluir conta:', err);
       toast.error('Erro ao excluir conta', err?.response?.data?.message);
     }
@@ -149,7 +155,7 @@ export const Bills: React.FC = () => {
     try {
       await unpayBill(bill.id);
       toast.success('Pagamento Desfeito', 'A conta voltou ao status pendente e a despesa foi removida.');
-      loadData();
+      await loadData(false);
     } catch (err: any) {
       console.error('Erro ao desfazer pagamento:', err);
       toast.error('Erro ao desfazer pagamento', err?.response?.data?.message);
@@ -618,14 +624,14 @@ export const Bills: React.FC = () => {
           setIsModalOpen(false);
           setEditingBill(null);
         }}
-        onSuccess={loadData}
+        onSuccess={() => loadData(false)}
         bill={editingBill}
       />
 
       <PayBillModal
         isOpen={Boolean(payingBill)}
         onClose={() => setPayingBill(null)}
-        onSuccess={loadData}
+        onSuccess={() => loadData(false)}
         bill={payingBill}
       />
     </div>

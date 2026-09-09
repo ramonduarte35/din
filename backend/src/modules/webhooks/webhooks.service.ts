@@ -835,7 +835,13 @@ export class WebhooksService {
       `- Se o usuário mencionar ou der a entender uma conta/banco (ex: "no banco do brasil", "no bb", "no nubank", "na conta inter", "no itaú", "na carteira", "em dinheiro"), extraia em "suggested_account" o nome exato ou mais compatível com a conta do usuário.\n` +
       `- Se não for mencionado nenhum banco, deixe "suggested_account" omitido ou nulo.\n\n` +
       `Identifique a intenção com rigor:\n` +
-      `- "register_bill": Quando o usuário pede para agendar/lembrar/cadastrar uma conta a pagar futura ou boleto (ex: "agendar conta de luz 150 vencimento dia 10", "lembrar boleto faculdade 800 vence dia 15/09", "cadastrar conta de internet 120 dia 20"). Preencha "bill_data" com description, amount, due_date (data ISO calculada), suggested_category.\n` +
+      `- "register_bill": Quando o usuário pede para agendar/lembrar/cadastrar uma conta a pagar futura, boleto, carnê ou parcelamento mensal (ex: "agendar conta de luz 150 vencimento dia 10", "Agendar 5 parcelas de 220 celular Mariana com vencimento dia 16", "lembrar 10x de 150 faculdade vence dia 05", "cadastrar boleto internet 120 dia 20").\n` +
+      `  * Em "bill_data":\n` +
+      `    - "description": Nome limpo e claro da conta ou compromisso (ex: "Celular Mariana", "Conta de Luz", "Faculdade"). NÃO inclua "5x de 220" ou datas na descrição.\n` +
+      `    - "amount": Valor monetário unitário de CADA parcela (ex: em "5 parcelas de 220", amount deve ser 220; em "10x de 50", amount deve ser 50).\n` +
+      `    - "due_date": Data ISO (YYYY-MM-DD) do PRIMEIRO vencimento. Se o usuário disser apenas o dia (ex: "vencimento dia 16"), calcule a próxima data com esse dia a partir de hoje (${todayISO}). Se o dia já passou no mês atual, use o mês seguinte.\n` +
+      `    - "total_installments": Quantidade total de parcelas como número inteiro (ex: em "5 parcelas", envie 5; em "10x", envie 10). Se for parcela única / sem repetição, envie 1.\n` +
+      `    - "suggested_category": Categoria mais compatível (ex: "Assinaturas & Serviços", "Moradia", "Educação", "Transporte", "Saúde", "Outros (Despesas)").\n` +
       `- "query_bills": Quando o usuário pergunta sobre contas a pagar, boletos a vencer, contas do mês ou da semana (ex: "quais contas vencem essa semana?", "o que tenho pra pagar?", "quais boletos pendentes?").\n` +
       `- "pay_bill": Quando o usuário informa que pagou ou quer dar baixa em uma conta a pagar/boleto (ex: "paguei a conta de luz no Nubank", "pagar conta de internet 90 pelo Banco do Brasil", "dei baixa no boleto do aluguel"). Preencha "pay_bill_data" com search_term (ex: "luz", "internet"), amount (se citado), suggested_account (banco onde foi pago) e paid_date.\n` +
       `- "balance_query": Quando o usuário pergunta sobre saldo, extrato, quanto gastou ou quanto tem em uma conta específica ou geral.\n` +
@@ -850,6 +856,7 @@ export class WebhooksService {
       `    "description": string,\n` +
       `    "amount": number,\n` +
       `    "due_date": string (ISO date YYYY-MM-DD),\n` +
+      `    "total_installments": number,\n` +
       `    "suggested_category": string\n` +
       `  },\n` +
       `  "pay_bill_data": {\n` +
@@ -956,18 +963,46 @@ export class WebhooksService {
       };
     }
 
-    // 2. Detectar intenção de cadastro de conta a pagar (agendamento / vencimento)
-    if (
-      lower.includes('agendar conta') ||
-      lower.includes('lembrar conta') ||
-      lower.includes('lembrar boleto') ||
-      lower.includes('cadastrar conta') ||
-      lower.includes('vencimento dia') ||
+    // 2. Detectar intenção de cadastro de conta a pagar (agendamento / vencimento / parcelamento)
+    const isRegisterBill =
+      lower.includes('agendar') ||
+      lower.includes('agende') ||
+      lower.includes('lembrar') ||
+      lower.includes('lembre') ||
+      lower.includes('cadastrar') ||
+      lower.includes('cadastre') ||
+      lower.includes('vencimento') ||
       lower.includes('vence dia') ||
-      lower.includes('vence em')
+      lower.includes('vence em') ||
+      lower.includes('parcela') ||
+      lower.includes('parcelas') ||
+      lower.includes('boleto') ||
+      lower.includes('carnê') ||
+      lower.includes('carne') ||
+      /\b\d+\s*x\s*(?:de)?\b/i.test(lower);
+
+    if (
+      isRegisterBill &&
+      !lower.includes('paguei') &&
+      !lower.includes('quitei') &&
+      !lower.includes('dei baixa') &&
+      !lower.includes('quais') &&
+      !lower.includes('o que tenho')
     ) {
+      // Extrair parcelamento (ex: "5 parcelas", "5x", "em 10 vezes")
+      let totalInstallments = 1;
+      const installmentsMatch =
+        lower.match(/(?:em\s*)?(\d{1,3})\s*(?:x|vezes|parcelas?|mensalidades?)\b/i) ||
+        lower.match(/parcelad[oa]\s*em\s*(\d{1,3})\s*(?:x|vezes|parcelas?)?/i);
+      if (installmentsMatch && installmentsMatch[1]) {
+        const parsedInst = parseInt(installmentsMatch[1], 10);
+        if (parsedInst >= 1 && parsedInst <= 120) {
+          totalInstallments = parsedInst;
+        }
+      }
+
       const amount = extractAmountFromText(text);
-      const dayMatch = lower.match(/(?:dia|vence|vencimento)\s*(\d{1,2})(?:\/(\d{1,2}))?/);
+      const dayMatch = lower.match(/(?:dia|vence|vencimento|para\s*o\s*dia|pro\s*dia|p\/\s*dia)\s*(\d{1,2})(?:\/(\d{1,2}))?/i);
 
       if (amount > 0) {
         let dueDate = new Date();
@@ -979,34 +1014,56 @@ export class WebhooksService {
           if (month < today.getMonth() || (month === today.getMonth() && day < today.getDate())) {
             // Se já passou este mês, avançar para o próximo mês ou próximo ano
             if (!dayMatch[2]) {
-              dueDate = new Date(year, today.getMonth() + 1, day);
+              dueDate = new Date(year, today.getMonth() + 1, day, 12, 0, 0, 0);
             } else {
-              dueDate = new Date(year + 1, month, day);
+              dueDate = new Date(year + 1, month, day, 12, 0, 0, 0);
             }
           } else {
-            dueDate = new Date(year, month, day);
+            dueDate = new Date(year, month, day, 12, 0, 0, 0);
           }
         } else {
           dueDate.setDate(dueDate.getDate() + 5); // Default: 5 dias
+          dueDate.setHours(12, 0, 0, 0);
         }
 
-        let desc = 'Conta Agendada';
-        let cat = 'Moradia';
-        if (lower.includes('luz') || lower.includes('energia')) {
-          desc = 'Conta de Luz';
+        // Extrair descrição limpa removendo comandos e metadados
+        let cleanDesc = text
+          .replace(/^(?:agendar|agende|lembrar|lembre|cadastrar|cadastre|novo|nova|conta|boleto|carn[êe])\s*/gi, '')
+          .replace(/(?:em\s*)?\d{1,3}\s*(?:x|vezes|parcelas?|mensalidades?)(?:\s*de\s*(?:r\$\s*)?\d+(?:[.,]\d+)*)?/gi, '')
+          .replace(/(?:com\s*)?vencimento(?:\s*dia\s*\d+(?:\/\d+)?)?/gi, '')
+          .replace(/vence(?:\s*dia\s*\d+(?:\/\d+)?)?/gi, '')
+          .replace(/(?:para\s*o|pro|p\/)?\s*dia\s*\d+(?:\/\d+)?/gi, '')
+          .replace(/r\$\s*\d+(?:[.,]\d+)*/gi, '')
+          .replace(/\b\d+(?:[.,]\d+)*\s*(?:reais|conto|pila|mangos)?\b/gi, '')
+          .replace(/[\,\.\:\;\-]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        if (cleanDesc.length > 1) {
+          cleanDesc = cleanDesc.charAt(0).toUpperCase() + cleanDesc.slice(1);
+        }
+
+        let desc = cleanDesc || 'Conta Agendada';
+        let cat = 'Outros (Despesas)';
+
+        if (lower.includes('luz') || lower.includes('energia') || lower.includes('enel') || lower.includes('cpfl')) {
+          desc = cleanDesc || 'Conta de Luz';
           cat = 'Moradia';
-        } else if (lower.includes('água') || lower.includes('agua')) {
-          desc = 'Conta de Água';
+        } else if (lower.includes('água') || lower.includes('agua') || lower.includes('sabesp') || lower.includes('sanepar')) {
+          desc = cleanDesc || 'Conta de Água';
           cat = 'Moradia';
-        } else if (lower.includes('internet') || lower.includes('wifi')) {
-          desc = 'Internet';
+        } else if (lower.includes('celular') || lower.includes('telefone') || lower.includes('internet') || lower.includes('wifi') || lower.includes('vivo') || lower.includes('claro') || lower.includes('tim')) {
+          desc = cleanDesc || 'Internet / Celular';
           cat = 'Assinaturas & Serviços';
-        } else if (lower.includes('faculdade') || lower.includes('curso')) {
-          desc = 'Faculdade/Educação';
+        } else if (lower.includes('faculdade') || lower.includes('curso') || lower.includes('escola') || lower.includes('mensalidade')) {
+          desc = cleanDesc || 'Faculdade / Educação';
           cat = 'Educação';
-        } else if (lower.includes('aluguel')) {
-          desc = 'Aluguel';
+        } else if (lower.includes('aluguel') || lower.includes('condomínio') || lower.includes('condominio') || lower.includes('iptu')) {
+          desc = cleanDesc || 'Aluguel';
           cat = 'Moradia';
+        } else if (lower.includes('carro') || lower.includes('moto') || lower.includes('ipva') || lower.includes('seguro')) {
+          desc = cleanDesc || 'Automóvel / Transporte';
+          cat = 'Transporte';
         }
 
         return {
@@ -1015,6 +1072,7 @@ export class WebhooksService {
             description: desc,
             amount,
             due_date: dueDate.toISOString().split('T')[0],
+            total_installments: totalInstallments,
             suggested_category: cat,
           },
         };

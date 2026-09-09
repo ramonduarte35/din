@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client';
 import { CreateBillInput, UpdateBillInput, PayBillInput, ListBillsQueryInput } from './bills.schemas.js';
 export declare class BillsService {
     /**
-     * Criar uma nova conta a pagar
+     * Criar uma nova conta a pagar (com suporte a parcelamento automático)
      */
     createBill(userId: string, data: CreateBillInput): Promise<{
         account: {
@@ -42,6 +42,9 @@ export declare class BillsService {
         barcode: string | null;
         notes: string | null;
         is_recurring: boolean;
+        installment_number: number | null;
+        total_installments: number | null;
+        group_id: string | null;
     }>;
     /**
      * Listar contas a pagar com filtros e paginação
@@ -100,6 +103,9 @@ export declare class BillsService {
             barcode: string | null;
             notes: string | null;
             is_recurring: boolean;
+            installment_number: number | null;
+            total_installments: number | null;
+            group_id: string | null;
         }[];
         pagination: {
             page: number;
@@ -184,6 +190,9 @@ export declare class BillsService {
         barcode: string | null;
         notes: string | null;
         is_recurring: boolean;
+        installment_number: number | null;
+        total_installments: number | null;
+        group_id: string | null;
     }>;
     /**
      * Atualizar conta a pagar
@@ -241,6 +250,9 @@ export declare class BillsService {
         barcode: string | null;
         notes: string | null;
         is_recurring: boolean;
+        installment_number: number | null;
+        total_installments: number | null;
+        group_id: string | null;
     }>;
     /**
      * Pagar conta: debita da conta bancária escolhida e gera a transação de despesa
@@ -298,6 +310,9 @@ export declare class BillsService {
             barcode: string | null;
             notes: string | null;
             is_recurring: boolean;
+            installment_number: number | null;
+            total_installments: number | null;
+            group_id: string | null;
         };
         transaction: {
             amount: number;
@@ -359,6 +374,9 @@ export declare class BillsService {
         barcode: string | null;
         notes: string | null;
         is_recurring: boolean;
+        installment_number: number | null;
+        total_installments: number | null;
+        group_id: string | null;
     }>;
     /**
      * Excluir conta a pagar

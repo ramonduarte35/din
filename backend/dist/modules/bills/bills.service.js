@@ -4,9 +4,10 @@ exports.BillsService = void 0;
 const client_1 = require("@prisma/client");
 const prisma_js_1 = require("../../lib/prisma.js");
 const date_js_1 = require("../../utils/date.js");
+const crypto_1 = require("crypto");
 class BillsService {
     /**
-     * Criar uma nova conta a pagar
+     * Criar uma nova conta a pagar (com suporte a parcelamento automático)
      */
     async createBill(userId, data) {
         // Se category_id fornecido, verificar se pertence ao usuário ou é global
@@ -30,18 +31,64 @@ class BillsService {
                 throw new Error('Conta bancária não encontrada');
             }
         }
-        const dueDate = new Date(data.due_date);
+        const totalInstallments = data.total_installments && data.total_installments > 1 ? data.total_installments : 1;
+        const baseDate = (0, date_js_1.parseDateSafe)(data.due_date) || new Date(data.due_date);
+        const baseYear = baseDate.getFullYear();
+        const baseMonth = baseDate.getMonth();
+        const baseDay = baseDate.getDate();
+        const cleanDescription = data.description.trim();
+        // Se for parcelado (> 1 parcela), gera automaticamente os próximos meses mantendo o mesmo dia de vencimento
+        if (totalInstallments > 1) {
+            const groupId = (0, crypto_1.randomUUID)();
+            const billsToCreate = [];
+            for (let i = 1; i <= totalInstallments; i++) {
+                // Calcular vencimento para cada mês subsequente
+                const targetDate = new Date(baseYear, baseMonth + (i - 1), 1, 12, 0, 0, 0);
+                const daysInTargetMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0).getDate();
+                const targetDay = Math.min(baseDay, daysInTargetMonth);
+                const installmentDueDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDay, 12, 0, 0, 0);
+                // Se a descrição já tiver numeração (ex: 1/12), mantém; caso contrário anexa (1/N)
+                const installmentDesc = cleanDescription.match(/\(\d+\/\d+\)$/)
+                    ? cleanDescription.replace(/\(\d+\/\d+\)$/, `(${i}/${totalInstallments})`)
+                    : `${cleanDescription} (${i}/${totalInstallments})`;
+                billsToCreate.push({
+                    user_id: userId,
+                    description: installmentDesc,
+                    amount: new client_1.Prisma.Decimal(data.amount),
+                    due_date: installmentDueDate,
+                    category_id: data.category_id || null,
+                    account_id: data.account_id || null,
+                    barcode: data.barcode?.trim() || null,
+                    notes: data.notes?.trim() || null,
+                    is_recurring: false,
+                    installment_number: i,
+                    total_installments: totalInstallments,
+                    group_id: groupId,
+                    status: client_1.BillStatus.PENDING,
+                });
+            }
+            const createdBills = await prisma_js_1.prisma.$transaction(billsToCreate.map((b) => prisma_js_1.prisma.bill.create({
+                data: b,
+                include: { category: true, account: true },
+            })));
+            return createdBills[0];
+        }
+        const singleDueDate = new Date(baseYear, baseMonth, baseDay, 12, 0, 0, 0);
+        // Parcela única (padrão)
         return await prisma_js_1.prisma.bill.create({
             data: {
                 user_id: userId,
-                description: data.description.trim(),
+                description: cleanDescription,
                 amount: new client_1.Prisma.Decimal(data.amount),
-                due_date: dueDate,
+                due_date: singleDueDate,
                 category_id: data.category_id || null,
                 account_id: data.account_id || null,
                 barcode: data.barcode?.trim() || null,
                 notes: data.notes?.trim() || null,
                 is_recurring: data.is_recurring ?? false,
+                installment_number: 1,
+                total_installments: 1,
+                group_id: null,
                 status: client_1.BillStatus.PENDING,
             },
             include: {
@@ -264,7 +311,7 @@ class BillsService {
         if (data.amount !== undefined)
             updateData.amount = new client_1.Prisma.Decimal(data.amount);
         if (data.due_date !== undefined)
-            updateData.due_date = new Date(data.due_date);
+            updateData.due_date = (0, date_js_1.parseDateSafe)(data.due_date) || new Date(data.due_date);
         if (data.category_id !== undefined)
             updateData.category = data.category_id ? { connect: { id: data.category_id } } : { disconnect: true };
         if (data.account_id !== undefined)
@@ -275,6 +322,10 @@ class BillsService {
             updateData.notes = data.notes?.trim() || null;
         if (data.is_recurring !== undefined)
             updateData.is_recurring = data.is_recurring;
+        if (data.installment_number !== undefined)
+            updateData.installment_number = data.installment_number;
+        if (data.total_installments !== undefined)
+            updateData.total_installments = data.total_installments;
         if (data.status !== undefined)
             updateData.status = data.status;
         return await prisma_js_1.prisma.bill.update({

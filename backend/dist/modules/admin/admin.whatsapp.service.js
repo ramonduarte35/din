@@ -349,7 +349,7 @@ class AdminWhatsAppService {
     }
     async setTelegramWebhook(data) {
         const config = await this.getProviderConfig();
-        const token = data?.telegram_bot_token || config.telegram_bot_token || undefined;
+        const token = data?.telegram_bot_token || config.telegram_bot_token || process.env.TELEGRAM_BOT_TOKEN || undefined;
         const webhookUrl = data?.webhook_url;
         if (!webhookUrl) {
             throw new Error('URL do webhook é obrigatória.');
@@ -359,20 +359,21 @@ class AdminWhatsAppService {
     }
     async getTelegramStatus() {
         const config = await this.getProviderConfig();
-        if (!config.telegram_bot_token) {
+        const token = config.telegram_bot_token || process.env.TELEGRAM_BOT_TOKEN;
+        if (!token) {
             return {
                 success: false,
                 is_active: false,
                 error: 'Token do Telegram Bot não configurado.',
             };
         }
-        const botRes = await telegram_client_js_1.telegramClient.getMe(config.telegram_bot_token);
-        const webhookRes = await telegram_client_js_1.telegramClient.getWebhookInfo(config.telegram_bot_token);
+        const botRes = await telegram_client_js_1.telegramClient.getMe(token);
+        const webhookRes = await telegram_client_js_1.telegramClient.getWebhookInfo(token);
         return {
             success: botRes.success,
             bot: botRes.bot,
             webhook: webhookRes.webhook,
-            is_active: config.telegram_is_active,
+            is_active: config.telegram_is_active || (!!token && botRes.success),
             error: botRes.error || webhookRes.error,
         };
     }

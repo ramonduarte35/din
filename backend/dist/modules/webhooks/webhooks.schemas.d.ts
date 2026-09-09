@@ -28,12 +28,14 @@ export declare const aiExtractedBillSchema: z.ZodObject<{
     suggested_category: z.ZodOptional<z.ZodString>;
     barcode: z.ZodOptional<z.ZodString>;
     notes: z.ZodOptional<z.ZodString>;
+    total_installments: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     description: string;
     amount: number;
     due_date: string;
     barcode?: string | undefined;
     notes?: string | undefined;
+    total_installments?: number | undefined;
     suggested_category?: string | undefined;
 }, {
     description: string;
@@ -41,6 +43,7 @@ export declare const aiExtractedBillSchema: z.ZodObject<{
     due_date: string;
     barcode?: string | undefined;
     notes?: string | undefined;
+    total_installments?: number | undefined;
     suggested_category?: string | undefined;
 }>;
 export declare const aiExtractedPayBillSchema: z.ZodObject<{
@@ -92,12 +95,14 @@ export declare const aiExtractionResponseSchema: z.ZodObject<{
         suggested_category: z.ZodOptional<z.ZodString>;
         barcode: z.ZodOptional<z.ZodString>;
         notes: z.ZodOptional<z.ZodString>;
+        total_installments: z.ZodOptional<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
         description: string;
         amount: number;
         due_date: string;
         barcode?: string | undefined;
         notes?: string | undefined;
+        total_installments?: number | undefined;
         suggested_category?: string | undefined;
     }, {
         description: string;
@@ -105,6 +110,7 @@ export declare const aiExtractionResponseSchema: z.ZodObject<{
         due_date: string;
         barcode?: string | undefined;
         notes?: string | undefined;
+        total_installments?: number | undefined;
         suggested_category?: string | undefined;
     }>>;
     pay_bill_data: z.ZodOptional<z.ZodObject<{
@@ -141,6 +147,7 @@ export declare const aiExtractionResponseSchema: z.ZodObject<{
         due_date: string;
         barcode?: string | undefined;
         notes?: string | undefined;
+        total_installments?: number | undefined;
         suggested_category?: string | undefined;
     } | undefined;
     pay_bill_data?: {
@@ -167,6 +174,7 @@ export declare const aiExtractionResponseSchema: z.ZodObject<{
         due_date: string;
         barcode?: string | undefined;
         notes?: string | undefined;
+        total_installments?: number | undefined;
         suggested_category?: string | undefined;
     } | undefined;
     pay_bill_data?: {

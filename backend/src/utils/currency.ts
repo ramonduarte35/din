@@ -142,6 +142,14 @@ export function extractAmountFromText(text: string): number {
     }
   }
 
+  // 2.5. Padrões explícitos de parcelamento (ex: "5 parcelas de 220", "5x de 220", "5x 220", "12x de R$ 89,90")
+  const installmentRegex =
+    /(?:\b\d{1,3}\s*(?:x|vezes|parcelas?|mensalidades?)|parcelad[oa]\s*em\s*\d{1,3}\s*(?:x|vezes|parcelas?)?)\s*(?:de\s*)?(?:r\$\s*)?(\d+(?:[.,]\d+)*)/i;
+  const installmentMatch = lower.match(installmentRegex);
+  if (installmentMatch && installmentMatch[1]) {
+    return parseCurrencyInput(installmentMatch[1]);
+  }
+
   // 3. Padrões explícitos com R$, reais, valor, sal[áa]rio, paguei, recebi, gastei, ganhei, por, de
   const explicitCurrencyRegex =
     /(?:r\$|r\s*\$|reais|valor(?:\s*de)?|sal[áa]rio(?:\s*de)?|paguei|recebi|gastei|ganhei|por|custou|de)\s*(\d+(?:[.,]\d+)*)/i;
@@ -158,12 +166,13 @@ export function extractAmountFromText(text: string): number {
     return parseCurrencyInput(suffixMatch[1]);
   }
 
-  // 5. Fallback removendo datas para não capturar "dia 10" como valor
-  const textWithoutDates = lower
+  // 5. Fallback removendo datas e contadores de parcelas para não capturar "dia 10" ou "5 parcelas" como valor
+  const textWithoutDatesAndInstallments = lower
     .replace(/(?:dia|vence|vencimento|em)\s*\d{1,2}(?:\/\d{1,2}(?:\/\d{2,4})?)?/gi, '')
-    .replace(/\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/g, '');
+    .replace(/\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/g, '')
+    .replace(/(?:em\s*)?\b\d{1,3}\s*(?:x|vezes|parcelas?|mensalidades?)\b/gi, '');
 
-  const genericMatch = textWithoutDates.match(/(\d+(?:[.,]\d+)*)/);
+  const genericMatch = textWithoutDatesAndInstallments.match(/(\d+(?:[.,]\d+)*)/);
   if (genericMatch && genericMatch[1]) {
     return parseCurrencyInput(genericMatch[1]);
   }

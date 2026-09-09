@@ -11,6 +11,7 @@ export declare const env: {
     EVOLUTION_API_URL: string;
     EVOLUTION_GLOBAL_API_KEY: string;
     EVOLUTION_WEBHOOK_SECRET: string;
+    TELEGRAM_BOT_TOKEN: string;
     GOOGLE_CLIENT_ID: string;
     GOOGLE_CLIENT_SECRET: string;
 };
