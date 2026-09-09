@@ -35,6 +35,7 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
       },
       boxShadow: {
         glass: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
@@ -42,11 +43,16 @@ export default {
         'glow-emerald': '0 0 25px -5px rgba(16, 185, 129, 0.3)',
         'glow-rose': '0 0 25px -5px rgba(244, 63, 94, 0.3)',
         'glow-violet': '0 0 25px -5px rgba(139, 92, 246, 0.3)',
+        'card-float': '0 4px 24px 0 rgba(0,0,0,0.45), 0 1px 0 0 rgba(255,255,255,0.04) inset',
+        'inner-glow': 'inset 0 1px 0 0 rgba(255,255,255,0.06)',
       },
       animation: {
         'fade-in': 'fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
         'pulse-subtle': 'pulseSubtle 3s infinite',
+        'shimmer': 'shimmer 2s infinite',
+        'float': 'float 4s ease-in-out infinite',
+        'scale-in': 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
       },
       keyframes: {
         fadeIn: {
@@ -60,6 +66,18 @@ export default {
         pulseSubtle: {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.85' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% center' },
+          '100%': { backgroundPosition: '200% center' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-6px)' },
+        },
+        scaleIn: {
+          '0%': { opacity: '0', transform: 'scale(0.92)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
         },
       },
     },

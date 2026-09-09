@@ -42,7 +42,7 @@ export function Header({ onOpenMobileMenu, onOpenNewTransaction }: HeaderProps) 
   const formattedDate = todayFormatted.charAt(0).toUpperCase() + todayFormatted.slice(1);
 
   return (
-    <header className="h-16 border-b border-border bg-card/85 backdrop-blur-xl px-4 sm:px-8 flex items-center justify-between sticky top-0 z-30 transition-colors duration-300">
+    <header className="h-14 border-b border-border/60 bg-[var(--bg-header)] backdrop-blur-xl px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 transition-colors duration-300 shadow-[0_1px_0_0_rgba(255,255,255,0.03)]">
       <div className="flex items-center gap-3">
         <button
           onClick={onOpenMobileMenu}
@@ -60,7 +60,7 @@ export function Header({ onOpenMobileMenu, onOpenNewTransaction }: HeaderProps) 
           />
         )}
         <div>
-          <h2 className="text-sm font-semibold text-din-text capitalize">
+          <h2 className="text-sm font-bold text-din-text capitalize">
             Olá, {user?.name ? user.name.split(' ')[0] : 'Bem-vindo'}! 👋
           </h2>
           <p className="text-xs text-din-muted hidden sm:block">{formattedDate}</p>
@@ -182,10 +182,10 @@ export function Header({ onOpenMobileMenu, onOpenNewTransaction }: HeaderProps) 
         )}
 
         <Button
-          variant="emerald"
+          variant="primary"
           size="sm"
           onClick={onOpenNewTransaction}
-          className="shadow-md h-10 px-3 sm:px-4 min-w-[44px] min-h-[44px]"
+          className="shadow-glow-primary h-9 px-3 sm:px-4 min-w-[44px] min-h-[44px]"
           aria-label="Nova Transação"
         >
           <Plus className="w-4 h-4" />

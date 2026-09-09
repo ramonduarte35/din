@@ -56,14 +56,15 @@ export function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background bg-ambient-gradient relative overflow-hidden transition-colors duration-300">
       {/* Ambient background glow */}
-      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-din-primary/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-violet-600/12 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-3/4 right-1/2 w-64 h-64 bg-violet-800/8 rounded-full blur-2xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 shadow-xl shadow-emerald-500/30 ring-4 ring-emerald-400/20 mb-3">
-            <Zap className="w-7 h-7 text-slate-950 fill-current" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-500 shadow-xl shadow-violet-500/30 ring-4 ring-violet-400/20 mb-3">
+            <Zap className="w-7 h-7 text-white fill-current" />
           </div>
           <h1 className="text-3xl font-black tracking-tight text-din-text">Criar Nova Conta</h1>
           <p className="text-xs text-din-muted mt-1">
@@ -198,9 +199,9 @@ export function Register() {
 
             <Button
               type="submit"
-              variant="emerald"
+              variant="primary"
               size="lg"
-              className="w-full shadow-lg shadow-emerald-500/20 mt-2 min-h-[44px]"
+              className="w-full shadow-glow-primary mt-2 min-h-[44px]"
               isLoading={isLoading}
             >
               <span>Cadastrar e Acessar</span>

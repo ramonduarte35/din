@@ -6,32 +6,32 @@
 /* 🎨 PALETAS DE CORES & VARIÁVEIS DE TEMA DIN                         */
 /* ══════════════════════════════════════════════════════════════════ */
 
-/* 1. ESCURO PADRÃO (Emerald & Deep Navy/Slate - Intacto) */
+/* 1. SLATE INDIGO — Tema Padrão (Violeta · Fundo Quase-Preto Azulado) */
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg-app: #080d1a;
-  --bg-surface: #0f172a;
-  --bg-surface-secondary: #0d1424;
-  --bg-surface-elevated: #172033;
-  --bg-sidebar: #0b1120;
-  --bg-header: rgba(8, 13, 26, 0.85);
-  --bg-input: #080d1a;
-  --border-app: #1e293b;
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-focus: #10b981;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-subtle: #64748b;
-  --color-primary: #10b981;
-  --color-primary-hover: #059669;
-  --color-primary-gradient: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
-  --color-primary-glow: rgba(16, 185, 129, 0.35);
-  --ambient-orb-1: rgba(16, 185, 129, 0.09);
-  --ambient-orb-2: rgba(99, 102, 241, 0.09);
-  --ambient-orb-3: rgba(244, 63, 94, 0.05);
-  --scrollbar-thumb: #1e293b;
-  --scrollbar-thumb-hover: #334155;
+  --bg-app: #0a0a0f;
+  --bg-surface: #111118;
+  --bg-surface-secondary: #16161f;
+  --bg-surface-elevated: #1c1c28;
+  --bg-sidebar: #0d0d14;
+  --bg-header: rgba(10, 10, 15, 0.90);
+  --bg-input: #111118;
+  --border-app: #232334;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-focus: #7c6ff7;
+  --text-main: #e8e8f0;
+  --text-muted: #8888aa;
+  --text-subtle: #55556a;
+  --color-primary: #7c6ff7;
+  --color-primary-hover: #6b5ef0;
+  --color-primary-gradient: linear-gradient(135deg, #7c6ff7 0%, #a78bfa 100%);
+  --color-primary-glow: rgba(124, 111, 247, 0.3);
+  --ambient-orb-1: rgba(124, 111, 247, 0.10);
+  --ambient-orb-2: rgba(167, 139, 250, 0.07);
+  --ambient-orb-3: rgba(244, 63, 94, 0.04);
+  --scrollbar-thumb: #232334;
+  --scrollbar-thumb-hover: #2e2e42;
 }
 
 /* 2. SMART CLASSIC (Blue / Executive Light) */
@@ -298,6 +298,60 @@ body {
 
 .glow-violet {
   box-shadow: 0 0 30px -5px rgba(139, 92, 246, 0.25);
+}
+
+/* ══════════════════════════════════════════════════════════════════ */
+/* ✨ ANIMAÇÕES ADICIONAIS                                             */
+/* ══════════════════════════════════════════════════════════════════ */
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes scale-in {
+  0% { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-left {
+  0% { opacity: 0; transform: translateX(-8px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(124, 111, 247, 0.12) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Sidebar nav item: indicador borda esquerda ativa */
+.nav-active-indicator {
+  position: relative;
+}
+.nav-active-indicator::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--color-primary-gradient);
+  border-radius: 0 2px 2px 0;
 }
 
 /* ══════════════════════════════════════════════════════════════════ */

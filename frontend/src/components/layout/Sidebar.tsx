@@ -82,36 +82,31 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
   };
 
   return (
-    <aside className="w-64 flex flex-col h-full bg-card border-r border-border p-4 select-none transition-colors duration-300">
+    <aside className="w-64 flex flex-col h-full bg-[var(--bg-sidebar)] border-r border-border p-4 select-none transition-colors duration-300 shadow-[1px_0_0_0_rgba(255,255,255,0.03)]">
       {/* Brand Header */}
-      <div className="flex items-center gap-3 px-3 py-4 mb-4 border-b border-border">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-2 ring-emerald-400/20">
-          <Zap className="w-5 h-5 text-slate-950 fill-current" />
+      <div className="flex items-center gap-3 px-3 py-4 mb-4">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-violet-500/25 ring-2 ring-violet-400/20">
+          <Zap className="w-4.5 h-4.5 text-white fill-current" style={{ width: '18px', height: '18px' }} />
         </div>
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-black tracking-tight text-din-text">Din</span>
-            <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-din-primary/20 text-din-primary border border-din-primary/30">
-              AI Finance
-            </span>
-          </div>
-          <p className="text-[11px] text-din-muted font-medium">Gestão & WhatsApp</p>
+          <span className="text-xl font-black tracking-tight text-din-text">Din</span>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1.5">
+      <nav className="flex-1 space-y-0.5 pl-2">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
+            end={item.to === '/'}
             onClick={onCloseMobile}
             className={({ isActive }) =>
               cn(
-                'flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group',
+                'flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group relative',
                 isActive
-                  ? 'bg-din-primary/15 text-din-primary border border-din-primary/30 shadow-sm font-semibold'
-                  : 'text-din-muted hover:text-din-text hover:bg-card-hover'
+                  ? 'text-white font-semibold nav-active-indicator'
+                  : 'text-din-muted hover:text-din-text hover:bg-[var(--bg-surface-elevated)]'
               )
             }
           >
@@ -120,14 +115,14 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
                 <div className="flex items-center gap-3">
                   <item.icon
                     className={cn(
-                      'w-4 h-4 transition-colors',
+                      'w-4 h-4 transition-colors shrink-0',
                       isActive ? 'text-din-primary' : 'text-din-muted group-hover:text-din-text'
                     )}
                   />
                   <span>{item.label}</span>
                 </div>
                 {item.highlight && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 animate-pulse-subtle">
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-300 border border-violet-500/30 animate-pulse-subtle">
                     IA
                   </span>
                 )}
@@ -147,10 +142,10 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
               onClick={onCloseMobile}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group',
+                  'flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group relative',
                   isActive
-                    ? 'bg-din-primary/15 text-din-primary border border-din-primary/30 shadow-sm font-semibold'
-                    : 'text-din-muted hover:text-din-text hover:bg-card-hover'
+                    ? 'text-white font-semibold nav-active-indicator'
+                    : 'text-din-muted hover:text-din-text hover:bg-[var(--bg-surface-elevated)]'
                 )
               }
             >
@@ -159,7 +154,7 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
                   <div className="flex items-center gap-3">
                     <Shield
                       className={cn(
-                        'w-4 h-4 transition-colors',
+                        'w-4 h-4 transition-colors shrink-0',
                         isActive ? 'text-din-primary' : 'text-din-muted group-hover:text-din-text'
                       )}
                     />
@@ -177,9 +172,9 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
 
       {/* PRO Upgrade / Banner Widget */}
       {user?.subscription_tier !== 'PRO' ? (
-        <div className="my-4 p-3.5 rounded-xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/25">
-          <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold">
-            <Sparkles className="w-4 h-4 text-amber-400" />
+        <div className="my-4 p-3.5 rounded-xl bg-gradient-to-br from-violet-600/15 via-indigo-500/10 to-transparent border border-violet-500/25 shadow-inner-glow">
+          <div className="flex items-center gap-2 text-violet-300 text-xs font-semibold">
+            <Sparkles className="w-4 h-4 text-violet-400" />
             <span>Assine o Plano PRO</span>
           </div>
           <p className="text-[11px] text-din-muted mt-1 leading-relaxed">
@@ -188,7 +183,7 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
           <NavLink
             to="/profile"
             onClick={onCloseMobile}
-            className="inline-block mt-2.5 text-xs font-bold text-amber-300 hover:underline"
+            className="inline-block mt-2.5 text-xs font-bold text-violet-300 hover:text-violet-200 hover:underline transition-colors"
           >
             Fazer Upgrade &rarr;
           </NavLink>
