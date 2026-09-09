@@ -16,11 +16,11 @@ export function AccessDenied() {
         Acesso Restrito
       </span>
 
-      <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1">
+      <h1 className="text-2xl sm:text-3xl font-black text-din-text tracking-tight mt-1">
         Sem Permissão
       </h1>
 
-      <p className="text-xs sm:text-sm text-slate-400 max-w-md mt-2.5 leading-relaxed">
+      <p className="text-xs sm:text-sm text-din-muted max-w-md mt-2.5 leading-relaxed">
         Você não possui permissão para acessar o painel de administração do sistema. 
         Esta área é exclusiva para o e-mail configurado como administrador no ambiente.
       </p>

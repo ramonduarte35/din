@@ -695,12 +695,12 @@ export function AdminWhatsApp() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight text-white">Gestão WhatsApp & Evolution Go</h1>
+                <h1 className="text-2xl font-bold tracking-tight text-din-text">Gestão WhatsApp & Evolution Go</h1>
                 <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                   ADMIN
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-din-muted">
                 Configure números oficiais do sistema, conecte via QR Code e monitore logs de mensagens em tempo real.
               </p>
             </div>

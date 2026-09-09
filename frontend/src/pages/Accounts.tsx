@@ -123,11 +123,11 @@ export function Accounts() {
       {/* Header Mobile First */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <Landmark className="w-6 h-6 text-emerald-400" />
+          <h1 className="text-xl sm:text-2xl font-black text-din-text tracking-tight flex items-center gap-2">
+            <Landmark className="w-6 h-6 text-din-primary" />
             <span>Contas Bancárias & Carteiras</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-din-muted mt-0.5">
             Gerencie seus bancos, saldos separados e integração automática com WhatsApp
           </p>
         </div>

@@ -40,7 +40,7 @@
   --bg-app: #F8FAFC;
   --bg-surface: #FFFFFF;
   --bg-surface-secondary: #F1F5F9;
-  --bg-surface-elevated: #FFFFFF;
+  --bg-surface-elevated: #E2E8F0;
   --bg-sidebar: #FFFFFF;
   --bg-header: rgba(248, 250, 252, 0.92);
   --bg-input: #F8FAFC;
@@ -67,7 +67,7 @@
   --bg-app: #F2F7F4;
   --bg-surface: #FFFFFF;
   --bg-surface-secondary: #E8F1EC;
-  --bg-surface-elevated: #FFFFFF;
+  --bg-surface-elevated: #DDEBE2;
   --bg-sidebar: #FFFFFF;
   --bg-header: rgba(242, 247, 244, 0.92);
   --bg-input: #F2F7F4;
@@ -121,7 +121,7 @@
   --bg-app: #FAFAFA;
   --bg-surface: #FFFFFF;
   --bg-surface-secondary: #F4F4F5;
-  --bg-surface-elevated: #FFFFFF;
+  --bg-surface-elevated: #E4E4E7;
   --bg-sidebar: #FFFFFF;
   --bg-header: rgba(250, 250, 250, 0.92);
   --bg-input: #FAFAFA;
@@ -202,7 +202,7 @@
   --bg-app: #f8fafc;
   --bg-surface: #ffffff;
   --bg-surface-secondary: #f1f5f9;
-  --bg-surface-elevated: #ffffff;
+  --bg-surface-elevated: #e2e8f0;
   --bg-sidebar: #ffffff;
   --bg-header: rgba(255, 255, 255, 0.9);
   --bg-input: #ffffff;

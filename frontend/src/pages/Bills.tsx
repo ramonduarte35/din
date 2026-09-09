@@ -288,9 +288,9 @@ export const Bills: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center text-slate-950 shadow-lg shadow-amber-500/20 font-bold">
               <CalendarClock className="w-5 h-5" />
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">Contas a Pagar</h1>
+            <h1 className="text-xl sm:text-2xl font-black text-din-text tracking-tight">Contas a Pagar</h1>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-din-muted mt-1">
             Gerencie seus boletos, vencimentos e dê baixa escolhendo a conta bancária de débito.
           </p>
         </div>

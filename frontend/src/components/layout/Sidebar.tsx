@@ -105,8 +105,8 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
               cn(
                 'flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group relative',
                 isActive
-                  ? 'text-white font-semibold nav-active-indicator'
-                  : 'text-din-muted hover:text-din-text hover:bg-[var(--bg-surface-elevated)]'
+                  ? 'bg-din-primary/10 text-din-primary font-semibold shadow-sm nav-active-indicator'
+                  : 'text-din-muted hover:text-din-text hover:bg-card-hover'
               )
             }
           >
@@ -122,7 +122,7 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
                   <span>{item.label}</span>
                 </div>
                 {item.highlight && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-300 border border-violet-500/30 animate-pulse-subtle">
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-500/15 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 border border-violet-500/30 animate-pulse-subtle">
                     IA
                   </span>
                 )}
@@ -144,8 +144,8 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
                 cn(
                   'flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group relative',
                   isActive
-                    ? 'text-white font-semibold nav-active-indicator'
-                    : 'text-din-muted hover:text-din-text hover:bg-[var(--bg-surface-elevated)]'
+                    ? 'bg-din-primary/10 text-din-primary font-semibold shadow-sm nav-active-indicator'
+                    : 'text-din-muted hover:text-din-text hover:bg-card-hover'
                 )
               }
             >
@@ -172,9 +172,9 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
 
       {/* PRO Upgrade / Banner Widget */}
       {user?.subscription_tier !== 'PRO' ? (
-        <div className="my-4 p-3.5 rounded-xl bg-gradient-to-br from-violet-600/15 via-indigo-500/10 to-transparent border border-violet-500/25 shadow-inner-glow">
-          <div className="flex items-center gap-2 text-violet-300 text-xs font-semibold">
-            <Sparkles className="w-4 h-4 text-violet-400" />
+        <div className="my-4 p-3.5 rounded-xl bg-gradient-to-br from-violet-600/10 via-indigo-500/5 to-transparent dark:from-violet-600/15 dark:via-indigo-500/10 border border-violet-500/25 shadow-inner-glow">
+          <div className="flex items-center gap-2 text-violet-700 dark:text-violet-300 text-xs font-semibold">
+            <Sparkles className="w-4 h-4 text-violet-600 dark:text-violet-400" />
             <span>Assine o Plano PRO</span>
           </div>
           <p className="text-[11px] text-din-muted mt-1 leading-relaxed">
@@ -183,7 +183,7 @@ export function Sidebar({ onCloseMobile }: SidebarProps) {
           <NavLink
             to="/profile"
             onClick={onCloseMobile}
-            className="inline-block mt-2.5 text-xs font-bold text-violet-300 hover:text-violet-200 hover:underline transition-colors"
+            className="inline-block mt-2.5 text-xs font-bold text-violet-700 dark:text-violet-300 hover:text-violet-900 dark:hover:text-violet-200 hover:underline transition-colors"
           >
             Fazer Upgrade &rarr;
           </NavLink>

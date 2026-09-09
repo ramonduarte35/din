@@ -9,8 +9,8 @@ export function NotFound() {
       <div className="w-16 h-16 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center text-emerald-400">
         <Zap className="w-8 h-8" />
       </div>
-      <h1 className="text-4xl font-black text-white">404</h1>
-      <p className="text-sm text-slate-400 max-w-sm">
+      <h1 className="text-4xl font-black text-din-text">404</h1>
+      <p className="text-sm text-din-muted max-w-sm">
         A página que você está procurando não existe ou foi movida.
       </p>
       <NavLink to="/">
