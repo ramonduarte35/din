@@ -9,7 +9,7 @@ import {
   updateBudgetRequest,
 } from '../../api/budgets';
 import { useToast } from '../../contexts/ToastContext';
-import { formatCurrencyInput, parseCurrencyInput } from '../../lib/utils';
+import { formatCurrencyInput, parseCurrencyInput, MONTH_NAMES } from '../../lib/utils';
 import { DollarSign, Tag, Layers, Calendar } from 'lucide-react';
 
 interface BudgetModalProps {
@@ -22,11 +22,6 @@ interface BudgetModalProps {
   currentYear: number;
   preselectedCategoryId?: string;
 }
-
-const MONTH_NAMES = [
-  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-];
 
 export function BudgetModal({
   isOpen,

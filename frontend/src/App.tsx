@@ -1,5 +1,5 @@
-import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -26,10 +26,40 @@ const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then((m) => ({ 
 const TermsOfUse = lazy(() => import('./pages/TermsOfUse').then((m) => ({ default: m.TermsOfUse })));
 const NotFound = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
 
+const ROUTE_TITLES: Record<string, string> = {
+  '/': 'Painel Financeiro | Din',
+  '/transactions': 'Transações | Din',
+  '/bills': 'Contas a Pagar e Receber | Din',
+  '/accounts': 'Contas Bancárias | Din',
+  '/categories': 'Categorias | Din',
+  '/budgets': 'Orçamentos Mensais | Din',
+  '/goals': 'Objetivos & Sonhos | Din',
+  '/simulator': 'Simulador de Gastos | Din',
+  '/profile': 'Meu Perfil | Din',
+  '/access-denied': 'Acesso Negado | Din',
+  '/admin/whatsapp': 'WhatsApp Admin | Din',
+  '/login': 'Entrar | Din',
+  '/register': 'Criar Conta | Din',
+  '/privacy': 'Política de Privacidade | Din',
+  '/terms': 'Termos de Uso | Din',
+};
+
+function PageTitleTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const title = ROUTE_TITLES[location.pathname] || 'Din — Gestão Financeira Inteligente';
+    document.title = title;
+  }, [location.pathname]);
+
+  return null;
+}
+
 function PageLoader() {
   return (
     <div className="min-h-[50vh] flex items-center justify-center">
-      <div className="w-8 h-8 rounded-full border-3 border-slate-700/40 border-t-emerald-500 animate-spin" />
+      <span className="sr-only" role="status">Carregando página...</span>
+      <div className="w-8 h-8 rounded-full border-3 border-slate-700/40 border-t-emerald-500 animate-spin" aria-hidden="true" />
     </div>
   );
 }
@@ -110,6 +140,7 @@ export function App() {
             <ToastProvider>
               <ConfirmProvider>
               <BrowserRouter>
+                <PageTitleTracker />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     {/* Public Auth Routes */}

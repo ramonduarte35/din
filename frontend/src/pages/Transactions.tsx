@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   getTransactionsRequest,
   deleteTransactionRequest,
@@ -40,7 +40,7 @@ export function Transactions() {
   // Modal de Edição
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
-  const loadTransactions = async () => {
+  const loadTransactions = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await getTransactionsRequest(filters);
@@ -52,7 +52,7 @@ export function Transactions() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [filters, toast]);
 
   const loadCategories = async () => {
     try {
@@ -69,7 +69,7 @@ export function Transactions() {
 
   useEffect(() => {
     loadTransactions();
-  }, [filters, refreshKey]);
+  }, [loadTransactions, refreshKey]);
 
   const handlePageChange = (newPage: number) => {
     setFilters((prev) => ({ ...prev, page: newPage }));

@@ -53,8 +53,14 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   return (
     <ToastContext.Provider value={{ toast, removeToast }}>
       {children}
-      {/* Toast Container */}
-      <div className="fixed bottom-4 right-4 left-4 sm:left-auto z-[9999] flex flex-col space-y-2 pointer-events-none max-w-sm w-full">
+      {/* Toast Container — aria-live para leitores de tela anunciarem notificações */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="false"
+        aria-label="Notificações do sistema"
+        className="fixed bottom-4 right-4 left-4 sm:left-auto z-[9999] flex flex-col space-y-2 pointer-events-none max-w-sm w-full"
+      >
         {toasts.map((t) => {
           let bgColor = 'bg-slate-900 border-slate-700/80 text-slate-100';
           let icon = <Info className="w-5 h-5 text-sky-400 shrink-0" />;
@@ -73,6 +79,8 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           return (
             <div
               key={t.id}
+              role={t.type === 'error' ? 'alert' : 'status'}
+              aria-live={t.type === 'error' ? 'assertive' : 'polite'}
               className={`pointer-events-auto flex items-start justify-between p-3.5 rounded-2xl border shadow-xl backdrop-blur-xl transition-all animate-slide-up ${bgColor}`}
             >
               <div className="flex items-start space-x-3 min-w-0 pr-2">
@@ -87,6 +95,7 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               <button
                 type="button"
                 onClick={() => removeToast(t.id)}
+                aria-label={`Fechar notificação: ${t.title}`}
                 className="p-1 text-slate-400 hover:text-white rounded-lg transition-colors shrink-0"
               >
                 <X className="w-4 h-4" />

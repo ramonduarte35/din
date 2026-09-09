@@ -87,14 +87,14 @@ export function PWAInstallBanner() {
               <div className="flex items-center gap-2 mt-3">
                 <button
                   onClick={handleInstall}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-bold rounded-lg shadow-md shadow-emerald-500/30 hover:from-emerald-600 hover:to-teal-600 transition-all min-h-[36px]"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-bold rounded-lg shadow-md shadow-emerald-500/30 hover:from-emerald-600 hover:to-teal-600 transition-all min-h-[44px]"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Instalar Agora
                 </button>
                 <button
                   onClick={handleDismiss}
-                  className="px-3 py-1.5 text-xs text-din-muted hover:text-din-text transition-colors min-h-[36px]"
+                  className="px-3 py-2 text-xs text-din-muted hover:text-din-text transition-colors min-h-[44px]"
                 >
                   Agora não
                 </button>

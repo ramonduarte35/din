@@ -7,6 +7,9 @@ exports.buildApp = buildApp;
 const fastify_1 = __importDefault(require("fastify"));
 const cors_1 = __importDefault(require("@fastify/cors"));
 const jwt_1 = __importDefault(require("@fastify/jwt"));
+const rate_limit_1 = __importDefault(require("@fastify/rate-limit"));
+const swagger_1 = __importDefault(require("@fastify/swagger"));
+const swagger_ui_1 = __importDefault(require("@fastify/swagger-ui"));
 const env_js_1 = require("./config/env.js");
 const error_handler_js_1 = require("./middleware/error-handler.js");
 const auth_routes_js_1 = require("./modules/auth/auth.routes.js");
@@ -36,6 +39,44 @@ function buildApp() {
         secret: env_js_1.env.JWT_SECRET,
         sign: {
             expiresIn: '7d',
+        },
+    });
+    // Rate Limiting Global — proteção contra flood e abuso da API
+    app.register(rate_limit_1.default, {
+        global: true,
+        max: 300,
+        timeWindow: '1 minute',
+        keyGenerator: (req) => req.ip,
+        errorResponseBuilder: (_req, context) => ({
+            statusCode: 429,
+            error: 'Too Many Requests',
+            message: `Muitas requisições. Tente novamente em ${Math.ceil(context.ttl / 1000)}s.`,
+        }),
+    });
+    // Documentação OpenAPI / Swagger
+    app.register(swagger_1.default, {
+        openapi: {
+            info: {
+                title: 'Din API',
+                description: 'Documentação da API do Sistema Din de Gestão Financeira Inteligente',
+                version: '1.0.0',
+            },
+            components: {
+                securitySchemes: {
+                    bearerAuth: {
+                        type: 'http',
+                        scheme: 'bearer',
+                        bearerFormat: 'JWT',
+                    },
+                },
+            },
+        },
+    });
+    app.register(swagger_ui_1.default, {
+        routePrefix: '/docs',
+        uiConfig: {
+            docExpansion: 'list',
+            deepLinking: false,
         },
     });
     // Error Handler Global

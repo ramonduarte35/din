@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   getAccountsRequest,
   deleteAccountRequest,
@@ -53,7 +53,7 @@ export function Accounts() {
   const toast = useToast();
   const { maskValue } = usePrivacy();
 
-  const loadAccounts = async () => {
+  const loadAccounts = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await getAccountsRequest();
@@ -64,11 +64,11 @@ export function Accounts() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     loadAccounts();
-  }, []);
+  }, [loadAccounts]);
 
   const handleOpenCreate = () => {
     setEditingAccount(null);

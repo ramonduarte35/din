@@ -1,6 +1,9 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
+import rateLimit from '@fastify/rate-limit';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 import { env } from './config/env.js';
 import { errorHandler } from './middleware/error-handler.js';
 
@@ -34,6 +37,47 @@ export function buildApp() {
     secret: env.JWT_SECRET,
     sign: {
       expiresIn: '7d',
+    },
+  });
+
+  // Rate Limiting Global — proteção contra flood e abuso da API
+  app.register(rateLimit, {
+    global: true,
+    max: 300,
+    timeWindow: '1 minute',
+    keyGenerator: (req) => req.ip,
+    errorResponseBuilder: (_req, context) => ({
+      statusCode: 429,
+      error: 'Too Many Requests',
+      message: `Muitas requisições. Tente novamente em ${Math.ceil(context.ttl / 1000)}s.`,
+    }),
+  });
+
+  // Documentação OpenAPI / Swagger
+  app.register(swagger, {
+    openapi: {
+      info: {
+        title: 'Din API',
+        description: 'Documentação da API do Sistema Din de Gestão Financeira Inteligente',
+        version: '1.0.0',
+      },
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+          },
+        },
+      },
+    },
+  });
+
+  app.register(swaggerUi, {
+    routePrefix: '/docs',
+    uiConfig: {
+      docExpansion: 'list',
+      deepLinking: false,
     },
   });
 

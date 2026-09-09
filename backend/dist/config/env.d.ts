@@ -1,7 +1,7 @@
 export declare const env: {
     DATABASE_URL: string;
+    NODE_ENV: "production" | "development" | "test";
     PORT: number;
-    NODE_ENV: "development" | "production" | "test";
     REDIS_URL: string;
     JWT_SECRET: string;
     ADMIN_EMAIL: string;

@@ -180,3 +180,16 @@ export function formatPhone(phone: string | null | undefined): string {
 
   return phone;
 }
+
+export const MONTH_NAMES = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+] as const;
+
+export function getMonthName(monthIndexOrNumber: number): string {
+  // Aceita 1-indexed (1-12) ou 0-indexed (0-11)
+  if (monthIndexOrNumber >= 1 && monthIndexOrNumber <= 12) {
+    return MONTH_NAMES[monthIndexOrNumber - 1];
+  }
+  return MONTH_NAMES[monthIndexOrNumber] || '';
+}

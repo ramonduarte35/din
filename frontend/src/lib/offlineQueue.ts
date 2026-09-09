@@ -77,6 +77,43 @@ export async function dequeue(id: string): Promise<void> {
   });
 }
 
+/** Limite máximo de tentativas antes de descartar operação falha para não travar a fila */
+export const MAX_QUEUE_RETRIES = 3;
+
+/**
+ * Incrementa o contador de retries de uma operação.
+ * Se atingir MAX_QUEUE_RETRIES, remove a operação para evitar loops infinitos.
+ * Retorna true se a operação foi descartada por atingir o limite.
+ */
+export async function incrementRetry(id: string): Promise<boolean> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const getReq = store.get(id);
+
+    getReq.onsuccess = () => {
+      const item = getReq.result as QueuedOperation | undefined;
+      if (!item) {
+        resolve(false);
+        return;
+      }
+
+      const nextRetries = (item.retries || 0) + 1;
+      if (nextRetries >= MAX_QUEUE_RETRIES) {
+        store.delete(id);
+        resolve(true);
+      } else {
+        item.retries = nextRetries;
+        store.put(item);
+        resolve(false);
+      }
+    };
+
+    getReq.onerror = () => reject(getReq.error);
+  });
+}
+
 /** Retorna quantidade de itens pendentes */
 export async function getQueueCount(): Promise<number> {
   const items = await getQueue();

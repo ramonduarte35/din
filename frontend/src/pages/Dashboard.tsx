@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { SummaryCards } from '../components/dashboard/SummaryCards';
 import { FinancialHealthWidget } from '../components/dashboard/FinancialHealthWidget';
 import { BudgetOverviewCard } from '../components/dashboard/BudgetOverviewCard';
@@ -14,13 +14,9 @@ import { getSystemNumbersRequest, SystemWhatsAppNumber } from '../api/system-num
 import { getAccountsRequest, Account } from '../api/accounts';
 import { useAuth } from '../contexts/AuthContext';
 import { useLayout } from '../components/layout/AppLayout';
-import { Sparkles, RefreshCw, ChevronLeft, ChevronRight, Calendar, FileText } from 'lucide-react';
+import { Sparkles, RefreshCw, ChevronLeft, ChevronRight, Calendar, FileText, AlertCircle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-
-const MONTH_NAMES = [
-  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
-];
+import { MONTH_NAMES } from '../lib/utils';
 
 export function Dashboard() {
   const { user } = useAuth();
@@ -36,11 +32,13 @@ export function Dashboard() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-  const loadData = async (showLoading = true) => {
+  const loadData = useCallback(async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     else setIsRefreshing(true);
+    setErrorMessage(null);
 
     try {
       const [sumRes, numRes, accsRes] = await Promise.all([
@@ -53,15 +51,16 @@ export function Dashboard() {
       setAccounts(accsRes);
     } catch (err) {
       console.error('Erro ao carregar dados do dashboard:', err);
+      setErrorMessage('Não foi possível carregar os dados financeiros deste período. Verifique sua conexão e tente novamente.');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [selectedMonth, selectedYear]);
 
   useEffect(() => {
     loadData();
-  }, [refreshKey, selectedMonth, selectedYear]);
+  }, [loadData, refreshKey]);
 
   const handlePrevMonth = () => {
     if (selectedMonth === 1) {
@@ -166,6 +165,28 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Estado de Erro com Ação de Recuperação */}
+      {errorMessage && !isLoading && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in"
+        >
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+            <p className="text-sm font-medium">{errorMessage}</p>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => loadData(true)}
+            className="border-rose-500/30 text-rose-300 hover:bg-rose-500/20 hover:text-white min-h-[44px] sm:self-auto self-start"
+          >
+            Tentar novamente
+          </Button>
+        </div>
+      )}
 
       {/* 1. Cards de Resumo / KPIs Gerais */}
       <SummaryCards summary={summary} isLoading={isLoading} />

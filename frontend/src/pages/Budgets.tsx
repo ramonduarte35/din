@@ -15,7 +15,7 @@ import { BudgetModal } from '../components/budgets/BudgetModal';
 import { useConfirm } from '../contexts/ConfirmContext';
 import { useToast } from '../contexts/ToastContext';
 import { usePrivacy } from '../contexts/PrivacyContext';
-import { formatBRL } from '../lib/utils';
+import { formatBRL, MONTH_NAMES } from '../lib/utils';
 import {
   PieChart,
   Plus,
@@ -35,11 +35,6 @@ import {
   ArrowUpRight,
   Zap,
 } from 'lucide-react';
-
-const MONTH_NAMES = [
-  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-];
 
 export function Budgets() {
   const now = new Date();

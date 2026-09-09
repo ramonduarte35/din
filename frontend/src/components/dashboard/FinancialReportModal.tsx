@@ -3,7 +3,7 @@ import { TransactionsSummary } from '../../api/transactions';
 import { Account } from '../../api/accounts';
 import { Button } from '../ui/Button';
 import { Printer, Download, X, Sparkles, TrendingUp, TrendingDown, DollarSign, Wallet, Calendar, ShieldCheck, Tag } from 'lucide-react';
-import { formatDate } from '../../lib/utils';
+import { formatDate, MONTH_NAMES } from '../../lib/utils';
 
 interface FinancialReportModalProps {
   isOpen: boolean;
@@ -15,11 +15,6 @@ interface FinancialReportModalProps {
   userName?: string;
   userEmail?: string;
 }
-
-const MONTH_NAMES = [
-  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
-];
 
 export function FinancialReportModal({
   isOpen,

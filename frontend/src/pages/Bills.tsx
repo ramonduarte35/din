@@ -18,7 +18,7 @@ import { AdSenseBanner } from '../components/ads/AdSenseBanner';
 import { useConfirm } from '../contexts/ConfirmContext';
 import { useToast } from '../contexts/ToastContext';
 import { usePrivacy } from '../contexts/PrivacyContext';
-import { formatDate, getDiffDays } from '../lib/utils';
+import { formatDate, getDiffDays, MONTH_NAMES } from '../lib/utils';
 import {
   CalendarClock,
   Plus,
@@ -53,10 +53,6 @@ export const Bills: React.FC = () => {
   const [isSendingReminder, setIsSendingReminder] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const MONTH_NAMES = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
   const currentMonthNow = new Date().getMonth() + 1;
   const currentYearNow = new Date().getFullYear();
   const isCurrentMonth = month === currentMonthNow && year === currentYearNow;

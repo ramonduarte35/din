@@ -165,6 +165,7 @@ model Transaction {
   @@index([user_id, category_id])
   @@index([user_id, origin])
   @@index([user_id, category_id, date])
+  @@index([user_id, description])
   @@map("transactions")
 }
 

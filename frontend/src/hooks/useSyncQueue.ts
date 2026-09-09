@@ -6,8 +6,20 @@
  */
 
 import { useEffect, useCallback, useState } from 'react';
-import { getQueue, dequeue, getQueueCount, QueuedOperation } from '../lib/offlineQueue';
-import { createTransactionRequest, updateTransactionRequest, deleteTransactionRequest } from '../api/transactions';
+import {
+  getQueue,
+  dequeue,
+  getQueueCount,
+  incrementRetry,
+  MAX_QUEUE_RETRIES,
+  QueuedOperation,
+} from '../lib/offlineQueue';
+import {
+  createTransactionRequest,
+  updateTransactionRequest,
+  deleteTransactionRequest,
+} from '../api/transactions';
+import { payBill } from '../api/bills';
 import { useToast } from '../contexts/ToastContext';
 
 export function useSyncQueue() {
@@ -29,6 +41,7 @@ export function useSyncQueue() {
     setIsSyncing(true);
     let syncedCount = 0;
     let failedCount = 0;
+    let discardedCount = 0;
 
     for (const op of queue) {
       try {
@@ -37,6 +50,11 @@ export function useSyncQueue() {
         syncedCount++;
       } catch (err) {
         console.error(`[Din Sync] Falha ao sincronizar operação ${op.id}:`, err);
+        const discarded = await incrementRetry(op.id);
+        if (discarded) {
+          discardedCount++;
+          console.warn(`[Din Sync] Operação ${op.id} descartada após ${MAX_QUEUE_RETRIES} tentativas consecutivas sem sucesso.`);
+        }
         failedCount++;
       }
     }
@@ -50,10 +68,15 @@ export function useSyncQueue() {
         `${syncedCount} operação${syncedCount > 1 ? 'ões' : ''} sincronizada${syncedCount > 1 ? 's' : ''} com sucesso.`
       );
     }
-    if (failedCount > 0) {
+    if (discardedCount > 0) {
+      toast.error(
+        'Falha no envio de operações',
+        `${discardedCount} operação${discardedCount > 1 ? 'ões' : ''} não puderam ser sincronizadas após várias tentativas e foram removidas.`
+      );
+    } else if (failedCount > 0) {
       toast.error(
         'Falha parcial na sincronização',
-        `${failedCount} operação${failedCount > 1 ? 'ões' : ''} não puderam ser enviadas.`
+        `${failedCount} operação${failedCount > 1 ? 'ões' : ''} não puderam ser enviadas no momento. Tentaremos novamente na próxima reconexão.`
       );
     }
   }, [toast, refreshCount]);
@@ -90,6 +113,12 @@ async function processOperation(op: QueuedOperation): Promise<void> {
     case 'DELETE_TRANSACTION':
       await deleteTransactionRequest(op.payload.id as string);
       break;
+
+    case 'PAY_BILL': {
+      const { id, ...payData } = op.payload as { id: string } & Parameters<typeof payBill>[1];
+      await payBill(id, payData);
+      break;
+    }
 
     default:
       throw new Error(`Tipo de operação desconhecido: ${(op as QueuedOperation).type}`);
