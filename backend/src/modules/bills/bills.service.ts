@@ -33,30 +33,36 @@ export class BillsService {
     }
 
     const totalInstallments = data.total_installments && data.total_installments > 1 ? data.total_installments : 1;
-    const baseDate = parseDateSafe(data.due_date) || new Date(data.due_date);
-    const baseYear = baseDate.getFullYear();
-    const baseMonth = baseDate.getMonth();
-    const baseDay = baseDate.getDate();
     const cleanDescription = data.description.trim();
 
-    // Se for parcelado (> 1 parcela), gera automaticamente os próximos meses mantendo o mesmo dia de vencimento
+    // Extrair ano, mês e dia de forma determinística em UTC
+    const match = typeof data.due_date === 'string' ? data.due_date.match(/^(\d{4})-(\d{2})-(\d{2})/) : null;
+    let baseYear: number;
+    let baseMonth: number; // 0-indexed
+    let baseDay: number;
+
+    if (match) {
+      baseYear = Number(match[1]);
+      baseMonth = Number(match[2]) - 1;
+      baseDay = Number(match[3]);
+    } else {
+      const parsed = parseDateSafe(data.due_date) || new Date(data.due_date);
+      baseYear = parsed.getUTCFullYear();
+      baseMonth = parsed.getUTCMonth();
+      baseDay = parsed.getUTCDate();
+    }
+
+    // Se for parcelado (> 1 parcela), gera automaticamente os próximos meses mantendo o mesmo dia de vencimento em UTC
     if (totalInstallments > 1) {
       const groupId = randomUUID();
       const billsToCreate = [];
 
       for (let i = 1; i <= totalInstallments; i++) {
-        // Calcular vencimento para cada mês subsequente
-        const targetDate = new Date(baseYear, baseMonth + (i - 1), 1, 12, 0, 0, 0);
-        const daysInTargetMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0).getDate();
+        // Calcular vencimento para cada mês subsequente usando UTC
+        const daysInTargetMonth = new Date(Date.UTC(baseYear, baseMonth + i, 0)).getUTCDate();
         const targetDay = Math.min(baseDay, daysInTargetMonth);
         const installmentDueDate = new Date(
-          targetDate.getFullYear(),
-          targetDate.getMonth(),
-          targetDay,
-          12,
-          0,
-          0,
-          0
+          Date.UTC(baseYear, baseMonth + (i - 1), targetDay, 12, 0, 0, 0)
         );
 
         // Se a descrição já tiver numeração (ex: 1/12), mantém; caso contrário anexa (1/N)
@@ -93,7 +99,7 @@ export class BillsService {
       return createdBills[0];
     }
 
-    const singleDueDate = new Date(baseYear, baseMonth, baseDay, 12, 0, 0, 0);
+    const singleDueDate = new Date(Date.UTC(baseYear, baseMonth, baseDay, 12, 0, 0, 0));
 
     // Parcela única (padrão)
     return await prisma.bill.create({
@@ -147,18 +153,18 @@ export class BillsService {
       where.description = { contains: query.search, mode: 'insensitive' };
     }
 
-    // Filtro por mês/ano ou período de vencimento
+    // Filtro por mês/ano ou período de vencimento em UTC
     if (query.month && query.year) {
-      const startOfMonth = new Date(query.year, query.month - 1, 1);
-      const endOfMonth = new Date(query.year, query.month, 0, 23, 59, 59, 999);
+      const startOfMonth = new Date(Date.UTC(query.year, query.month - 1, 1, 0, 0, 0, 0));
+      const endOfMonth = new Date(Date.UTC(query.year, query.month, 0, 23, 59, 59, 999));
       where.due_date = { gte: startOfMonth, lte: endOfMonth };
     } else if (query.start_due_date || query.end_due_date) {
       where.due_date = {};
       if (query.start_due_date) {
-        where.due_date.gte = new Date(query.start_due_date);
+        where.due_date.gte = parseDateSafe(query.start_due_date) || new Date(query.start_due_date);
       }
       if (query.end_due_date) {
-        where.due_date.lte = new Date(query.end_due_date);
+        where.due_date.lte = parseDateSafe(query.end_due_date) || new Date(query.end_due_date);
       }
     }
 
@@ -209,18 +215,18 @@ export class BillsService {
    */
   async getBillSummary(userId: string, month?: number, year?: number) {
     const now = new Date();
-    const targetMonth = month || now.getMonth() + 1;
-    const targetYear = year || now.getFullYear();
+    const targetMonth = month || now.getUTCMonth() + 1;
+    const targetYear = year || now.getUTCFullYear();
 
-    const startOfMonth = new Date(targetYear, targetMonth - 1, 1);
-    const endOfMonth = new Date(targetYear, targetMonth, 0, 23, 59, 59, 999);
+    const startOfMonth = new Date(Date.UTC(targetYear, targetMonth - 1, 1, 0, 0, 0, 0));
+    const endOfMonth = new Date(Date.UTC(targetYear, targetMonth, 0, 23, 59, 59, 999));
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
 
     const in7Days = new Date(today);
-    in7Days.setDate(in7Days.getDate() + 7);
-    in7Days.setHours(23, 59, 59, 999);
+    in7Days.setUTCDate(in7Days.getUTCDate() + 7);
+    in7Days.setUTCHours(23, 59, 59, 999);
 
     const allBills = await prisma.bill.findMany({
       where: {
@@ -514,19 +520,36 @@ export class BillsService {
     }
 
     return await prisma.$transaction(async (tx) => {
-      // Se escopo ALL e a conta pertence a um grupo de parcelamento
-      if (scope === 'ALL' && bill.group_id) {
-        // Buscar todas as parcelas do grupo pertencentes ao usuário
-        const groupBills = await tx.bill.findMany({
-          where: { group_id: bill.group_id, user_id: userId },
-          select: { id: true, transaction_id: true },
-        });
+      // Se escopo ALL e a conta pertence a um parcelamento
+      if (scope === 'ALL') {
+        let billIdsToDelete: string[] = [id];
+        let transactionIds: string[] = bill.transaction_id ? [bill.transaction_id] : [];
+
+        if (bill.group_id) {
+          const groupBills = await tx.bill.findMany({
+            where: { group_id: bill.group_id, user_id: userId },
+            select: { id: true, transaction_id: true },
+          });
+          billIdsToDelete = groupBills.map((b) => b.id);
+          transactionIds = groupBills.map((b) => b.transaction_id).filter(Boolean) as string[];
+        } else if (bill.description.match(/\(\d+\/\d+\)$/)) {
+          // Fallback para parcelamentos sem group_id (legados)
+          const baseDesc = bill.description.replace(/\s*\(\d+\/\d+\)$/, '').trim();
+          const similarBills = await tx.bill.findMany({
+            where: {
+              user_id: userId,
+              description: { startsWith: baseDesc },
+            },
+            select: { id: true, transaction_id: true, description: true },
+          });
+          const matching = similarBills.filter((b) => b.description.match(/\(\d+\/\d+\)$/));
+          if (matching.length > 0) {
+            billIdsToDelete = matching.map((b) => b.id);
+            transactionIds = matching.map((b) => b.transaction_id).filter(Boolean) as string[];
+          }
+        }
 
         // Remover transações vinculadas (pagamentos já realizados)
-        const transactionIds = groupBills
-          .map((b) => b.transaction_id)
-          .filter(Boolean) as string[];
-
         if (transactionIds.length > 0) {
           await tx.transaction.deleteMany({
             where: { id: { in: transactionIds } },
@@ -534,13 +557,13 @@ export class BillsService {
         }
 
         await tx.bill.deleteMany({
-          where: { group_id: bill.group_id, user_id: userId },
+          where: { id: { in: billIdsToDelete } },
         });
 
         return {
           success: true,
-          deleted: groupBills.length,
-          message: `${groupBills.length} parcela(s) excluída(s) com sucesso`,
+          deleted: billIdsToDelete.length,
+          message: `${billIdsToDelete.length} parcela(s) excluída(s) com sucesso`,
         };
       }
 

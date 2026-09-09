@@ -381,8 +381,9 @@ export declare class BillsService {
     /**
      * Excluir conta a pagar
      */
-    deleteBill(userId: string, id: string): Promise<{
+    deleteBill(userId: string, id: string, scope?: 'SINGLE' | 'ALL'): Promise<{
         success: boolean;
+        deleted: number;
         message: string;
     }>;
 }

@@ -173,7 +173,12 @@ export const Bills: React.FC = () => {
     // Atualização otimista
     const previousBills = [...bills];
     if (scope === 'ALL') {
-      setBills((prev) => prev.filter((b) => b.group_id !== bill.group_id));
+      if (bill.group_id) {
+        setBills((prev) => prev.filter((b) => b.group_id !== bill.group_id));
+      } else {
+        const baseDesc = bill.description.replace(/\s*\(\d+\/\d+\)$/, '').trim();
+        setBills((prev) => prev.filter((b) => b.id !== bill.id && !b.description.startsWith(baseDesc)));
+      }
     } else {
       setBills((prev) => prev.filter((b) => b.id !== bill.id));
     }
@@ -184,7 +189,11 @@ export const Bills: React.FC = () => {
         ? `Todas as parcelas de "${bill.description.replace(/ \(\d+\/\d+\)$/, '')}" foram excluídas!`
         : 'Conta excluída com sucesso!';
       toast.success(msg);
-      fetchBillSummary(month, year).then(setSummary).catch(() => {});
+      // Sincroniza em segundo plano sem travar a interface (sem spinner global)
+      await Promise.all([
+        loadData(false),
+        fetchBillSummary(month, year).then(setSummary).catch(() => {}),
+      ]);
     } catch (err: any) {
       setBills(previousBills);
       console.error('Erro ao excluir conta:', err);

@@ -102,7 +102,8 @@ class BillsController {
         try {
             const userId = (0, auth_middleware_js_1.getUserId)(request);
             const { id } = request.params;
-            const result = await billsService.deleteBill(userId, id);
+            const scope = request.query.scope === 'ALL' ? 'ALL' : 'SINGLE';
+            const result = await billsService.deleteBill(userId, id, scope);
             return reply.send(result);
         }
         catch (error) {

@@ -27,6 +27,9 @@ export declare class BillsController {
         Params: {
             id: string;
         };
+        Querystring: {
+            scope?: string;
+        };
     }>, reply: FastifyReply): Promise<never>;
     notifyDue(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     adminNotifyAll(request: FastifyRequest, reply: FastifyReply): Promise<never>;
