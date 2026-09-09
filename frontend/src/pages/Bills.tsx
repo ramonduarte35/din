@@ -132,7 +132,11 @@ export const Bills: React.FC = () => {
     try {
       await deleteBill(bill.id);
       toast.success('Conta excluída com sucesso!');
-      await loadData(false);
+      // Atualiza apenas o resumo (contadores/valores) sem re-buscar a lista,
+      // para não sobrescrever a remoção otimista com dados antigos do servidor.
+      fetchBillSummary(month, year)
+        .then(setSummary)
+        .catch(() => {});
     } catch (err: any) {
       // Rollback se falhar
       setBills(previousBills);

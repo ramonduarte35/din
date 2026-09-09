@@ -33,13 +33,13 @@ export const ConfirmProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const handleConfirm = () => {
-    setIsOpen(false);
     resolveRef.current(true);
+    setIsOpen(false);
   };
 
   const handleCancel = () => {
-    setIsOpen(false);
     resolveRef.current(false);
+    setIsOpen(false);
   };
 
   const variant = options.variant || 'danger';
