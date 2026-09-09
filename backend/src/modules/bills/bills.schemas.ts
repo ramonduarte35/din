@@ -50,6 +50,7 @@ export const listBillsQuerySchema = z.object({
   year: z.coerce.number().min(2000).max(2100).optional(),
   page: z.coerce.number().min(1).optional(),
   limit: z.coerce.number().min(1).max(100).optional(),
+  _t: z.any().optional(),
 });
 
 export type CreateBillInput = z.infer<typeof createBillSchema>;

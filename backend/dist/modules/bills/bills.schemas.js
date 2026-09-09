@@ -49,4 +49,5 @@ exports.listBillsQuerySchema = zod_1.z.object({
     year: zod_1.z.coerce.number().min(2000).max(2100).optional(),
     page: zod_1.z.coerce.number().min(1).optional(),
     limit: zod_1.z.coerce.number().min(1).max(100).optional(),
+    _t: zod_1.z.any().optional(),
 });

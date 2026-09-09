@@ -101,6 +101,7 @@ export declare const listBillsQuerySchema: z.ZodObject<{
     year: z.ZodOptional<z.ZodNumber>;
     page: z.ZodOptional<z.ZodNumber>;
     limit: z.ZodOptional<z.ZodNumber>;
+    _t: z.ZodOptional<z.ZodAny>;
 }, "strip", z.ZodTypeAny, {
     status?: "PENDING" | "PAID" | "OVERDUE" | "CANCELLED" | undefined;
     search?: string | undefined;
@@ -112,6 +113,7 @@ export declare const listBillsQuerySchema: z.ZodObject<{
     limit?: number | undefined;
     start_due_date?: string | undefined;
     end_due_date?: string | undefined;
+    _t?: any;
 }, {
     status?: "PENDING" | "PAID" | "OVERDUE" | "CANCELLED" | undefined;
     search?: string | undefined;
@@ -123,6 +125,7 @@ export declare const listBillsQuerySchema: z.ZodObject<{
     limit?: number | undefined;
     start_due_date?: string | undefined;
     end_due_date?: string | undefined;
+    _t?: any;
 }>;
 export type CreateBillInput = z.infer<typeof createBillSchema>;
 export type UpdateBillInput = z.infer<typeof updateBillSchema>;

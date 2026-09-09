@@ -36,6 +36,10 @@ import {
   Landmark,
   Tag,
   BellRing,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  CalendarDays,
 } from 'lucide-react';
 
 export const Bills: React.FC = () => {
@@ -47,6 +51,50 @@ export const Bills: React.FC = () => {
   const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [isSendingReminder, setIsSendingReminder] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const MONTH_NAMES = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  const currentMonthNow = new Date().getMonth() + 1;
+  const currentYearNow = new Date().getFullYear();
+  const isCurrentMonth = month === currentMonthNow && year === currentYearNow;
+
+  function handlePreviousMonth() {
+    if (month === 1) {
+      setMonth(12);
+      setYear((y) => y - 1);
+    } else {
+      setMonth((m) => m - 1);
+    }
+  }
+
+  function handleNextMonth() {
+    if (month === 12) {
+      setMonth(1);
+      setYear((y) => y + 1);
+    } else {
+      setMonth((m) => m + 1);
+    }
+  }
+
+  function handleGoToCurrentMonth() {
+    setMonth(currentMonthNow);
+    setYear(currentYearNow);
+  }
+
+  async function handleForceRefresh() {
+    setIsRefreshing(true);
+    try {
+      await loadData(false, true);
+      toast.success('Dados atualizados diretamente do banco!');
+    } catch (err) {
+      toast.error('Erro ao sincronizar dados com o banco.');
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
 
   const confirm = useConfirm();
   const toast = useToast();
@@ -86,10 +134,14 @@ export const Bills: React.FC = () => {
     loadData(true);
   }, [activeTab, search, month, year]);
 
-  async function loadData(showLoading = true) {
+  async function loadData(showLoading = true, forceBust = true) {
     if (showLoading) setLoading(true);
     try {
-      const params: any = { month, year };
+      const params: any = {
+        month,
+        year,
+        _t: forceBust ? Date.now() : undefined,
+      };
       if (search.trim()) params.search = search.trim();
       if (activeTab === 'PAID') params.status = 'PAID';
       else if (activeTab === 'PENDING') params.status = 'PENDING';
@@ -271,6 +323,95 @@ export const Bills: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* ── Barra de Navegação de Período (Mês e Ano - Mobile First) ──────── */}
+      <Card className="p-3.5 sm:p-4 border-border bg-card shadow-lg rounded-2xl sm:rounded-3xl relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Navegador Interativo entre Meses */}
+          <div className="flex items-center justify-between gap-2 w-full sm:w-auto">
+            <button
+              onClick={handlePreviousMonth}
+              title="Mês Anterior"
+              className="p-2.5 rounded-xl bg-card-secondary hover:bg-card-hover border border-border text-din-muted hover:text-din-text transition-all min-h-[44px] min-w-[44px] flex items-center justify-center active:scale-95 shrink-0"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            {/* Display Estilizado do Mês e Ano */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-card-secondary/80 border border-border/90 flex-1 sm:flex-none justify-center">
+              <Calendar className="w-4 h-4 text-din-primary shrink-0" />
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={month}
+                  onChange={(e) => setMonth(parseInt(e.target.value, 10))}
+                  className="bg-transparent text-sm sm:text-base font-bold text-din-text focus:outline-none cursor-pointer py-1"
+                >
+                  {MONTH_NAMES.map((m, idx) => (
+                    <option key={idx + 1} value={idx + 1} className="bg-slate-900 text-white">
+                      {m}
+                    </option>
+                  ))}
+                </select>
+
+                <span className="text-din-muted font-bold">/</span>
+
+                <select
+                  value={year}
+                  onChange={(e) => setYear(parseInt(e.target.value, 10))}
+                  className="bg-transparent text-sm sm:text-base font-bold text-din-text focus:outline-none cursor-pointer py-1"
+                >
+                  {Array.from({ length: 11 }, (_, i) => currentYearNow - 2 + i).map((y) => (
+                    <option key={y} value={y} className="bg-slate-900 text-white">
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {isCurrentMonth && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 whitespace-nowrap ml-1 shrink-0">
+                  Atual
+                </span>
+              )}
+            </div>
+
+            <button
+              onClick={handleNextMonth}
+              title="Próximo Mês"
+              className="p-2.5 rounded-xl bg-card-secondary hover:bg-card-hover border border-border text-din-muted hover:text-din-text transition-all min-h-[44px] min-w-[44px] flex items-center justify-center active:scale-95 shrink-0"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Atalhos: Ir para Mês Atual e Forçar Atualização do Banco */}
+          <div className="flex items-center gap-2 justify-end">
+            {!isCurrentMonth && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleGoToCurrentMonth}
+                className="text-xs font-semibold py-2 px-3 min-h-[44px] sm:min-h-[38px] border-border text-din-muted hover:text-din-text flex items-center gap-1.5 shrink-0"
+              >
+                <CalendarDays className="w-3.5 h-3.5 text-din-primary" />
+                <span>Mês Atual</span>
+              </Button>
+            )}
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleForceRefresh}
+              isLoading={isRefreshing}
+              title="Forçar consulta limpa e direta ao banco de dados"
+              className="text-xs font-semibold py-2 px-3.5 min-h-[44px] sm:min-h-[38px] border-border hover:border-din-primary/40 text-din-muted hover:text-din-primary flex items-center gap-1.5 shrink-0"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-din-primary' : ''}`} />
+              <span>Recarregar do Banco</span>
+            </Button>
+          </div>
+        </div>
+      </Card>
 
       {/* Cards de Métricas / KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
@@ -455,41 +596,16 @@ export const Bills: React.FC = () => {
             ))}
           </div>
 
-          {/* Busca e Período */}
-          <div className="flex items-center space-x-2 min-w-0">
-            <div className="relative flex-1 sm:w-56">
-              <Search className="w-4 h-4 text-din-muted absolute left-3 top-1/2 -translate-y-1/2" />
-              <Input
-                type="text"
-                placeholder="Buscar conta..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 py-2 text-xs sm:text-sm h-10 min-h-[44px] sm:min-h-[40px]"
-              />
-            </div>
-
-            <select
-              value={month}
-              onChange={(e) => setMonth(parseInt(e.target.value, 10))}
-              className="bg-card-secondary border border-border rounded-xl px-2 py-2 text-xs text-din-text focus:outline-none focus:ring-1 focus:ring-din-primary min-h-[44px] sm:min-h-[40px]"
-            >
-              {[
-                'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-                'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
-              ].map((m, idx) => (
-                <option key={idx + 1} value={idx + 1}>{m}</option>
-              ))}
-            </select>
-
-            <select
-              value={year}
-              onChange={(e) => setYear(parseInt(e.target.value, 10))}
-              className="bg-card-secondary border border-border rounded-xl px-2 py-2 text-xs text-din-text focus:outline-none focus:ring-1 focus:ring-din-primary min-h-[44px] sm:min-h-[40px]"
-            >
-              {Array.from({ length: 4 }, (_, i) => new Date().getFullYear() - 1 + i).map((y) => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
+          {/* Busca Rápida de Contas */}
+          <div className="relative flex-1 sm:w-72">
+            <Search className="w-4 h-4 text-din-muted absolute left-3 top-1/2 -translate-y-1/2" />
+            <Input
+              type="text"
+              placeholder="Buscar por descrição..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 py-2 text-xs sm:text-sm h-10 min-h-[44px] sm:min-h-[40px] w-full"
+            />
           </div>
         </div>
       </Card>

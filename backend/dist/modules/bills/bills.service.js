@@ -196,13 +196,11 @@ class BillsService {
         const in7Days = new Date(today);
         in7Days.setUTCDate(in7Days.getUTCDate() + 7);
         in7Days.setUTCHours(23, 59, 59, 999);
+        // Buscar contas pertencentes exclusivamente ao mês pesquisado para consistência total com a listagem
         const allBills = await prisma_js_1.prisma.bill.findMany({
             where: {
                 user_id: userId,
-                OR: [
-                    { due_date: { gte: startOfMonth, lte: endOfMonth } },
-                    { status: client_1.BillStatus.PENDING, due_date: { lt: today } }, // Inclui vencidas mesmo de meses anteriores
-                ],
+                due_date: { gte: startOfMonth, lte: endOfMonth },
             },
             include: {
                 category: true,

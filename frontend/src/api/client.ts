@@ -12,12 +12,21 @@ export const api = axios.create({
   },
 });
 
-// Interceptor para injetar token JWT nas requisições
+// Interceptor para injetar token JWT nas requisições e garantir que GET sempre vá ao backend
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('@din:token');
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Se for requisição GET, injeta _t para forçar bypass de qualquer cache do navegador/proxy
+  if (config.method?.toLowerCase() === 'get') {
+    config.params = {
+      ...config.params,
+      _t: Date.now(),
+    };
+  }
+
   return config;
 });
 
