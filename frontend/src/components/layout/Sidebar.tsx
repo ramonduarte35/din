@@ -15,9 +15,11 @@ import {
   Shield,
   ChevronLeft,
   ChevronRight,
+  Download,
   X,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { usePWA } from '../../contexts/PWAContext';
 import { cn } from '../../lib/utils';
 import { Badge } from '../ui/Badge';
 
@@ -29,6 +31,7 @@ interface SidebarProps {
 
 export function Sidebar({ onCloseMobile, isCollapsed = false, onToggleCollapse }: SidebarProps) {
   const { user, logout } = useAuth();
+  const { promptInstall, isInstalled } = usePWA();
   const navigate = useNavigate();
 
   const navItems = [
@@ -298,6 +301,44 @@ export function Sidebar({ onCloseMobile, isCollapsed = false, onToggleCollapse }
           </div>
         )
       ) : null}
+
+      {/* Botão de Instalação PWA */}
+      <div className={cn('my-2', isCollapsed ? 'w-full flex justify-center' : '')}>
+        {isCollapsed ? (
+          <button
+            type="button"
+            onClick={() => {
+              promptInstall();
+              if (onCloseMobile) onCloseMobile();
+            }}
+            title="Instalar App MeuDino"
+            aria-label="Instalar App MeuDino"
+            className="w-11 h-11 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-emerald-400 flex items-center justify-center transition-colors group relative min-w-[44px] min-h-[44px]"
+          >
+            <Download className="w-5 h-5" />
+            <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-slate-900/95 dark:bg-slate-800 text-slate-100 text-xs font-semibold rounded-lg shadow-xl border border-border whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-50">
+              Instalar App MeuDino
+            </div>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              promptInstall();
+              if (onCloseMobile) onCloseMobile();
+            }}
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/25 group min-h-[44px]"
+          >
+            <div className="flex items-center gap-2.5">
+              <Download className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Instalar Aplicativo</span>
+            </div>
+            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              {isInstalled ? 'ATIVO' : 'PWA'}
+            </span>
+          </button>
+        )}
+      </div>
 
       {/* User profile footer */}
       <div className={cn('pt-3 border-t border-border mt-auto', isCollapsed ? 'w-full' : '')}>

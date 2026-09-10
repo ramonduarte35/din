@@ -31,11 +31,18 @@ import {
   Copy,
   Unlink,
   Radio,
+  Smartphone,
+  Download,
+  RotateCcw,
 } from 'lucide-react';
+import { usePWA } from '../contexts/PWAContext';
+import { useToast } from '../contexts/ToastContext';
 
 export function Profile() {
   const { user, updateProfile, refreshUser } = useAuth();
   const { theme, setTheme, themes } = useTheme();
+  const { promptInstall, isInstalled, isDismissed, resetDismissed } = usePWA();
+  const toast = useToast();
 
   // Profile fields
   const [name, setName] = useState(user?.name || '');
@@ -655,6 +662,63 @@ export function Profile() {
             </Button>
           </div>
         </form>
+      </Card>
+
+      {/* Aplicativo & Atalho na Tela Inicial (PWA) */}
+      <Card className="bg-card border-border">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
+              <Smartphone className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-bold text-din-text text-sm flex items-center gap-2 flex-wrap">
+                <span>Aplicativo no Smartphone & Computador</span>
+                {isInstalled ? (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                    Instalado ✓
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                    Web App PWA
+                  </span>
+                )}
+              </h4>
+              <p className="text-xs text-din-muted mt-0.5 leading-relaxed">
+                Adicione o MeuDino à tela inicial para abrir como aplicativo nativo em tela cheia com acesso offline.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-stretch sm:self-auto shrink-0 flex-wrap">
+            {isDismissed && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  resetDismissed();
+                  toast.success('Avisos automáticos de instalação restaurados!');
+                }}
+                title="Restaurar aviso automático na tela inicial"
+                className="text-xs min-h-[44px] flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Restaurar Avisos</span>
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={promptInstall}
+              className="flex items-center gap-2 shadow-glow-primary min-h-[44px] flex-1 sm:flex-none justify-center"
+            >
+              <Download className="w-4 h-4" />
+              <span>{isInstalled ? 'Ver Guia de Instalação' : 'Instalar Aplicativo'}</span>
+            </Button>
+          </div>
+        </div>
       </Card>
 
       {/* Guia de Canais de Entrada: WhatsApp e Telegram */}

@@ -6,6 +6,8 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ConfirmProvider } from './contexts/ConfirmContext';
 import { PrivacyProvider } from './contexts/PrivacyContext';
+import { PWAProvider } from './contexts/PWAContext';
+import { PWAInstallModal } from './components/pwa/PWAInstallModal';
 import { AppLayout } from './components/layout/AppLayout';
 
 // Code Splitting sob demanda (React.lazy)
@@ -139,8 +141,10 @@ export function App() {
           <PrivacyProvider>
             <ToastProvider>
               <ConfirmProvider>
-              <BrowserRouter>
-                <PageTitleTracker />
+                <PWAProvider>
+                  <PWAInstallModal />
+                  <BrowserRouter>
+                    <PageTitleTracker />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     {/* Public Auth Routes */}
@@ -204,11 +208,12 @@ export function App() {
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
-              </BrowserRouter>
-            </ConfirmProvider>
-          </ToastProvider>
-        </PrivacyProvider>
-      </GoogleOAuthWrapper>
+                  </BrowserRouter>
+                </PWAProvider>
+              </ConfirmProvider>
+            </ToastProvider>
+          </PrivacyProvider>
+        </GoogleOAuthWrapper>
       </ThemeProvider>
     </AuthProvider>
   );
