@@ -23,7 +23,7 @@ export function TermsOfUse() {
 
           <div className="flex items-center gap-2 font-bold text-sm text-din-text">
             <FileText className="w-5 h-5 text-din-primary" />
-            <span>Din Finance</span>
+            <span>MeuDino</span>
           </div>
         </div>
       </header>
@@ -49,7 +49,7 @@ export function TermsOfUse() {
             1. Aceitação dos Termos
           </h2>
           <p className="text-sm text-din-muted leading-relaxed">
-            Ao criar uma conta ou utilizar o aplicativo <strong>Din Finance</strong>, inclusive por meio de interações com nosso assistente no WhatsApp ou Telegram, você concorda expressamente com estes Termos de Uso e com a nossa Política de Privacidade.
+            Ao criar uma conta ou utilizar o aplicativo <strong>MeuDino</strong>, inclusive por meio de interações com nosso assistente no WhatsApp ou Telegram, você concorda expressamente com estes Termos de Uso e com a nossa Política de Privacidade.
           </p>
         </section>
 
@@ -59,7 +59,7 @@ export function TermsOfUse() {
             2. Descrição dos Serviços & Planos
           </h2>
           <p className="text-sm text-din-muted leading-relaxed">
-            O Din é uma plataforma de organização e inteligência financeira pessoal que permite registro de transações, gestão de contas a pagar, orçamentos, metas e relatórios analíticos:
+            O MeuDino é uma plataforma de organização e inteligência financeira que permite registro de transações, gestão de contas a pagar, orçamentos, metas e relatórios analíticos:
           </p>
           <ul className="list-disc list-inside text-sm text-din-muted space-y-2 leading-relaxed ml-2">
             <li>
@@ -89,7 +89,7 @@ export function TermsOfUse() {
             4. Isenção de Responsabilidade Financeira
           </h2>
           <p className="text-sm text-din-muted leading-relaxed">
-            O Din é uma ferramenta de auxílio ao controle e organização de despesas e receitas. As sugestões geradas por inteligência artificial não constituem consultoria financeira ou de investimentos formal e não substituem o discernimento financeiro do próprio usuário.
+            O MeuDino é uma ferramenta de auxílio ao controle e organização de despesas e receitas. As sugestões geradas por inteligência artificial não constituem consultoria financeira ou de investimentos formal e não substituem o discernimento financeiro do próprio usuário.
           </p>
         </section>
 

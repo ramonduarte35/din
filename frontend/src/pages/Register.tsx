@@ -4,7 +4,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../contexts/AuthContext';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Mail, Lock, User, Phone, Zap, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, Phone, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export function Register() {
   const [name, setName] = useState('');
@@ -63,12 +63,14 @@ export function Register() {
       <div className="w-full max-w-md relative z-10">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-500 shadow-xl shadow-violet-500/30 ring-4 ring-violet-400/20 mb-3">
-            <Zap className="w-7 h-7 text-white fill-current" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-card-secondary border border-border shadow-xl shadow-emerald-500/10 ring-4 ring-emerald-500/20 mb-3 p-2">
+            <img src="/meudino-mascot.png" alt="MeuDino" className="w-16 h-16 object-contain" />
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-din-text">Criar Nova Conta</h1>
+          <h1 className="text-3xl font-black tracking-tight text-din-text">
+            Criar Conta no Meu<span className="text-emerald-500">Dino</span>
+          </h1>
           <p className="text-xs text-din-muted mt-1">
-            Experimente o controle financeiro com assistente IA no seu WhatsApp
+            Seu gerenciador financeiro inteligente com assistente IA no WhatsApp
           </p>
         </div>
 
@@ -210,7 +212,7 @@ export function Register() {
           </form>
 
           <div className="pt-4 border-t border-border text-center text-xs text-din-muted">
-            Já possui uma conta no Din?{' '}
+            Já possui uma conta no MeuDino?{' '}
             <NavLink to="/login" className="font-bold text-din-primary hover:underline">
               Fazer Login
             </NavLink>

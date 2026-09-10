@@ -40,7 +40,7 @@ export function Simulator() {
     {
       id: '1',
       sender: 'bot',
-      text: '🤖 Olá! Eu sou o assistente inteligente do Din.\n\nEnvie uma mensagem em linguagem natural (ex: "gastei 35 no almoço", "recebi 2500 de salário") ou use comandos para testar o processamento com IA em tempo real!',
+      text: '🤖 Olá! Eu sou o Dino, assistente inteligente do MeuDino.\n\nEnvie uma mensagem em linguagem natural (ex: "gastei 35 no almoço", "recebi 2500 de salário") ou use comandos para testar o processamento com IA em tempo real!',
       timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       channel: 'whatsapp',
     },
@@ -114,7 +114,7 @@ export function Simulator() {
       const isBalanceQuery = response?.result?.balance !== undefined;
       const count = response?.result?.count;
 
-      let replyText = `✅ Processado com IA pelo Din (${channel === 'whatsapp' ? 'WhatsApp Webhook' : 'Telegram Bot'})!\n\n`;
+      let replyText = `✅ Processado com IA pelo MeuDino (${channel === 'whatsapp' ? 'WhatsApp Webhook' : 'Telegram Bot'})!\n\n`;
       if (status === 'success' || status === 'created') {
         replyText += `Status: ${status}\nTransações registradas: ${count || 1}`;
       } else if (isBalanceQuery) {
@@ -227,11 +227,11 @@ export function Simulator() {
                     : 'bg-sky-500/20 text-sky-400 border-sky-500/30 shadow-sky-500/10'
                 }`}
               >
-                {channel === 'whatsapp' ? <Bot className="w-5 h-5" /> : <SendHorizontal className="w-5 h-5" />}
+                {channel === 'whatsapp' ? <img src="/meudino-mascot.png" alt="Dino" className="w-5 h-5 object-contain" /> : <SendHorizontal className="w-5 h-5" />}
               </div>
               <div>
                 <h3 className="text-sm font-bold text-din-text flex items-center gap-1.5">
-                  <span>Din Assistant ({channel === 'whatsapp' ? 'WhatsApp' : 'Telegram'})</span>
+                  <span>Dino Assistant ({channel === 'whatsapp' ? 'WhatsApp' : 'Telegram'})</span>
                   <span
                     className={`w-2 h-2 rounded-full inline-block animate-pulse ${
                       channel === 'whatsapp' ? 'bg-emerald-400' : 'bg-sky-400'

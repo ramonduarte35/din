@@ -12,7 +12,6 @@ import {
   User as UserIcon,
   LogOut,
   Sparkles,
-  Zap,
   Shield,
   PanelLeftClose,
   PanelLeftOpen,
@@ -96,8 +95,8 @@ export function Sidebar({ onCloseMobile, isCollapsed = false, onToggleCollapse }
       {/* Brand Header */}
       {isCollapsed ? (
         <div className="flex flex-col items-center gap-2.5 py-2 mb-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-violet-500/25 ring-2 ring-violet-400/20 shrink-0">
-            <Zap className="w-4.5 h-4.5 text-white fill-current" style={{ width: '18px', height: '18px' }} />
+          <div className="w-10 h-10 rounded-xl bg-card-secondary border border-border/80 flex items-center justify-center shadow-lg shadow-emerald-500/10 ring-2 ring-emerald-500/20 shrink-0 p-1">
+            <img src="/meudino-mascot.png" alt="MeuDino" className="w-8 h-8 object-contain" />
           </div>
 
           {/* Botão de Expandir no Desktop quando encolhido */}
@@ -116,11 +115,13 @@ export function Sidebar({ onCloseMobile, isCollapsed = false, onToggleCollapse }
       ) : (
         <div className="flex items-center justify-between px-2 py-3 mb-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-violet-500/25 ring-2 ring-violet-400/20 shrink-0">
-              <Zap className="w-4.5 h-4.5 text-white fill-current" style={{ width: '18px', height: '18px' }} />
+            <div className="w-10 h-10 rounded-xl bg-card-secondary border border-border/80 flex items-center justify-center shadow-lg shadow-emerald-500/10 ring-2 ring-emerald-500/20 shrink-0 p-1">
+              <img src="/meudino-mascot.png" alt="MeuDino" className="w-8 h-8 object-contain" />
             </div>
             <div>
-              <span className="text-xl font-black tracking-tight text-din-text">Din</span>
+              <span className="text-xl font-black tracking-tight text-din-text">
+                Meu<span className="text-emerald-500">Dino</span>
+              </span>
             </div>
           </div>
 

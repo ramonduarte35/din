@@ -72,13 +72,13 @@ export function PWAInstallBanner() {
         <div className="fixed bottom-20 lg:bottom-4 left-4 right-4 lg:left-auto lg:right-4 lg:w-96 z-50 animate-slide-up">
           <div className="bg-card border border-din-primary/40 rounded-2xl p-4 shadow-2xl shadow-black/40 flex items-start gap-3">
             {/* Ícone */}
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/30">
-              <Smartphone className="w-6 h-6 text-slate-950" />
+            <div className="w-12 h-12 rounded-xl bg-card-secondary border border-border flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/20 p-1">
+              <img src="/meudino-mascot.png" alt="MeuDino" className="w-9 h-9 object-contain" />
             </div>
 
             {/* Texto */}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-din-text">Instalar Din no Android</p>
+              <p className="text-sm font-bold text-din-text">Instalar MeuDino no Android</p>
               <p className="text-xs text-din-muted mt-0.5 leading-relaxed">
                 Adicione à tela inicial para acesso offline e notificações.
               </p>

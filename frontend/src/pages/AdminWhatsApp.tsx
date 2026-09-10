@@ -436,9 +436,9 @@ export function AdminWhatsApp() {
       const res = await updateAdminSettings({ reply_only_registered: checked });
       setAdminSettings(res.settings);
       if (checked) {
-        toast.success('Modo restrito ativado: Din responderá apenas a números cadastrados.');
+        toast.success('Modo restrito ativado: MeuDino responderá apenas a números cadastrados.');
       } else {
-        toast.info('Modo público ativado: Din responderá a qualquer número com guia de cadastro.');
+        toast.info('Modo público ativado: MeuDino responderá a qualquer número com guia de cadastro.');
       }
       showMessage(
         'success',
@@ -1103,7 +1103,7 @@ export function AdminWhatsApp() {
                   <span>Provedor Principal do WhatsApp</span>
                 </h3>
                 <p className="text-xs text-din-muted mt-0.5">
-                  Escolha qual motor o Din utilizará para processar e responder mensagens financeiras
+                  Escolha qual motor o MeuDino utilizará para processar e responder mensagens financeiras
                 </p>
               </div>
 
@@ -1624,7 +1624,7 @@ export function AdminWhatsApp() {
                     Configuração Automática de Webhook
                   </h3>
                   <p className="text-xs text-din-muted">
-                    Registre a URL do servidor Din nos servidores do Telegram para receber mensagens em tempo real
+                    Registre a URL do servidor MeuDino nos servidores do Telegram para receber mensagens em tempo real
                   </p>
                 </div>
               </div>
@@ -1731,7 +1731,7 @@ export function AdminWhatsApp() {
                   </div>
 
                   <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-                    Quando ativado, o Din irá <strong>ignorar silenciosamente</strong> qualquer mensagem vinda de números que ainda não estejam cadastrados no banco de dados. Nenhuma mensagem de boas-vindas ou aviso será enviada para desconhecidos.
+                    Quando ativado, o MeuDino irá <strong>ignorar silenciosamente</strong> qualquer mensagem vinda de números que ainda não estejam cadastrados no banco de dados. Nenhuma mensagem de boas-vindas ou aviso será enviada para desconhecidos.
                   </p>
                 </div>
               </div>
@@ -1779,7 +1779,7 @@ export function AdminWhatsApp() {
                   💡 Como utilizar durante o desenvolvimento:
                 </p>
                 <p className="text-slate-400">
-                  Mantenha esta opção <strong className="text-amber-300">ativada</strong> enquanto estiver testando e validando as instâncias. Assim, se pessoas desconhecidas enviarem mensagem para o número da empresa, o sistema não gastará tokens de IA nem enviará respostas automáticas. Quando for lançar o Din oficialmente em produção, basta <strong className="text-emerald-400">desativar</strong> este switch para receber novos usuários.
+                  Mantenha esta opção <strong className="text-amber-300">ativada</strong> enquanto estiver testando e validando as instâncias. Assim, se pessoas desconhecidas enviarem mensagem para o número da empresa, o sistema não gastará tokens de IA nem enviará respostas automáticas. Quando for lançar o MeuDino oficialmente em produção, basta <strong className="text-emerald-400">desativar</strong> este switch para receber novos usuários.
                 </p>
               </div>
             </div>
@@ -1802,7 +1802,7 @@ export function AdminWhatsApp() {
               <ul className="space-y-2.5 text-xs text-slate-300">
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                  <span><strong>Usuário com conta no Din:</strong> Resposta e registro financeiro imediato via IA.</span>
+                  <span><strong>Usuário com conta no MeuDino:</strong> Resposta e registro financeiro imediato via IA.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
@@ -1826,7 +1826,7 @@ export function AdminWhatsApp() {
               <ul className="space-y-2.5 text-xs text-slate-300">
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                  <span><strong>Usuário com conta no Din:</strong> Resposta e registro financeiro imediato via IA.</span>
+                  <span><strong>Usuário com conta no MeuDino:</strong> Resposta e registro financeiro imediato via IA.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Info className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" />
@@ -2050,7 +2050,7 @@ export function AdminWhatsApp() {
 
                   <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] uppercase font-bold text-slate-400">Endpoint do Webhook Din</p>
+                      <p className="text-[10px] uppercase font-bold text-slate-400">Endpoint do Webhook MeuDino</p>
                       <p className="text-xs font-mono text-slate-300 font-medium mt-0.5">
                         http://api:3000/api/v1/webhooks/evolution
                       </p>

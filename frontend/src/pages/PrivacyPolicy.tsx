@@ -23,7 +23,7 @@ export function PrivacyPolicy() {
 
           <div className="flex items-center gap-2 font-bold text-sm text-din-text">
             <ShieldCheck className="w-5 h-5 text-din-primary" />
-            <span>Din Finance</span>
+            <span>MeuDino</span>
           </div>
         </div>
       </header>
@@ -49,7 +49,7 @@ export function PrivacyPolicy() {
             1. Compromisso com a sua Privacidade
           </h2>
           <p className="text-sm text-din-muted leading-relaxed">
-            O <strong>Din Finance</strong> valoriza e respeita a sua privacidade. Esta política descreve como coletamos, usamos, armazenamos e protegemos seus dados pessoais de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 - LGPD) e as diretrizes globais de privacidade.
+            O <strong>MeuDino</strong> valoriza e respeita a sua privacidade. Esta política descreve como coletamos, usamos, armazenamos e protegemos seus dados pessoais de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 - LGPD) e as diretrizes globais de privacidade.
           </p>
         </section>
 
@@ -66,7 +66,7 @@ export function PrivacyPolicy() {
               <strong>Dados Financeiros Pessoais:</strong> Lançamentos de receitas, despesas, contas a pagar, categorias e metas financeiras registradas por você.
             </li>
             <li>
-              <strong>Mensagens via WhatsApp ou Telegram:</strong> Textos e áudios enviados ao bot oficial do Din para transcrição e categorização automática por Inteligência Artificial.
+              <strong>Mensagens via WhatsApp ou Telegram:</strong> Textos e áudios enviados ao bot oficial do MeuDino para transcrição e categorização automática por Inteligência Artificial.
             </li>
             <li>
               <strong>Dados de Navegação:</strong> Informações de dispositivo, endereço IP, cookies técnicos de sessão e estatísticas de uso anônimas.
@@ -153,7 +153,7 @@ export function PrivacyPolicy() {
             6. Contato e Encarregado de Proteção de Dados (DPO)
           </h2>
           <p className="text-sm text-din-muted leading-relaxed">
-            Se você tiver dúvidas, solicitações ou quiser exercer seus direitos de privacidade, entre em contato com nosso suporte através da plataforma Din.
+            Se você tiver dúvidas, solicitações ou quiser exercer seus direitos de privacidade, entre em contato com nosso suporte através da plataforma MeuDino.
           </p>
         </section>
       </main>

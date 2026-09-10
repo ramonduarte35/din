@@ -4,7 +4,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../contexts/AuthContext';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Mail, Lock, Zap, ArrowRight, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -61,14 +61,14 @@ export function Login() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-500 shadow-xl shadow-violet-500/30 ring-4 ring-violet-400/20 mb-4">
-            <Zap className="w-7 h-7 text-white fill-current" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-card-secondary border border-border shadow-xl shadow-emerald-500/10 ring-4 ring-emerald-500/20 mb-3 p-2">
+            <img src="/meudino-mascot.png" alt="MeuDino" className="w-16 h-16 object-contain" />
           </div>
           <h1 className="text-3xl font-black tracking-tight text-din-text">
-            Din
+            Meu<span className="text-emerald-500">Dino</span>
           </h1>
           <p className="text-xs text-din-muted mt-1">
-            Gestão financeira inteligente com IA e integração direta no WhatsApp
+            Seu gerenciador financeiro inteligente integrado ao WhatsApp
           </p>
         </div>
 
@@ -181,7 +181,7 @@ export function Login() {
               className="w-full shadow-glow-primary mt-2 min-h-[44px]"
               isLoading={isLoading}
             >
-              <span>Entrar no Din</span>
+              <span>Entrar no MeuDino</span>
               <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </form>

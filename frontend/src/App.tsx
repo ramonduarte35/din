@@ -27,28 +27,28 @@ const TermsOfUse = lazy(() => import('./pages/TermsOfUse').then((m) => ({ defaul
 const NotFound = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
 
 const ROUTE_TITLES: Record<string, string> = {
-  '/': 'Painel Financeiro | Din',
-  '/transactions': 'Transações | Din',
-  '/bills': 'Contas a Pagar e Receber | Din',
-  '/accounts': 'Contas Bancárias | Din',
-  '/categories': 'Categorias | Din',
-  '/budgets': 'Orçamentos Mensais | Din',
-  '/goals': 'Objetivos & Sonhos | Din',
-  '/simulator': 'Simulador de Gastos | Din',
-  '/profile': 'Meu Perfil | Din',
-  '/access-denied': 'Acesso Negado | Din',
-  '/admin/whatsapp': 'WhatsApp Admin | Din',
-  '/login': 'Entrar | Din',
-  '/register': 'Criar Conta | Din',
-  '/privacy': 'Política de Privacidade | Din',
-  '/terms': 'Termos de Uso | Din',
+  '/': 'Painel Financeiro | MeuDino',
+  '/transactions': 'Transações | MeuDino',
+  '/bills': 'Contas a Pagar e Receber | MeuDino',
+  '/accounts': 'Contas Bancárias | MeuDino',
+  '/categories': 'Categorias | MeuDino',
+  '/budgets': 'Orçamentos Mensais | MeuDino',
+  '/goals': 'Objetivos & Sonhos | MeuDino',
+  '/simulator': 'Simulador de Gastos | MeuDino',
+  '/profile': 'Meu Perfil | MeuDino',
+  '/access-denied': 'Acesso Negado | MeuDino',
+  '/admin/whatsapp': 'WhatsApp Admin | MeuDino',
+  '/login': 'Entrar | MeuDino',
+  '/register': 'Criar Conta | MeuDino',
+  '/privacy': 'Política de Privacidade | MeuDino',
+  '/terms': 'Termos de Uso | MeuDino',
 };
 
 function PageTitleTracker() {
   const location = useLocation();
 
   useEffect(() => {
-    const title = ROUTE_TITLES[location.pathname] || 'Din — Gestão Financeira Inteligente';
+    const title = ROUTE_TITLES[location.pathname] || 'MeuDino — Seu Gerenciador Financeiro Inteligente';
     document.title = title;
   }, [location.pathname]);
 

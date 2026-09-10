@@ -238,7 +238,7 @@ export function Dashboard() {
         accounts={accounts}
         month={selectedMonth}
         year={selectedYear}
-        userName={user?.name || 'Usuário Din'}
+        userName={user?.name || 'Usuário MeuDino'}
         userEmail={user?.email || ''}
       />
     </div>

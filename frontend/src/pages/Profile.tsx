@@ -364,7 +364,7 @@ export function Profile() {
           <div>
             <h3 className="text-sm font-bold text-din-text tracking-tight">Dados Cadastrais</h3>
             <p className="text-xs text-din-muted">
-              O número de telefone é utilizado pelo Din para reconhecer suas mensagens automaticamente.
+              O número de telefone é utilizado pelo MeuDino para reconhecer suas mensagens automaticamente.
             </p>
           </div>
 
@@ -664,7 +664,7 @@ export function Profile() {
             <Info className="w-5 h-5" />
           </div>
           <div className="space-y-3 text-xs">
-            <h4 className="font-bold text-din-text text-sm">Canais de Entrada Din (WhatsApp & Telegram)</h4>
+            <h4 className="font-bold text-din-text text-sm">Canais de Entrada MeuDino (WhatsApp & Telegram)</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-din-muted leading-relaxed">
               <div className="p-3 rounded-xl bg-card-secondary border border-border">
                 <p className="font-semibold text-din-text mb-1 flex items-center gap-1.5">
@@ -672,7 +672,7 @@ export function Profile() {
                   WhatsApp (Evolution Go ou Oficial Meta)
                 </p>
                 <p>
-                  1. Salve o número oficial do Din na agenda do seu smartphone.
+                  1. Salve o número oficial do MeuDino na agenda do seu smartphone.
                   <br />
                   2. Mantenha seu número de telefone preenchido em <strong>Dados Cadastrais</strong>.
                   <br />

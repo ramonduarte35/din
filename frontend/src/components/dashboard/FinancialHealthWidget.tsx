@@ -82,7 +82,7 @@ export function FinancialHealthWidget({ summary, isLoading }: FinancialHealthWid
       bgBadge: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
       ringColor: 'stroke-amber-400',
       gradient: 'from-amber-400 to-amber-600',
-      tip: 'Seu saldo está no zero a zero. Tente poupar ao menos 10% da sua renda criando uma meta no Din.',
+      tip: 'Seu saldo está no zero a zero. Tente poupar ao menos 10% da sua renda criando uma meta no MeuDino.',
     };
   } else if (totalScore < 85) {
     level = {
@@ -124,7 +124,7 @@ export function FinancialHealthWidget({ summary, isLoading }: FinancialHealthWid
 
         <div className="hidden sm:flex items-center gap-1 text-xs text-din-muted">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Análise IA Din</span>
+          <span>Análise IA MeuDino</span>
         </div>
       </div>
 
@@ -227,7 +227,7 @@ export function FinancialHealthWidget({ summary, isLoading }: FinancialHealthWid
         <div className="md:col-span-3 p-3.5 rounded-2xl bg-card-secondary/70 border border-border/80 space-y-1.5">
           <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
             <Sparkles className="w-3.5 h-3.5 shrink-0" />
-            <span>Dica do Din</span>
+            <span>Dica do Dino</span>
           </div>
           <p className="text-[11px] text-din-muted leading-relaxed">
             {level.tip}

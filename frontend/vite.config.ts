@@ -23,9 +23,9 @@ export default defineConfig({
       ],
       // Web App Manifest — o "contrato" que o Android usa para instalar
       manifest: {
-        name: 'Din — Gestão Financeira Inteligente',
-        short_name: 'Din',
-        description: 'Controle financeiro pessoal com IA via WhatsApp e Telegram',
+        name: 'MeuDino — Seu Gerenciador Financeiro Inteligente',
+        short_name: 'MeuDino',
+        description: 'Controle financeiro inteligente com IA via WhatsApp e Telegram',
         theme_color: '#080d1a',
         background_color: '#080d1a',
         display: 'standalone',      // abre sem barra de endereço (parece app nativo)

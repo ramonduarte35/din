@@ -270,7 +270,7 @@ export function FinancialReportModal({
 
           {/* Rodapé do Relatório */}
           <div className="pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between text-[11px] text-din-subtle gap-2">
-            <span>Din Gestão Financeira Inteligente — Relatório confidencial do titular</span>
+            <span>MeuDino — Seu Gerenciador Financeiro Inteligente — Relatório confidencial do titular</span>
             <span>Página 1 de 1</span>
           </div>
         </div>
