@@ -16,6 +16,8 @@ interface LayoutContextType {
   openQuickActionModal: () => void;
   triggerRefresh: () => void;
   refreshKey: number;
+  isSidebarCollapsed: boolean;
+  toggleSidebarCollapse: () => void;
 }
 
 const LayoutContext = createContext<LayoutContextType | undefined>(undefined);
@@ -35,6 +37,23 @@ export function AppLayout() {
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('din_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSidebarCollapse = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('din_sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   const triggerRefresh = () => {
     setRefreshKey((prev) => prev + 1);
@@ -54,12 +73,17 @@ export function AppLayout() {
         openQuickActionModal,
         triggerRefresh,
         refreshKey,
+        isSidebarCollapsed,
+        toggleSidebarCollapse,
       }}
     >
       <div className="flex h-screen bg-background bg-ambient-gradient text-din-text overflow-hidden transition-colors duration-300">
         {/* Desktop Sidebar */}
-        <div className="hidden lg:flex lg:flex-shrink-0">
-          <Sidebar />
+        <div className="hidden lg:flex lg:flex-shrink-0 transition-all duration-300 ease-in-out">
+          <Sidebar
+            isCollapsed={isSidebarCollapsed}
+            onToggleCollapse={toggleSidebarCollapse}
+          />
         </div>
 
         {/* Mobile Sidebar Drawer */}
@@ -70,7 +94,10 @@ export function AppLayout() {
               onClick={() => setIsMobileMenuOpen(false)}
             />
             <div className="relative flex-1 flex flex-col max-w-xs w-full bg-card z-10 animate-slide-up border-r border-border">
-              <Sidebar onCloseMobile={() => setIsMobileMenuOpen(false)} />
+              <Sidebar
+                isCollapsed={false}
+                onCloseMobile={() => setIsMobileMenuOpen(false)}
+              />
             </div>
           </div>
         )}
@@ -80,6 +107,8 @@ export function AppLayout() {
           <Header
             onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
             onOpenNewTransaction={openNewTransactionModal}
+            isSidebarCollapsed={isSidebarCollapsed}
+            onToggleDesktopSidebar={toggleSidebarCollapse}
           />
 
           {/* Padding bottom extra no mobile para não sobrepor a BottomNav */}

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Plus, Sparkles, MessageSquare, Eye, EyeOff, Palette, Check } from 'lucide-react';
+import { Menu, Plus, Sparkles, MessageSquare, Eye, EyeOff, Palette, Check, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePrivacy } from '../../contexts/PrivacyContext';
@@ -8,9 +8,16 @@ import { useTheme } from '../../contexts/ThemeContext';
 interface HeaderProps {
   onOpenMobileMenu: () => void;
   onOpenNewTransaction: () => void;
+  isSidebarCollapsed?: boolean;
+  onToggleDesktopSidebar?: () => void;
 }
 
-export function Header({ onOpenMobileMenu, onOpenNewTransaction }: HeaderProps) {
+export function Header({
+  onOpenMobileMenu,
+  onOpenNewTransaction,
+  isSidebarCollapsed = false,
+  onToggleDesktopSidebar,
+}: HeaderProps) {
   const { user } = useAuth();
   const { isPrivate, togglePrivacy } = usePrivacy();
   const { theme, setTheme, themes, currentThemeConfig } = useTheme();
@@ -51,6 +58,21 @@ export function Header({ onOpenMobileMenu, onOpenNewTransaction }: HeaderProps) 
         >
           <Menu className="w-5 h-5" />
         </button>
+        {onToggleDesktopSidebar && (
+          <button
+            type="button"
+            onClick={onToggleDesktopSidebar}
+            aria-label={isSidebarCollapsed ? 'Expandir menu lateral' : 'Encolher menu lateral'}
+            title={isSidebarCollapsed ? 'Expandir menu lateral' : 'Encolher menu lateral'}
+            className="hidden lg:flex p-2 rounded-xl text-din-muted hover:text-din-text hover:bg-card-hover transition-colors items-center justify-center min-w-[40px] min-h-[40px]"
+          >
+            {isSidebarCollapsed ? (
+              <PanelLeftOpen className="w-5 h-5 text-din-primary" />
+            ) : (
+              <PanelLeftClose className="w-5 h-5" />
+            )}
+          </button>
+        )}
         {user?.avatar_url && (
           <img
             src={user.avatar_url}
