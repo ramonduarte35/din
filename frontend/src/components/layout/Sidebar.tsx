@@ -13,8 +13,8 @@ import {
   LogOut,
   Sparkles,
   Shield,
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronLeft,
+  ChevronRight,
   X,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -106,9 +106,9 @@ export function Sidebar({ onCloseMobile, isCollapsed = false, onToggleCollapse }
               onClick={onToggleCollapse}
               aria-label="Expandir menu lateral"
               title="Expandir menu lateral"
-              className="p-2 rounded-xl text-din-muted hover:text-din-primary hover:bg-card-hover border border-border/60 hover:border-din-primary/40 transition-colors flex items-center justify-center min-w-[40px] min-h-[40px]"
+              className="p-2 rounded-xl text-din-muted hover:text-din-primary hover:bg-card-hover border border-border/60 hover:border-din-primary/40 transition-colors flex items-center justify-center min-w-[44px] min-h-[44px]"
             >
-              <PanelLeftOpen className="w-4.5 h-4.5 text-din-primary" />
+              <ChevronRight className="w-5 h-5 text-din-primary" />
             </button>
           )}
         </div>
@@ -147,7 +147,7 @@ export function Sidebar({ onCloseMobile, isCollapsed = false, onToggleCollapse }
               title="Encolher menu lateral"
               className="hidden lg:flex p-2 rounded-xl text-din-muted hover:text-din-text hover:bg-card-hover transition-colors items-center justify-center min-w-[40px] min-h-[40px]"
             >
-              <PanelLeftClose className="w-5 h-5" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
           )}
         </div>
