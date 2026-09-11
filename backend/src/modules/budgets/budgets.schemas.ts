@@ -6,7 +6,7 @@ export const listBudgetsQuerySchema = z.object({
 });
 
 export const upsertBudgetSchema = z.object({
-  category_id: z.string().uuid('ID de categoria inválido'),
+  category_id: z.string().min(1, 'ID de categoria inválido'),
   amount: z.number().positive('O valor do orçamento deve ser maior que zero'),
   month: z.number().int().min(1).max(12),
   year: z.number().int().min(2000).max(2100),

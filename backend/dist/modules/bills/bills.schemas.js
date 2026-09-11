@@ -9,7 +9,7 @@ exports.createBillSchema = zod_1.z.object({
     due_date: zod_1.z.string().refine((val) => !isNaN(Date.parse(val)), {
         message: 'Data de vencimento inválida (use ISO-8601 ex: 2026-09-10)',
     }),
-    category_id: zod_1.z.string().uuid('ID de categoria inválido').optional().nullable(),
+    category_id: zod_1.z.string().min(1, 'ID de categoria inválido').optional().nullable(),
     account_id: zod_1.z.string().uuid('ID de conta inválido').optional().nullable(),
     barcode: zod_1.z.string().max(255).optional().nullable(),
     notes: zod_1.z.string().max(1000).optional().nullable(),
@@ -22,7 +22,7 @@ exports.updateBillSchema = zod_1.z.object({
     due_date: zod_1.z.string().refine((val) => !isNaN(Date.parse(val)), {
         message: 'Data de vencimento inválida',
     }).optional(),
-    category_id: zod_1.z.string().uuid().optional().nullable(),
+    category_id: zod_1.z.string().min(1).optional().nullable(),
     account_id: zod_1.z.string().uuid().optional().nullable(),
     barcode: zod_1.z.string().max(255).optional().nullable(),
     notes: zod_1.z.string().max(1000).optional().nullable(),
@@ -42,7 +42,7 @@ exports.listBillsQuerySchema = zod_1.z.object({
     status: zod_1.z.nativeEnum(client_1.BillStatus).optional(),
     start_due_date: zod_1.z.string().optional(),
     end_due_date: zod_1.z.string().optional(),
-    category_id: zod_1.z.string().uuid().optional(),
+    category_id: zod_1.z.string().min(1).optional(),
     account_id: zod_1.z.string().uuid().optional(),
     search: zod_1.z.string().optional(),
     month: zod_1.z.coerce.number().min(1).max(12).optional(),

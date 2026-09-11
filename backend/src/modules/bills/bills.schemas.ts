@@ -7,7 +7,7 @@ export const createBillSchema = z.object({
   due_date: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: 'Data de vencimento inválida (use ISO-8601 ex: 2026-09-10)',
   }),
-  category_id: z.string().uuid('ID de categoria inválido').optional().nullable(),
+  category_id: z.string().min(1, 'ID de categoria inválido').optional().nullable(),
   account_id: z.string().uuid('ID de conta inválido').optional().nullable(),
   barcode: z.string().max(255).optional().nullable(),
   notes: z.string().max(1000).optional().nullable(),
@@ -21,7 +21,7 @@ export const updateBillSchema = z.object({
   due_date: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: 'Data de vencimento inválida',
   }).optional(),
-  category_id: z.string().uuid().optional().nullable(),
+  category_id: z.string().min(1).optional().nullable(),
   account_id: z.string().uuid().optional().nullable(),
   barcode: z.string().max(255).optional().nullable(),
   notes: z.string().max(1000).optional().nullable(),
@@ -43,7 +43,7 @@ export const listBillsQuerySchema = z.object({
   status: z.nativeEnum(BillStatus).optional(),
   start_due_date: z.string().optional(),
   end_due_date: z.string().optional(),
-  category_id: z.string().uuid().optional(),
+  category_id: z.string().min(1).optional(),
   account_id: z.string().uuid().optional(),
   search: z.string().optional(),
   month: z.coerce.number().min(1).max(12).optional(),

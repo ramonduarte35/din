@@ -6,7 +6,7 @@ export const createTransactionSchema = z.object({
   amount: z.number().positive('O valor deve ser positivo'),
   type: z.nativeEnum(TransactionType),
   account_id: z.string().uuid().optional().nullable(),
-  category_id: z.string().uuid().optional().nullable(),
+  category_id: z.string().min(1).optional().nullable(),
   date: z.string().or(z.date()).optional(),
 });
 
@@ -15,7 +15,7 @@ export const updateTransactionSchema = z.object({
   amount: z.number().positive().optional(),
   type: z.nativeEnum(TransactionType).optional(),
   account_id: z.string().uuid().optional().nullable(),
-  category_id: z.string().uuid().optional().nullable(),
+  category_id: z.string().min(1).optional().nullable(),
   date: z.string().or(z.date()).optional(),
 });
 

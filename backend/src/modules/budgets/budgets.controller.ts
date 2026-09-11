@@ -1,4 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
+import { ZodError } from 'zod';
 import { BudgetsService } from './budgets.service.js';
 import {
   listBudgetsQuerySchema,
@@ -10,6 +11,10 @@ import { getUserId } from '../../middleware/auth.middleware.js';
 
 const budgetsService = new BudgetsService();
 
+function formatZodMessage(error: ZodError): string {
+  return error.issues?.[0]?.message || (error as any).errors?.[0]?.message || 'Dados inválidos.';
+}
+
 export class BudgetsController {
   async list(request: FastifyRequest, reply: FastifyReply) {
     try {
@@ -18,6 +23,9 @@ export class BudgetsController {
       const result = await budgetsService.getMonthlyBudgets(userId, query.month, query.year);
       return reply.status(200).send(result);
     } catch (error: any) {
+      if (error instanceof ZodError || error.name === 'ZodError') {
+        return reply.status(400).send({ message: formatZodMessage(error) });
+      }
       if (error.statusCode) {
         return reply.status(error.statusCode).send({ message: error.message });
       }
@@ -33,6 +41,9 @@ export class BudgetsController {
       const result = await budgetsService.upsertBudget(userId, data);
       return reply.status(200).send(result);
     } catch (error: any) {
+      if (error instanceof ZodError || error.name === 'ZodError') {
+        return reply.status(400).send({ message: formatZodMessage(error) });
+      }
       if (error.statusCode) {
         return reply.status(error.statusCode).send({ message: error.message });
       }
@@ -49,6 +60,9 @@ export class BudgetsController {
       const result = await budgetsService.updateBudget(userId, id, data);
       return reply.status(200).send(result);
     } catch (error: any) {
+      if (error instanceof ZodError || error.name === 'ZodError') {
+        return reply.status(400).send({ message: formatZodMessage(error) });
+      }
       if (error.statusCode) {
         return reply.status(error.statusCode).send({ message: error.message });
       }
@@ -64,6 +78,9 @@ export class BudgetsController {
       const result = await budgetsService.deleteBudget(userId, id);
       return reply.status(200).send(result);
     } catch (error: any) {
+      if (error instanceof ZodError || error.name === 'ZodError') {
+        return reply.status(400).send({ message: formatZodMessage(error) });
+      }
       if (error.statusCode) {
         return reply.status(error.statusCode).send({ message: error.message });
       }
@@ -79,6 +96,9 @@ export class BudgetsController {
       const result = await budgetsService.copyFromPreviousMonth(userId, data);
       return reply.status(200).send(result);
     } catch (error: any) {
+      if (error instanceof ZodError || error.name === 'ZodError') {
+        return reply.status(400).send({ message: formatZodMessage(error) });
+      }
       if (error.statusCode) {
         return reply.status(error.statusCode).send({ message: error.message });
       }

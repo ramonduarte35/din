@@ -87,7 +87,17 @@ export function BudgetModal({
       onClose();
     } catch (err: any) {
       console.error('Erro ao salvar orçamento:', err);
-      const msg = err.response?.data?.message || err.message || 'Erro ao salvar orçamento.';
+      let msg = err.response?.data?.message || err.message || 'Erro ao salvar orçamento.';
+      if (typeof msg === 'string' && msg.trim().startsWith('[')) {
+        try {
+          const parsed = JSON.parse(msg);
+          if (Array.isArray(parsed) && parsed[0]?.message) {
+            msg = parsed[0].message;
+          }
+        } catch {
+          // Manter msg original caso não seja JSON válido
+        }
+      }
       setError(msg);
       toast.error(msg);
     } finally {
