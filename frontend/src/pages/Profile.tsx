@@ -193,131 +193,6 @@ export function Profile() {
         </p>
       </div>
 
-      {/* 🎨 SEÇÃO DE APARÊNCIA & PALETAS DE CORES */}
-      <Card className="space-y-5 border-border bg-card">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border">
-          <div>
-            <div className="flex items-center gap-2">
-              <Palette className="w-5 h-5 text-din-primary" />
-              <h3 className="text-base font-bold text-din-text tracking-tight">
-                Aparência & Paleta de Cores
-              </h3>
-            </div>
-            <p className="text-xs text-din-muted mt-0.5">
-              Escolha o visual que mais combina com seu estilo. Sua preferência é salva automaticamente.
-            </p>
-          </div>
-          <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-din-primary/10 text-din-primary border border-din-primary/25 self-start sm:self-auto">
-            {themes.find((t) => t.id === theme)?.name} Ativo
-          </span>
-        </div>
-
-        {themeSuccess && (
-          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-2 animate-fade-in">
-            <Check className="w-4 h-4 flex-shrink-0" />
-            <span>{themeSuccess}</span>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          {themes.map((t) => {
-            const isSelected = t.id === theme;
-            return (
-              <div
-                key={t.id}
-                onClick={() => handleSelectTheme(t.id)}
-                className={`group relative rounded-2xl p-3.5 cursor-pointer transition-all border flex flex-col justify-between ${
-                  isSelected
-                    ? 'bg-card-hover border-din-primary shadow-lg ring-2 ring-din-primary/40'
-                    : 'bg-card-secondary border-border hover:border-din-primary/40 hover:bg-card-hover'
-                }`}
-              >
-                {/* Visual Preview Box */}
-                <div
-                  className="w-full h-20 rounded-xl mb-3 p-2.5 flex flex-col justify-between border shadow-inner relative overflow-hidden"
-                  style={{
-                    backgroundColor: t.preview.bg,
-                    borderColor: isSelected ? t.accentColor : 'rgba(150,150,150,0.2)',
-                  }}
-                >
-                  {/* Top Bar Mockup */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <div
-                        className="w-2.5 h-2.5 rounded-full shadow-sm"
-                        style={{ backgroundColor: t.accentColor }}
-                      />
-                      <div
-                        className="w-6 h-1.5 rounded-full opacity-60"
-                        style={{ backgroundColor: t.accentColor }}
-                      />
-                    </div>
-                    <div
-                      className="w-4 h-1.5 rounded-full"
-                      style={{ backgroundColor: t.preview.secondary }}
-                    />
-                  </div>
-
-                  {/* Card Simulation */}
-                  <div
-                    className="p-1.5 rounded-lg border flex items-center justify-between"
-                    style={{
-                      backgroundColor: t.preview.card,
-                      borderColor: 'rgba(150,150,150,0.15)',
-                    }}
-                  >
-                    <div className="space-y-1">
-                      <div
-                        className="w-10 h-1.5 rounded-full"
-                        style={{ backgroundColor: t.accentColor }}
-                      />
-                      <div className="w-6 h-1 rounded-full bg-slate-500/40" />
-                    </div>
-                    <div
-                      className="w-3.5 h-3.5 rounded-md flex items-center justify-center text-[8px] font-bold"
-                      style={{ backgroundColor: t.accentColor, color: '#000' }}
-                    >
-                      R$
-                    </div>
-                  </div>
-                </div>
-
-                {/* Details */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-bold text-sm text-din-text group-hover:text-din-primary transition-colors">
-                      {t.name}
-                    </h4>
-                    {isSelected && (
-                      <span
-                        className="w-5 h-5 rounded-full flex items-center justify-center text-slate-950 shadow-sm"
-                        style={{ backgroundColor: t.accentColor }}
-                      >
-                        <Check className="w-3 h-3 stroke-[3]" />
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-din-muted line-clamp-2 leading-relaxed mb-3">
-                    {t.description}
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  disabled={isChangingTheme}
-                  className={`w-full py-2 px-3 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center justify-center ${
-                    isSelected
-                      ? 'bg-din-primary text-slate-950 shadow-md font-extrabold'
-                      : 'bg-card border border-border text-din-muted hover:text-din-text hover:border-din-primary/30'
-                  }`}
-                >
-                  {isSelected ? '✓ Paleta Ativa' : 'Aplicar Paleta'}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Card Resumo do Plano e Status */}
@@ -662,6 +537,132 @@ export function Profile() {
             </Button>
           </div>
         </form>
+      </Card>
+
+      {/* 🎨 SEÇÃO DE APARÊNCIA & PALETAS DE CORES */}
+      <Card className="space-y-5 border-border bg-card">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-border">
+          <div>
+            <div className="flex items-center gap-2">
+              <Palette className="w-5 h-5 text-din-primary" />
+              <h3 className="text-base font-bold text-din-text tracking-tight">
+                Aparência & Paleta de Cores
+              </h3>
+            </div>
+            <p className="text-xs text-din-muted mt-0.5">
+              Escolha o visual que mais combina com seu estilo. Sua preferência é salva automaticamente.
+            </p>
+          </div>
+          <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-din-primary/10 text-din-primary border border-din-primary/25 self-start sm:self-auto">
+            {themes.find((t) => t.id === theme)?.name} Ativo
+          </span>
+        </div>
+
+        {themeSuccess && (
+          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-2 animate-fade-in">
+            <Check className="w-4 h-4 flex-shrink-0" />
+            <span>{themeSuccess}</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {themes.map((t) => {
+            const isSelected = t.id === theme;
+            return (
+              <div
+                key={t.id}
+                onClick={() => handleSelectTheme(t.id)}
+                className={`group relative rounded-2xl p-3.5 cursor-pointer transition-all border flex flex-col justify-between ${
+                  isSelected
+                    ? 'bg-card-hover border-din-primary shadow-lg ring-2 ring-din-primary/40'
+                    : 'bg-card-secondary border-border hover:border-din-primary/40 hover:bg-card-hover'
+                }`}
+              >
+                {/* Visual Preview Box */}
+                <div
+                  className="w-full h-20 rounded-xl mb-3 p-2.5 flex flex-col justify-between border shadow-inner relative overflow-hidden"
+                  style={{
+                    backgroundColor: t.preview.bg,
+                    borderColor: isSelected ? t.accentColor : 'rgba(150,150,150,0.2)',
+                  }}
+                >
+                  {/* Top Bar Mockup */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <div
+                        className="w-2.5 h-2.5 rounded-full shadow-sm"
+                        style={{ backgroundColor: t.accentColor }}
+                      />
+                      <div
+                        className="w-6 h-1.5 rounded-full opacity-60"
+                        style={{ backgroundColor: t.accentColor }}
+                      />
+                    </div>
+                    <div
+                      className="w-4 h-1.5 rounded-full"
+                      style={{ backgroundColor: t.preview.secondary }}
+                    />
+                  </div>
+
+                  {/* Card Simulation */}
+                  <div
+                    className="p-1.5 rounded-lg border flex items-center justify-between"
+                    style={{
+                      backgroundColor: t.preview.card,
+                      borderColor: 'rgba(150,150,150,0.15)',
+                    }}
+                  >
+                    <div className="space-y-1">
+                      <div
+                        className="w-10 h-1.5 rounded-full"
+                        style={{ backgroundColor: t.accentColor }}
+                      />
+                      <div className="w-6 h-1 rounded-full bg-slate-500/40" />
+                    </div>
+                    <div
+                      className="w-3.5 h-3.5 rounded-md flex items-center justify-center text-[8px] font-bold"
+                      style={{ backgroundColor: t.accentColor, color: '#000' }}
+                    >
+                      R$
+                    </div>
+                  </div>
+                </div>
+
+                {/* Details */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="font-bold text-sm text-din-text group-hover:text-din-primary transition-colors">
+                      {t.name}
+                    </h4>
+                    {isSelected && (
+                      <span
+                        className="w-5 h-5 rounded-full flex items-center justify-center text-slate-950 shadow-sm"
+                        style={{ backgroundColor: t.accentColor }}
+                      >
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-din-muted line-clamp-2 leading-relaxed mb-3">
+                    {t.description}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={isChangingTheme}
+                  className={`w-full py-2 px-3 rounded-xl text-xs font-bold transition-all min-h-[44px] flex items-center justify-center ${
+                    isSelected
+                      ? 'bg-din-primary text-slate-950 shadow-md font-extrabold'
+                      : 'bg-card border border-border text-din-muted hover:text-din-text hover:border-din-primary/30'
+                  }`}
+                >
+                  {isSelected ? '✓ Paleta Ativa' : 'Aplicar Paleta'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </Card>
 
       {/* Aplicativo & Atalho na Tela Inicial (PWA) */}

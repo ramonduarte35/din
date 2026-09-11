@@ -88,12 +88,13 @@ export function AppLayout() {
 
         {/* Mobile Sidebar Drawer */}
         {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-50 flex lg:hidden">
+          <div className="fixed inset-0 z-50 flex lg:hidden" role="dialog" aria-modal="true">
             <div
-              className="fixed inset-0 bg-black/75 backdrop-blur-md"
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm animate-fade-in"
               onClick={() => setIsMobileMenuOpen(false)}
+              aria-hidden="true"
             />
-            <div className="relative flex-1 flex flex-col max-w-xs w-full bg-card z-10 animate-slide-up border-r border-border">
+            <div className="relative flex flex-col w-72 max-w-[85vw] h-full bg-[var(--bg-sidebar)] z-10 animate-slide-right border-r border-border shadow-2xl overflow-hidden">
               <Sidebar
                 isCollapsed={false}
                 onCloseMobile={() => setIsMobileMenuOpen(false)}

@@ -49,6 +49,7 @@ export default {
       animation: {
         'fade-in': 'fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        'slide-right': 'slideRight 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
         'pulse-subtle': 'pulseSubtle 3s infinite',
         'shimmer': 'shimmer 2s infinite',
         'float': 'float 4s ease-in-out infinite',
@@ -58,6 +59,10 @@ export default {
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
+        },
+        slideRight: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(0)' },
         },
         slideUp: {
           '0%': { opacity: '0', transform: 'translateY(12px)' },
