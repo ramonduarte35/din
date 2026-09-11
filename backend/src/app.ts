@@ -7,22 +7,30 @@ import swaggerUi from '@fastify/swagger-ui';
 import { env } from './config/env.js';
 import { errorHandler } from './middleware/error-handler.js';
 
-import { authRoutes } from './modules/auth/auth.routes.js';
-import { usersRoutes } from './modules/users/users.routes.js';
-import { categoriesRoutes } from './modules/categories/categories.routes.js';
-import { systemNumbersRoutes } from './modules/system-numbers/system-numbers.routes.js';
-import { transactionsRoutes } from './modules/transactions/transactions.routes.js';
-import { accountsRoutes } from './modules/accounts/accounts.routes.js';
-import { billsRoutes } from './modules/bills/bills.routes.js';
-import { goalsRoutes } from './modules/goals/goals.routes.js';
-import { budgetsRoutes } from './modules/budgets/budgets.routes.js';
-import { webhooksRoutes } from './modules/webhooks/webhooks.routes.js';
-import { adminWhatsAppRoutes } from './modules/admin/admin.whatsapp.routes.js';
+import { authRoutes }            from './modules/auth/auth.routes.js';
+import { usersRoutes }           from './modules/users/users.routes.js';
+import { categoriesRoutes }      from './modules/categories/categories.routes.js';
+import { systemNumbersRoutes }   from './modules/system-numbers/system-numbers.routes.js';
+import { transactionsRoutes }    from './modules/transactions/transactions.routes.js';
+import { accountsRoutes }        from './modules/accounts/accounts.routes.js';
+import { billsRoutes }           from './modules/bills/bills.routes.js';
+import { goalsRoutes }           from './modules/goals/goals.routes.js';
+import { budgetsRoutes }         from './modules/budgets/budgets.routes.js';
+import { webhooksRoutes }        from './modules/webhooks/webhooks.routes.js';
+import { adminWhatsAppRoutes }   from './modules/admin/admin.whatsapp.routes.js';
+import { privacyRoutes }         from './modules/privacy/privacy.routes.js';
+import { serializeRequest, serializeError } from './lib/pii-sanitizer.js';
 
 export function buildApp() {
   const app = Fastify({
     logger: {
       level: env.NODE_ENV === 'development' ? 'info' : 'warn',
+      // Serializers LGPD: mascaram PII antes de qualquer escrita em log
+      serializers: {
+        req:  serializeRequest,
+        err:  serializeError,
+        res:  (reply: { statusCode: number }) => ({ statusCode: reply.statusCode }),
+      },
     },
   });
 
@@ -104,17 +112,18 @@ export function buildApp() {
         reply.header('Expires', '0');
       });
 
-      v1.register(authRoutes, { prefix: '/auth' });
-      v1.register(usersRoutes, { prefix: '/users' });
-      v1.register(categoriesRoutes, { prefix: '/categories' });
-      v1.register(accountsRoutes, { prefix: '/accounts' });
-      v1.register(billsRoutes, { prefix: '/bills' });
-      v1.register(goalsRoutes, { prefix: '/goals' });
-      v1.register(budgetsRoutes, { prefix: '/budgets' });
-      v1.register(systemNumbersRoutes, { prefix: '/system-numbers' });
-      v1.register(transactionsRoutes, { prefix: '/transactions' });
-      v1.register(webhooksRoutes, { prefix: '/webhooks' });
-      v1.register(adminWhatsAppRoutes, { prefix: '/admin/whatsapp' });
+      v1.register(authRoutes,          { prefix: '/auth' });
+      v1.register(usersRoutes,          { prefix: '/users' });
+      v1.register(categoriesRoutes,     { prefix: '/categories' });
+      v1.register(accountsRoutes,       { prefix: '/accounts' });
+      v1.register(billsRoutes,          { prefix: '/bills' });
+      v1.register(goalsRoutes,          { prefix: '/goals' });
+      v1.register(budgetsRoutes,        { prefix: '/budgets' });
+      v1.register(systemNumbersRoutes,  { prefix: '/system-numbers' });
+      v1.register(transactionsRoutes,   { prefix: '/transactions' });
+      v1.register(webhooksRoutes,       { prefix: '/webhooks' });
+      v1.register(adminWhatsAppRoutes,  { prefix: '/admin/whatsapp' });
+      v1.register(privacyRoutes,        { prefix: '/privacy' });
     },
     { prefix: '/api/v1' }
   );

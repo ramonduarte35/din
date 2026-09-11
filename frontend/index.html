@@ -35,10 +35,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Google AdSense -->
+    <!-- Google AdSense — bloqueado até consentimento de marketing (LGPD)
+         O hook useConsent ativa este script apenas quando o usuário aceitar
+         cookies de "marketing". type="text/plain" impede execução imediata. -->
     <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
+      type="text/plain"
+      data-consent-type="marketing"
+      data-src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
       crossorigin="anonymous"
     ></script>
   </head>

@@ -1,32 +1,35 @@
 import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
-import { ToastProvider } from './contexts/ToastContext';
-import { ConfirmProvider } from './contexts/ConfirmContext';
-import { PrivacyProvider } from './contexts/PrivacyContext';
-import { PWAProvider } from './contexts/PWAContext';
-import { PWAInstallModal } from './components/pwa/PWAInstallModal';
-import { AppLayout } from './components/layout/AppLayout';
+import { AuthProvider, useAuth }         from './contexts/AuthContext';
+import { ThemeProvider }                 from './contexts/ThemeContext';
+import { ToastProvider }                 from './contexts/ToastContext';
+import { ConfirmProvider }               from './contexts/ConfirmContext';
+import { PrivacyProvider }               from './contexts/PrivacyContext';
+import { PWAProvider }                   from './contexts/PWAContext';
+import { ConsentProvider, useConsent }   from './hooks/useConsent';
+import { ConsentBanner }                 from './components/privacy/ConsentBanner';
+import { PWAInstallModal }               from './components/pwa/PWAInstallModal';
+import { AppLayout }                     from './components/layout/AppLayout';
 
 // Code Splitting sob demanda (React.lazy)
-const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })));
-const Register = lazy(() => import('./pages/Register').then((m) => ({ default: m.Register })));
-const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
-const Transactions = lazy(() => import('./pages/Transactions').then((m) => ({ default: m.Transactions })));
-const Accounts = lazy(() => import('./pages/Accounts').then((m) => ({ default: m.Accounts })));
-const Categories = lazy(() => import('./pages/Categories').then((m) => ({ default: m.Categories })));
-const Goals = lazy(() => import('./pages/Goals').then((m) => ({ default: m.Goals })));
-const Budgets = lazy(() => import('./pages/Budgets').then((m) => ({ default: m.Budgets })));
-const Bills = lazy(() => import('./pages/Bills').then((m) => ({ default: m.Bills })));
-const Profile = lazy(() => import('./pages/Profile').then((m) => ({ default: m.Profile })));
-const Simulator = lazy(() => import('./pages/Simulator').then((m) => ({ default: m.Simulator })));
-const AdminWhatsApp = lazy(() => import('./pages/AdminWhatsApp').then((m) => ({ default: m.AdminWhatsApp })));
-const AccessDenied = lazy(() => import('./pages/AccessDenied').then((m) => ({ default: m.AccessDenied })));
-const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy })));
-const TermsOfUse = lazy(() => import('./pages/TermsOfUse').then((m) => ({ default: m.TermsOfUse })));
-const NotFound = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
+const Login          = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })));
+const Register       = lazy(() => import('./pages/Register').then((m) => ({ default: m.Register })));
+const Dashboard      = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
+const Transactions   = lazy(() => import('./pages/Transactions').then((m) => ({ default: m.Transactions })));
+const Accounts       = lazy(() => import('./pages/Accounts').then((m) => ({ default: m.Accounts })));
+const Categories     = lazy(() => import('./pages/Categories').then((m) => ({ default: m.Categories })));
+const Goals          = lazy(() => import('./pages/Goals').then((m) => ({ default: m.Goals })));
+const Budgets        = lazy(() => import('./pages/Budgets').then((m) => ({ default: m.Budgets })));
+const Bills          = lazy(() => import('./pages/Bills').then((m) => ({ default: m.Bills })));
+const Profile        = lazy(() => import('./pages/Profile').then((m) => ({ default: m.Profile })));
+const Simulator      = lazy(() => import('./pages/Simulator').then((m) => ({ default: m.Simulator })));
+const AdminWhatsApp  = lazy(() => import('./pages/AdminWhatsApp').then((m) => ({ default: m.AdminWhatsApp })));
+const AccessDenied   = lazy(() => import('./pages/AccessDenied').then((m) => ({ default: m.AccessDenied })));
+const PrivacyPolicy  = lazy(() => import('./pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy })));
+const TermsOfUse     = lazy(() => import('./pages/TermsOfUse').then((m) => ({ default: m.TermsOfUse })));
+const PrivacySettings = lazy(() => import('./pages/PrivacySettings').then((m) => ({ default: m.PrivacySettings })));
+const NotFound       = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
 
 const ROUTE_TITLES: Record<string, string> = {
   '/': 'Painel Financeiro | MeuDino',
@@ -38,6 +41,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/goals': 'Objetivos & Sonhos | MeuDino',
   '/simulator': 'Simulador de Gastos | MeuDino',
   '/profile': 'Meu Perfil | MeuDino',
+  '/privacy-settings': 'Privacidade & Dados | MeuDino',
   '/access-denied': 'Acesso Negado | MeuDino',
   '/admin/whatsapp': 'WhatsApp Admin | MeuDino',
   '/login': 'Entrar | MeuDino',
@@ -55,6 +59,27 @@ function PageTitleTracker() {
   }, [location.pathname]);
 
   return null;
+}
+
+function PWAInstallWrapper() {
+  return <PWAInstallModal />;
+}
+
+/**
+ * Exibe o ConsentBanner apenas quando o consentimento está pendente.
+ * Fica fora do BrowserRouter pois não precisa de routing.
+ */
+function ConsentBannerWrapper() {
+  const { status, accept, decline, isLoading } = useConsent();
+  // Não exibir em páginas públicas de login/registro
+  if (status !== 'pending') return null;
+  return (
+    <ConsentBanner
+      onAccept={accept}
+      onDecline={decline}
+      isLoading={isLoading}
+    />
+  );
 }
 
 function PageLoader() {
@@ -138,13 +163,15 @@ export function App() {
     <AuthProvider>
       <ThemeProvider>
         <GoogleOAuthWrapper>
-          <PrivacyProvider>
-            <ToastProvider>
-              <ConfirmProvider>
-                <PWAProvider>
-                  <PWAInstallModal />
-                  <BrowserRouter>
-                    <PageTitleTracker />
+          <ConsentProvider>
+            <PrivacyProvider>
+              <ToastProvider>
+                <ConfirmProvider>
+                  <PWAProvider>
+                    <ConsentBannerWrapper />
+                    <PWAInstallModal />
+                    <BrowserRouter>
+                      <PageTitleTracker />
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     {/* Public Auth Routes */}
@@ -204,15 +231,26 @@ export function App() {
                     <Route path="/terms" element={<TermsOfUse />} />
                     <Route path="/termos-de-uso" element={<Navigate to="/terms" replace />} />
 
+                    {/* LGPD: Privacy Settings (protegida — requer login) */}
+                    <Route
+                      path="/privacy-settings"
+                      element={
+                        <ProtectedRoute>
+                          <PrivacySettings />
+                        </ProtectedRoute>
+                      }
+                    />
+
                     {/* 404 Fallback */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
-                  </BrowserRouter>
-                </PWAProvider>
-              </ConfirmProvider>
-            </ToastProvider>
-          </PrivacyProvider>
+                    </BrowserRouter>
+                  </PWAProvider>
+                </ConfirmProvider>
+              </ToastProvider>
+            </PrivacyProvider>
+          </ConsentProvider>
         </GoogleOAuthWrapper>
       </ThemeProvider>
     </AuthProvider>
