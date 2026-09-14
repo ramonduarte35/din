@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bill, createBill, updateBill } from '../../api/bills';
 import { fetchCategories } from '../../api/categories';
 import { fetchAccounts, Account } from '../../api/accounts';
+import { fetchContacts, Contact } from '../../api/contacts';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -27,11 +28,13 @@ export const BillModal: React.FC<BillModalProps> = ({
   const [dueDate, setDueDate] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [accountId, setAccountId] = useState('');
+  const [contactId, setContactId] = useState('');
   const [barcode, setBarcode] = useState('');
   const [notes, setNotes] = useState('');
   const [totalInstallments, setTotalInstallments] = useState(1);
   const [categories, setCategories] = useState<any[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,6 +49,7 @@ export const BillModal: React.FC<BillModalProps> = ({
         setDueDate(bill.due_date ? formatDateToISO(bill.due_date) : '');
         setCategoryId(bill.category_id || '');
         setAccountId(bill.account_id || '');
+        setContactId(bill.contact_id || '');
         setBarcode(bill.barcode || '');
         setNotes(bill.notes || '');
       } else {
@@ -58,6 +62,7 @@ export const BillModal: React.FC<BillModalProps> = ({
         setDueDate(formatDateToISO(defaultDate));
         setCategoryId('');
         setAccountId('');
+        setContactId('');
         setBarcode('');
         setNotes('');
       }
@@ -66,14 +71,16 @@ export const BillModal: React.FC<BillModalProps> = ({
 
   async function loadDependencies() {
     try {
-      const [cats, accs] = await Promise.all([
+      const [cats, accs, contactsRes] = await Promise.all([
         fetchCategories(),
         fetchAccounts(),
+        fetchContacts({ limit: 100 }),
       ]);
       setCategories(cats.filter((c: any) => c.type === 'EXPENSE'));
       setAccounts(accs);
+      setContacts(contactsRes.contacts);
     } catch (err) {
-      console.error('Erro ao carregar categorias/contas:', err);
+      console.error('Erro ao carregar dependências:', err);
     }
   }
 
@@ -106,6 +113,7 @@ export const BillModal: React.FC<BillModalProps> = ({
         due_date: dueDate,
         category_id: categoryId || null,
         account_id: accountId || null,
+        contact_id: contactId || null,
         barcode: barcode.trim() || null,
         notes: notes.trim() || null,
       };
@@ -212,6 +220,25 @@ export const BillModal: React.FC<BillModalProps> = ({
               ))}
             </select>
           </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-din-text mb-1 flex items-center justify-between">
+            <span>Contato / Credor / Fornecedor</span>
+            <span className="text-din-muted text-[11px] font-normal">Opcional</span>
+          </label>
+          <select
+            value={contactId}
+            onChange={(e) => setContactId(e.target.value)}
+            className="w-full bg-card border border-border rounded-xl px-3.5 py-2.5 text-sm text-din-text focus:outline-none focus:ring-2 focus:ring-din-primary/40 focus:border-din-primary min-h-[44px]"
+          >
+            <option value="">Sem contato vinculado</option>
+            {contacts.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.type === 'PJ' ? '🏢 [PJ]' : '👤 [PF]'} {c.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {!bill && (

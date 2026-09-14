@@ -18,7 +18,7 @@ export class ContactsService {
         notes: data.notes?.trim() || null,
       },
       include: {
-        _count: { select: { receivables: true } },
+        _count: { select: { receivables: true, bills: true } },
       },
     });
   }
@@ -53,7 +53,7 @@ export class ContactsService {
         take: limit,
         orderBy: { name: 'asc' },
         include: {
-          _count: { select: { receivables: true } },
+          _count: { select: { receivables: true, bills: true } },
         },
       }),
     ]);
@@ -76,8 +76,19 @@ export class ContactsService {
     const contact = await prisma.contact.findFirst({
       where: { id, user_id: userId },
       include: {
-        _count: { select: { receivables: true } },
+        _count: { select: { receivables: true, bills: true } },
         receivables: {
+          orderBy: { due_date: 'desc' },
+          take: 5,
+          select: {
+            id: true,
+            description: true,
+            amount: true,
+            due_date: true,
+            status: true,
+          },
+        },
+        bills: {
           orderBy: { due_date: 'desc' },
           take: 5,
           select: {
@@ -119,13 +130,13 @@ export class ContactsService {
       where: { id },
       data: updateData,
       include: {
-        _count: { select: { receivables: true } },
+        _count: { select: { receivables: true, bills: true } },
       },
     });
   }
 
   /**
-   * Excluir contato (desvincula receivables, não os exclui)
+   * Excluir contato (desvincula receivables e bills, não os exclui)
    */
   async deleteContact(userId: string, id: string) {
     const contact = await prisma.contact.findFirst({ where: { id, user_id: userId } });
@@ -133,8 +144,13 @@ export class ContactsService {
       return { success: true, message: 'Contato já foi excluído' };
     }
 
-    // Desvincular receivables antes de excluir o contato
+    // Desvincular receivables e bills antes de excluir o contato
     await prisma.receivable.updateMany({
+      where: { contact_id: id, user_id: userId },
+      data: { contact_id: null },
+    });
+
+    await prisma.bill.updateMany({
       where: { contact_id: id, user_id: userId },
       data: { contact_id: null },
     });

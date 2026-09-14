@@ -15,6 +15,7 @@ export interface Contact {
   updated_at: string;
   _count?: {
     receivables: number;
+    bills?: number;
   };
 }
 

@@ -696,6 +696,13 @@ export const Bills: React.FC = () => {
                           <span>Vencimento: {formatDate(bill.due_date)}</span>
                         </span>
 
+                        {bill.contact && (
+                          <span className="inline-flex items-center gap-1 text-din-text font-medium bg-card-secondary px-2 py-0.5 rounded-lg border border-border">
+                            <span>{bill.contact.type === 'PJ' ? '🏢' : '👤'}</span>
+                            <span>{bill.contact.name}</span>
+                          </span>
+                        )}
+
                         {bill.category && (
                           <span className="text-din-text font-medium">
                             🏷️ {bill.category.name}

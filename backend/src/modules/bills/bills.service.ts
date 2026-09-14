@@ -32,6 +32,16 @@ export class BillsService {
       }
     }
 
+    // Se contact_id fornecido, verificar se pertence ao usuário
+    if (data.contact_id) {
+      const contact = await prisma.contact.findFirst({
+        where: { id: data.contact_id, user_id: userId },
+      });
+      if (!contact) {
+        throw new Error('Contato não encontrado');
+      }
+    }
+
     const totalInstallments = data.total_installments && data.total_installments > 1 ? data.total_installments : 1;
     const cleanDescription = data.description.trim();
 
@@ -77,6 +87,7 @@ export class BillsService {
           due_date: installmentDueDate,
           category_id: data.category_id || null,
           account_id: data.account_id || null,
+          contact_id: data.contact_id || null,
           barcode: data.barcode?.trim() || null,
           notes: data.notes?.trim() || null,
           is_recurring: false,
@@ -91,7 +102,7 @@ export class BillsService {
         billsToCreate.map((b) =>
           prisma.bill.create({
             data: b,
-            include: { category: true, account: true },
+            include: { category: true, account: true, contact: true },
           })
         )
       );
@@ -110,6 +121,7 @@ export class BillsService {
         due_date: singleDueDate,
         category_id: data.category_id || null,
         account_id: data.account_id || null,
+        contact_id: data.contact_id || null,
         barcode: data.barcode?.trim() || null,
         notes: data.notes?.trim() || null,
         is_recurring: data.is_recurring ?? false,
@@ -121,6 +133,7 @@ export class BillsService {
       include: {
         category: true,
         account: true,
+        contact: true,
       },
     });
   }
@@ -149,8 +162,15 @@ export class BillsService {
       where.account_id = query.account_id;
     }
 
+    if (query.contact_id) {
+      where.contact_id = query.contact_id;
+    }
+
     if (query.search) {
-      where.description = { contains: query.search, mode: 'insensitive' };
+      where.OR = [
+        { description: { contains: query.search, mode: 'insensitive' } },
+        { contact: { name: { contains: query.search, mode: 'insensitive' } } },
+      ];
     }
 
     // Filtro por mês/ano ou período de vencimento em UTC
@@ -179,6 +199,7 @@ export class BillsService {
           category: true,
           account: true,
           transaction: true,
+          contact: true,
         },
       }),
     ]);
@@ -237,6 +258,7 @@ export class BillsService {
       include: {
         category: true,
         account: true,
+        contact: true,
       },
       orderBy: { due_date: 'asc' },
     });
@@ -308,6 +330,7 @@ export class BillsService {
         category: true,
         account: true,
         transaction: true,
+        contact: true,
       },
     });
 
@@ -357,6 +380,13 @@ export class BillsService {
       if (!acc) throw new Error('Conta bancária inválida');
     }
 
+    if (data.contact_id) {
+      const contact = await prisma.contact.findFirst({
+        where: { id: data.contact_id, user_id: userId },
+      });
+      if (!contact) throw new Error('Contato não encontrado');
+    }
+
     const updateData: Prisma.BillUpdateInput = {};
 
     if (data.description !== undefined) updateData.description = data.description.trim();
@@ -364,6 +394,7 @@ export class BillsService {
     if (data.due_date !== undefined) updateData.due_date = parseDateSafe(data.due_date) || new Date(data.due_date);
     if (data.category_id !== undefined) updateData.category = data.category_id ? { connect: { id: data.category_id } } : { disconnect: true };
     if (data.account_id !== undefined) updateData.account = data.account_id ? { connect: { id: data.account_id } } : { disconnect: true };
+    if (data.contact_id !== undefined) updateData.contact = data.contact_id ? { connect: { id: data.contact_id } } : { disconnect: true };
     if (data.barcode !== undefined) updateData.barcode = data.barcode?.trim() || null;
     if (data.notes !== undefined) updateData.notes = data.notes?.trim() || null;
     if (data.is_recurring !== undefined) updateData.is_recurring = data.is_recurring;
@@ -378,6 +409,7 @@ export class BillsService {
         category: true,
         account: true,
         transaction: true,
+        contact: true,
       },
     });
   }
@@ -441,6 +473,7 @@ export class BillsService {
           category: true,
           account: true,
           transaction: true,
+          contact: true,
         },
       });
 
@@ -495,6 +528,7 @@ export class BillsService {
         include: {
           category: true,
           account: true,
+          contact: true,
         },
       });
 

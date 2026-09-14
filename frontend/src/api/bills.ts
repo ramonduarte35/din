@@ -7,6 +7,7 @@ export interface Bill {
   user_id: string;
   category_id?: string | null;
   account_id?: string | null;
+  contact_id?: string | null;
   transaction_id?: string | null;
   description: string;
   amount: number;
@@ -34,6 +35,11 @@ export interface Bill {
     color: string;
     icon: string;
   } | null;
+  contact?: {
+    id: string;
+    name: string;
+    type: 'PF' | 'PJ';
+  } | null;
 }
 
 export interface BillSummary {
@@ -58,6 +64,7 @@ export interface ListBillsParams {
   status?: BillStatus;
   category_id?: string;
   account_id?: string;
+  contact_id?: string;
   search?: string;
   month?: number;
   year?: number;
@@ -83,6 +90,7 @@ export interface CreateBillData {
   due_date: string;
   category_id?: string | null;
   account_id?: string | null;
+  contact_id?: string | null;
   barcode?: string | null;
   notes?: string | null;
   is_recurring?: boolean;

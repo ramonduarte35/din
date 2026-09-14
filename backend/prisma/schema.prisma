@@ -206,6 +206,7 @@ model Bill {
   installment_number Int?
   total_installments Int?
   group_id           String?
+  contact_id         String?
   created_at         DateTime    @default(now())
   updated_at         DateTime    @updatedAt
 
@@ -213,11 +214,13 @@ model Bill {
   category    Category?    @relation(fields: [category_id], references: [id], onDelete: SetNull)
   account     Account?     @relation(fields: [account_id], references: [id], onDelete: SetNull)
   transaction Transaction? @relation(fields: [transaction_id], references: [id], onDelete: SetNull)
+  contact     Contact?     @relation(fields: [contact_id], references: [id], onDelete: SetNull)
 
   @@index([user_id, due_date])
   @@index([user_id, status])
   @@index([user_id, status, due_date])
   @@index([user_id, group_id])
+  @@index([user_id, contact_id])
   @@map("bills")
 }
 
@@ -234,6 +237,7 @@ model Contact {
   updated_at DateTime    @updatedAt
 
   user        User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  bills       Bill[]
   receivables Receivable[]
 
   @@index([user_id])

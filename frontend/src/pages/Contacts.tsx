@@ -19,6 +19,7 @@ import {
   Phone,
   FileText,
   TrendingUp,
+  ReceiptText,
   X,
   ContactRound,
 } from 'lucide-react';
@@ -84,8 +85,10 @@ export const Contacts: React.FC = () => {
 
   async function handleDeleteContact(contact: Contact) {
     const receivablesCount = contact._count?.receivables ?? 0;
-    const extraMsg = receivablesCount > 0
-      ? ` Este contato possui ${receivablesCount} conta(s) a receber vinculada(s), que serão desvinculadas mas não excluídas.`
+    const billsCount = contact._count?.bills ?? 0;
+    const totalLinked = receivablesCount + billsCount;
+    const extraMsg = totalLinked > 0
+      ? ` Este contato possui ${receivablesCount > 0 ? `${receivablesCount} conta(s) a receber` : ''}${receivablesCount > 0 && billsCount > 0 ? ' e ' : ''}${billsCount > 0 ? `${billsCount} conta(s) a pagar` : ''} vinculada(s), que serão desvinculadas mas não excluídas.`
       : '';
 
     const confirmed = await confirm({
@@ -269,14 +272,20 @@ export const Contacts: React.FC = () => {
                       )}
                     </div>
 
-                    {(contact._count?.receivables ?? 0) > 0 && (
-                      <div className="mt-1.5">
-                        <span className="inline-flex items-center gap-1 text-[10px] text-teal-400 bg-teal-500/10 border border-teal-500/20 px-2 py-0.5 rounded-full">
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {(contact._count?.receivables ?? 0) > 0 && (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-teal-400 bg-teal-500/10 border border-teal-500/20 px-2 py-0.5 rounded-full font-medium">
                           <TrendingUp className="w-3 h-3" />
-                          {contact._count!.receivables} conta{contact._count!.receivables !== 1 ? 's' : ''} a receber
+                          {contact._count!.receivables} a receber
                         </span>
-                      </div>
-                    )}
+                      )}
+                      {(contact._count?.bills ?? 0) > 0 && (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full font-medium">
+                          <ReceiptText className="w-3 h-3" />
+                          {contact._count!.bills} a pagar
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Ações */}
