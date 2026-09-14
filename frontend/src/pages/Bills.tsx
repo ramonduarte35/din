@@ -18,7 +18,7 @@ import { AdSenseBanner } from '../components/ads/AdSenseBanner';
 import { useConfirm } from '../contexts/ConfirmContext';
 import { useToast } from '../contexts/ToastContext';
 import { usePrivacy } from '../contexts/PrivacyContext';
-import { formatDate, getDiffDays, MONTH_NAMES } from '../lib/utils';
+import { formatDate, getDiffDays, MONTH_NAMES, toTitleCasePTBR } from '../lib/utils';
 import {
   CalendarClock,
   Plus,
@@ -678,7 +678,7 @@ export const Bills: React.FC = () => {
                     <div className="min-w-0 space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <h4 className="font-bold text-din-text text-sm sm:text-base truncate max-w-[200px] sm:max-w-md">
-                          {bill.description}
+                          {toTitleCasePTBR(bill.description)}
                         </h4>
                         <span className={`text-[11px] px-2.5 py-0.5 rounded-full border font-semibold ${badgeStyle}`}>
                           {badgeText}

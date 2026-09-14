@@ -5,7 +5,7 @@ import { Button } from '../ui/Button';
 import { PayBillModal } from '../bills/PayBillModal';
 import { BillsWidgetSkeleton } from '../ui/Skeleton';
 import { usePrivacy } from '../../contexts/PrivacyContext';
-import { getDiffDays } from '../../lib/utils';
+import { getDiffDays, toTitleCasePTBR } from '../../lib/utils';
 import { CalendarClock, AlertTriangle, ArrowRight, CheckCircle2, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -111,7 +111,7 @@ export const BillsWidget: React.FC = () => {
                   <div className="min-w-0 pr-2">
                     <div className="flex items-center space-x-2">
                       <span className="font-semibold text-xs sm:text-sm text-din-text truncate max-w-[140px] sm:max-w-[200px]">
-                        {bill.description}
+                        {toTitleCasePTBR(bill.description)}
                       </span>
                       <span className={`text-[10px] px-2 py-0.5 rounded-md border ${badgeColor}`}>
                         {badgeText}

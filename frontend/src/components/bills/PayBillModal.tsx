@@ -6,7 +6,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { CurrencyInput } from '../ui/CurrencyInput';
 import { Landmark, CreditCard, Wallet, PiggyBank, Check, Calendar, AlertCircle } from 'lucide-react';
-import { formatCurrency, formatDate, formatDateToISO, formatCurrencyInput, parseCurrencyInput } from '../../lib/utils';
+import { formatCurrency, formatDate, formatDateToISO, formatCurrencyInput, parseCurrencyInput, toTitleCasePTBR } from '../../lib/utils';
 
 interface PayBillModalProps {
   isOpen: boolean;
@@ -127,7 +127,7 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
           <span className="text-xs text-din-muted font-medium uppercase tracking-wider">Conta a Liquidar</span>
           <div className="flex items-center justify-between">
             <h4 className="font-semibold text-din-text text-base truncate max-w-[200px] sm:max-w-xs">
-              {bill.description}
+              {toTitleCasePTBR(bill.description)}
             </h4>
             <span className="text-lg font-bold text-emerald-500">
               {formatCurrency(bill.amount)}
