@@ -7,7 +7,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { CurrencyInput } from '../ui/CurrencyInput';
 import { AlertCircle, Layers, Calendar } from 'lucide-react';
-import { formatDateToISO, formatCurrencyInput, parseCurrencyInput } from '../../lib/utils';
+import { formatDateToISO, formatCurrencyInput, parseCurrencyInput, toTitleCasePTBR } from '../../lib/utils';
 
 interface BillModalProps {
   isOpen: boolean;
@@ -101,7 +101,7 @@ export const BillModal: React.FC<BillModalProps> = ({
 
     try {
       const payload: any = {
-        description: description.trim(),
+        description: toTitleCasePTBR(description.trim()),
         amount: numAmount,
         due_date: dueDate,
         category_id: categoryId || null,

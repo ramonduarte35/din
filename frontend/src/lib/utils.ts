@@ -193,3 +193,44 @@ export function getMonthName(monthIndexOrNumber: number): string {
   }
   return MONTH_NAMES[monthIndexOrNumber] || '';
 }
+
+/**
+ * Aplica Title Case respeitando as regras tipográficas do português brasileiro.
+ * Preposições, artigos e conjunções curtos ficam em minúsculo (exceto quando
+ * são a primeira palavra da frase).
+ *
+ * Ex: "boleto do consórcio" → "Boleto do Consórcio"
+ *     "conta de luz" → "Conta de Luz"
+ */
+const PT_BR_LOWERCASE_WORDS = new Set([
+  // Preposições
+  'a', 'à', 'ao', 'aos', 'às', 'até', 'com', 'contra', 'de', 'do', 'da',
+  'dos', 'das', 'desde', 'em', 'entre', 'no', 'na', 'nos', 'nas', 'para',
+  'per', 'perante', 'por', 'pelo', 'pela', 'pelos', 'pelas', 'sem', 'sob',
+  'sobre', 'trás',
+  // Artigos
+  'o', 'os', 'um', 'uns', 'uma', 'umas',
+  // Conjunções
+  'e', 'mas', 'ou', 'nem', 'pois', 'que', 'se', 'como',
+]);
+
+export function toTitleCasePTBR(text: string): string {
+  if (!text) return text;
+  return text
+    .trim()
+    .toLowerCase()
+    .split(' ')
+    .filter((w) => w.length > 0)
+    .map((word, index) => {
+      // Primeira palavra sempre capitalizada
+      if (index === 0) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      // Palavras de função PT-BR ficam em minúsculo
+      if (PT_BR_LOWERCASE_WORDS.has(word)) {
+        return word;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+}
