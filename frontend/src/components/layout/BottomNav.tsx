@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ReceiptText, CalendarClock, Landmark, Plus } from 'lucide-react';
+import { LayoutDashboard, ReceiptText, CalendarClock, Landmark, Plus, TrendingUp } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 export interface BottomNavProps {
@@ -21,9 +21,9 @@ export function BottomNav({ onOpenQuickAction }: BottomNavProps) {
     },
     // Central Plus Button is rendered separately in the middle
     {
-      to: '/bills',
-      label: 'Boletos',
-      icon: CalendarClock,
+      to: '/receivables',
+      label: 'A Receber',
+      icon: TrendingUp,
     },
     {
       to: '/accounts',
@@ -105,7 +105,7 @@ export function BottomNav({ onOpenQuickAction }: BottomNavProps) {
         >
           {({ isActive }) => (
             <>
-              <CalendarClock className="w-5 h-5 mb-0.5" />
+              <TrendingUp className="w-5 h-5 mb-0.5" />
               <span className="text-[10px] tracking-tight">{navItems[2].label}</span>
               {isActive && <span className="absolute bottom-0.5 w-1 h-1 rounded-full bg-din-primary" />}
             </>

@@ -52,6 +52,18 @@ enum BillStatus {
   CANCELLED
 }
 
+enum ReceivableStatus {
+  PENDING
+  RECEIVED
+  OVERDUE
+  CANCELLED
+}
+
+enum ContactType {
+  PF
+  PJ
+}
+
 enum WhatsAppLogStatus {
   SUCCESS
   USER_NOT_FOUND
@@ -89,6 +101,8 @@ model User {
   consents          UserConsent[]
   auditLogs         AuditLog[]    @relation("UserAuditLogs")
   actorAuditLogs    AuditLog[]    @relation("ActorAuditLogs")
+  contacts          Contact[]
+  receivables       Receivable[]
 
   @@map("users")
 }
@@ -108,6 +122,7 @@ model Account {
   user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
   transactions Transaction[]
   bills        Bill[]
+  receivables  Receivable[]
 
   @@index([user_id])
   @@map("accounts")
@@ -137,6 +152,7 @@ model Category {
   transactions Transaction[]
   bills        Bill[]
   budgets      Budget[]
+  receivables  Receivable[]
 
   @@index([user_id])
   @@map("categories")
@@ -160,7 +176,8 @@ model Transaction {
   user     User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   account  Account?  @relation(fields: [account_id], references: [id], onDelete: SetNull)
   category Category? @relation(fields: [category_id], references: [id], onDelete: SetNull)
-  bill     Bill?
+  bill        Bill?
+  receivable  Receivable?
 
   @@index([user_id, date])
   @@index([user_id, type])
@@ -204,6 +221,59 @@ model Bill {
   @@map("bills")
 }
 
+model Contact {
+  id         String      @id @default(uuid())
+  user_id    String
+  name       String
+  type       ContactType @default(PF)
+  document   String?     // CPF (PF) ou CNPJ (PJ)
+  email      String?
+  phone      String?
+  notes      String?     @db.Text
+  created_at DateTime    @default(now())
+  updated_at DateTime    @updatedAt
+
+  user        User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  receivables Receivable[]
+
+  @@index([user_id])
+  @@index([user_id, type])
+  @@map("contacts")
+}
+
+model Receivable {
+  id                 String           @id @default(uuid())
+  user_id            String
+  contact_id         String?
+  category_id        String?
+  account_id         String?
+  transaction_id     String?          @unique
+  description        String
+  amount             Decimal          @db.Decimal(12, 2)
+  due_date           DateTime
+  received_date      DateTime?
+  status             ReceivableStatus @default(PENDING)
+  notes              String?          @db.Text
+  is_recurring       Boolean          @default(false)
+  installment_number Int?
+  total_installments Int?
+  group_id           String?
+  created_at         DateTime         @default(now())
+  updated_at         DateTime         @updatedAt
+
+  user        User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  contact     Contact?     @relation(fields: [contact_id], references: [id], onDelete: SetNull)
+  category    Category?    @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  account     Account?     @relation(fields: [account_id], references: [id], onDelete: SetNull)
+  transaction Transaction? @relation(fields: [transaction_id], references: [id], onDelete: SetNull)
+
+  @@index([user_id, due_date])
+  @@index([user_id, status])
+  @@index([user_id, status, due_date])
+  @@index([user_id, contact_id])
+  @@index([user_id, group_id])
+  @@map("receivables")
+}
 
 model WhatsAppLog {
   id                      String            @id @default(uuid())

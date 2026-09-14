@@ -22,6 +22,8 @@ const Categories     = lazy(() => import('./pages/Categories').then((m) => ({ de
 const Goals          = lazy(() => import('./pages/Goals').then((m) => ({ default: m.Goals })));
 const Budgets        = lazy(() => import('./pages/Budgets').then((m) => ({ default: m.Budgets })));
 const Bills          = lazy(() => import('./pages/Bills').then((m) => ({ default: m.Bills })));
+const Receivables    = lazy(() => import('./pages/Receivables').then((m) => ({ default: m.Receivables })));
+const Contacts       = lazy(() => import('./pages/Contacts').then((m) => ({ default: m.Contacts })));
 const Profile        = lazy(() => import('./pages/Profile').then((m) => ({ default: m.Profile })));
 const Simulator      = lazy(() => import('./pages/Simulator').then((m) => ({ default: m.Simulator })));
 const AdminWhatsApp  = lazy(() => import('./pages/AdminWhatsApp').then((m) => ({ default: m.AdminWhatsApp })));
@@ -34,7 +36,9 @@ const NotFound       = lazy(() => import('./pages/NotFound').then((m) => ({ defa
 const ROUTE_TITLES: Record<string, string> = {
   '/': 'Painel Financeiro | MeuDino',
   '/transactions': 'Transações | MeuDino',
-  '/bills': 'Contas a Pagar e Receber | MeuDino',
+  '/bills': 'Contas a Pagar | MeuDino',
+  '/receivables': 'Contas a Receber | MeuDino',
+  '/contacts': 'Contatos | MeuDino',
   '/accounts': 'Contas Bancárias | MeuDino',
   '/categories': 'Categorias | MeuDino',
   '/budgets': 'Orçamentos Mensais | MeuDino',
@@ -204,6 +208,8 @@ export function App() {
                       <Route index element={<Dashboard />} />
                       <Route path="transactions" element={<Transactions />} />
                       <Route path="bills" element={<Bills />} />
+                      <Route path="receivables" element={<Receivables />} />
+                      <Route path="contacts" element={<Contacts />} />
                       <Route path="accounts" element={<Accounts />} />
                       <Route path="categories" element={<Categories />} />
                       <Route path="budgets" element={<Budgets />} />

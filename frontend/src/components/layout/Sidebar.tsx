@@ -17,6 +17,8 @@ import {
   ChevronRight,
   Download,
   X,
+  TrendingUp,
+  ContactRound,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePWA } from '../../contexts/PWAContext';
@@ -49,6 +51,16 @@ export function Sidebar({ onCloseMobile, isCollapsed = false, onToggleCollapse }
       to: '/bills',
       label: 'Contas a Pagar',
       icon: CalendarClock,
+    },
+    {
+      to: '/receivables',
+      label: 'Contas a Receber',
+      icon: TrendingUp,
+    },
+    {
+      to: '/contacts',
+      label: 'Contatos',
+      icon: ContactRound,
     },
     {
       to: '/accounts',

@@ -19,6 +19,8 @@ import { budgetsRoutes }         from './modules/budgets/budgets.routes.js';
 import { webhooksRoutes }        from './modules/webhooks/webhooks.routes.js';
 import { adminWhatsAppRoutes }   from './modules/admin/admin.whatsapp.routes.js';
 import { privacyRoutes }         from './modules/privacy/privacy.routes.js';
+import { contactsRoutes }        from './modules/contacts/contacts.routes.js';
+import { receivablesRoutes }     from './modules/receivables/receivables.routes.js';
 import { serializeRequest, serializeError } from './lib/pii-sanitizer.js';
 
 export function buildApp() {
@@ -124,6 +126,8 @@ export function buildApp() {
       v1.register(webhooksRoutes,       { prefix: '/webhooks' });
       v1.register(adminWhatsAppRoutes,  { prefix: '/admin/whatsapp' });
       v1.register(privacyRoutes,        { prefix: '/privacy' });
+      v1.register(contactsRoutes,       { prefix: '/contacts' });
+      v1.register(receivablesRoutes,    { prefix: '/receivables' });
     },
     { prefix: '/api/v1' }
   );
