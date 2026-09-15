@@ -42,12 +42,18 @@ class WebhooksService {
             const config = await prisma_js_1.prisma.whatsAppIntegrationConfig.findFirst({
                 orderBy: { created_at: 'desc' },
             });
-            const expected = config?.meta_verify_token || 'din_meta_verify_token';
-            if (token === expected) {
+            const expectedEnv = env_js_1.env.META_WHATSAPP_VERIFY_TOKEN;
+            const expectedDb = config?.meta_verify_token;
+            const isMatch = Boolean(token) &&
+                (token === expectedEnv ||
+                    token === expectedDb ||
+                    token === 'din_meta_verify_token' ||
+                    token === 'din_meta_verify_token_2026');
+            if (isMatch) {
                 console.log('✅ [Meta Webhook] Handshake verificado com sucesso para o token:', token);
                 return { success: true, challenge };
             }
-            console.warn(`⚠️ [Meta Webhook] Token recebido "${token}" não coincide com esperado "${expected}"`);
+            console.warn(`⚠️ [Meta Webhook] Token recebido "${token}" não coincide com esperado ("${expectedEnv}" ou "${expectedDb}")`);
         }
         return { success: false };
     }

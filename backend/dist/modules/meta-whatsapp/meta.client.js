@@ -7,17 +7,25 @@ exports.metaClient = exports.MetaCloudApiClient = void 0;
 const axios_1 = __importDefault(require("axios"));
 const crypto_1 = __importDefault(require("crypto"));
 const prisma_js_1 = require("../../lib/prisma.js");
+const env_js_1 = require("../../config/env.js");
 class MetaCloudApiClient {
     defaultGraphApiVersion = 'v21.0';
     baseUrl = 'https://graph.facebook.com';
     /**
-     * Obtém a configuração salva da Meta no banco de dados
+     * Obtém a configuração salva da Meta no banco de dados com fallback para variáveis de ambiente (.env)
      */
     async getConfig() {
         const config = await prisma_js_1.prisma.whatsAppIntegrationConfig.findFirst({
             orderBy: { created_at: 'desc' },
         });
-        return config;
+        return {
+            active_provider: config?.active_provider || (env_js_1.env.META_WHATSAPP_PHONE_NUMBER_ID ? 'META_OFFICIAL' : 'EVOLUTION'),
+            meta_phone_number_id: env_js_1.env.META_WHATSAPP_PHONE_NUMBER_ID || config?.meta_phone_number_id || undefined,
+            meta_waba_id: env_js_1.env.META_WHATSAPP_WABA_ID || config?.meta_waba_id || undefined,
+            meta_access_token: env_js_1.env.META_WHATSAPP_ACCESS_TOKEN || config?.meta_access_token || undefined,
+            meta_verify_token: env_js_1.env.META_WHATSAPP_VERIFY_TOKEN || config?.meta_verify_token || 'din_meta_verify_token_2026',
+            meta_app_secret: env_js_1.env.META_WHATSAPP_APP_SECRET || config?.meta_app_secret || undefined,
+        };
     }
     /**
      * Envia uma mensagem de texto via WhatsApp Cloud API

@@ -18,13 +18,20 @@ export class MetaCloudApiClient {
   private readonly baseUrl = 'https://graph.facebook.com';
 
   /**
-   * Obtém a configuração salva da Meta no banco de dados
+   * Obtém a configuração salva da Meta no banco de dados com fallback para variáveis de ambiente (.env)
    */
   async getConfig() {
     const config = await prisma.whatsAppIntegrationConfig.findFirst({
       orderBy: { created_at: 'desc' },
     });
-    return config;
+    return {
+      active_provider: config?.active_provider || (env.META_WHATSAPP_PHONE_NUMBER_ID ? 'META_OFFICIAL' : 'EVOLUTION'),
+      meta_phone_number_id: env.META_WHATSAPP_PHONE_NUMBER_ID || config?.meta_phone_number_id || undefined,
+      meta_waba_id: env.META_WHATSAPP_WABA_ID || config?.meta_waba_id || undefined,
+      meta_access_token: env.META_WHATSAPP_ACCESS_TOKEN || config?.meta_access_token || undefined,
+      meta_verify_token: env.META_WHATSAPP_VERIFY_TOKEN || config?.meta_verify_token || 'din_meta_verify_token_2026',
+      meta_app_secret: env.META_WHATSAPP_APP_SECRET || config?.meta_app_secret || undefined,
+    };
   }
 
   /**

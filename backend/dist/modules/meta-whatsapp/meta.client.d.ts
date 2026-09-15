@@ -11,23 +11,16 @@ export declare class MetaCloudApiClient {
     private readonly defaultGraphApiVersion;
     private readonly baseUrl;
     /**
-     * Obtém a configuração salva da Meta no banco de dados
+     * Obtém a configuração salva da Meta no banco de dados com fallback para variáveis de ambiente (.env)
      */
     getConfig(): Promise<{
-        id: string;
-        created_at: Date;
-        updated_at: Date;
         active_provider: import("@prisma/client").$Enums.WhatsAppProviderType;
-        meta_phone_number_id: string | null;
-        meta_waba_id: string | null;
-        meta_access_token: string | null;
-        meta_verify_token: string | null;
-        meta_app_secret: string | null;
-        telegram_bot_token: string | null;
-        telegram_bot_username: string | null;
-        telegram_is_active: boolean;
-        telegram_webhook_secret: string | null;
-    } | null>;
+        meta_phone_number_id: string | undefined;
+        meta_waba_id: string | undefined;
+        meta_access_token: string | undefined;
+        meta_verify_token: string;
+        meta_app_secret: string | undefined;
+    }>;
     /**
      * Envia uma mensagem de texto via WhatsApp Cloud API
      */

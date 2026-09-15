@@ -42,6 +42,12 @@ const envSchema = zod_1.z.object({
     ASAAS_API_KEY: zod_1.z.string().optional().default(''),
     ASAAS_ENVIRONMENT: zod_1.z.enum(['sandbox', 'production']).default('sandbox'),
     ASAAS_WEBHOOK_TOKEN: zod_1.z.string().optional().default(''),
+    // WhatsApp Cloud API Oficial (Meta for Developers)
+    META_WHATSAPP_PHONE_NUMBER_ID: zod_1.z.string().optional().default(''),
+    META_WHATSAPP_WABA_ID: zod_1.z.string().optional().default(''),
+    META_WHATSAPP_ACCESS_TOKEN: zod_1.z.string().optional().default(''),
+    META_WHATSAPP_VERIFY_TOKEN: zod_1.z.string().default('din_meta_verify_token_2026'),
+    META_WHATSAPP_APP_SECRET: zod_1.z.string().optional().default(''),
     APP_URL: zod_1.z.string().default('http://localhost:8000'),
 });
 const _env = envSchema.safeParse(process.env);

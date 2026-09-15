@@ -17,6 +17,11 @@ export declare const env: {
     ASAAS_API_KEY: string;
     ASAAS_ENVIRONMENT: "production" | "sandbox";
     ASAAS_WEBHOOK_TOKEN: string;
+    META_WHATSAPP_PHONE_NUMBER_ID: string;
+    META_WHATSAPP_WABA_ID: string;
+    META_WHATSAPP_ACCESS_TOKEN: string;
+    META_WHATSAPP_VERIFY_TOKEN: string;
+    META_WHATSAPP_APP_SECRET: string;
     APP_URL: string;
 };
 /**
