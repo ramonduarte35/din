@@ -35,7 +35,7 @@ class AuthService {
             }
         }
         const password_hash = await bcryptjs_1.default.hash(data.password, 10);
-        const isAdminEmail = cleanEmail === env_js_1.env.ADMIN_EMAIL.trim().toLowerCase();
+        const isAdminEmail = (0, env_js_1.isSystemAdminEmail)(cleanEmail);
         const user = await prisma_js_1.prisma.user.create({
             data: {
                 name: data.name.trim(),
@@ -84,7 +84,7 @@ class AuthService {
         }
         // Se o email coincide com o ADMIN_EMAIL do .env mas o role ainda não era ADMIN, atualiza automaticamente
         let currentRole = user.role;
-        if (cleanEmail === env_js_1.env.ADMIN_EMAIL.trim().toLowerCase() && currentRole !== client_1.Role.ADMIN) {
+        if ((0, env_js_1.isSystemAdminEmail)(cleanEmail) && currentRole !== client_1.Role.ADMIN) {
             await prisma_js_1.prisma.user.update({
                 where: { id: user.id },
                 data: { role: client_1.Role.ADMIN, subscription_tier: client_1.SubscriptionTier.PRO },
@@ -143,7 +143,7 @@ class AuthService {
         const googleId = payload.sub || '';
         const name = payload.name || cleanEmail.split('@')[0];
         const avatarUrl = payload.picture || null;
-        const isAdminEmail = cleanEmail === env_js_1.env.ADMIN_EMAIL.trim().toLowerCase();
+        const isAdminEmail = (0, env_js_1.isSystemAdminEmail)(cleanEmail);
         // Busca usuário existente por google_id ou por email
         let user = await prisma_js_1.prisma.user.findFirst({
             where: {

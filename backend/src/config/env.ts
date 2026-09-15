@@ -18,7 +18,7 @@ const envSchema = z.object({
   JWT_SECRET: isProduction
     ? z.string().min(32, 'JWT_SECRET deve ter no mínimo 32 caracteres em produção')
     : z.string().min(8).default('din_jwt_secret_key_default_dev'),
-  ADMIN_EMAIL: z.string().email().default('admin@din.app'),
+  ADMIN_EMAIL: z.string().default('admin@din.app'),
   // Em produção, ADMIN_PASSWORD deve ser definida explicitamente (mínimo 6 caracteres)
   ADMIN_PASSWORD: isProduction
     ? z.string().min(6, 'ADMIN_PASSWORD deve ter no mínimo 6 caracteres em produção')
@@ -53,4 +53,18 @@ if (!_env.success) {
 
 export const env = _env.data;
 process.env.DATABASE_URL = env.DATABASE_URL;
+
+/**
+ * Verifica se um e-mail possui privilégio de administrador do sistema.
+ * Suporta um único e-mail ou múltiplos e-mails separados por vírgula em ADMIN_EMAIL.
+ */
+export function isSystemAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  const clean = email.trim().toLowerCase();
+  const adminList = (env.ADMIN_EMAIL || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return adminList.includes(clean);
+}
 

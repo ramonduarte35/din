@@ -28,6 +28,15 @@ async function authenticate(request, reply) {
                 message: 'Usuário não encontrado ou sessão expirada.',
             });
         }
+        // Se o e-mail estiver configurado como administrador no .env, garante privilégios instantâneos
+        if ((0, env_js_1.isSystemAdminEmail)(user.email) && (user.role !== 'ADMIN' || user.subscription_tier !== 'PRO')) {
+            await prisma_js_1.prisma.user.update({
+                where: { id: user.id },
+                data: { role: 'ADMIN', subscription_tier: 'PRO' },
+            });
+            user.role = 'ADMIN';
+            user.subscription_tier = 'PRO';
+        }
         request.currentUser = user;
         request.user = {
             id: user.id,
@@ -58,7 +67,7 @@ async function requireAdmin(request, reply) {
     await authenticate(request, reply);
     if (reply.sent)
         return;
-    const isEmailAdmin = request.currentUser?.email.toLowerCase() === env_js_1.env.ADMIN_EMAIL.toLowerCase();
+    const isEmailAdmin = (0, env_js_1.isSystemAdminEmail)(request.currentUser?.email);
     const isRoleAdmin = request.currentUser?.role === 'ADMIN';
     if (!isEmailAdmin && !isRoleAdmin) {
         return reply.status(403).send({

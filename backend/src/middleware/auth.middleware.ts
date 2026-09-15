@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { prisma } from '../lib/prisma.js';
-import { env } from '../config/env.js';
+import { env, isSystemAdminEmail } from '../config/env.js';
 
 export interface TokenPayload {
   userId: string;
@@ -47,6 +47,16 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
       });
     }
 
+    // Se o e-mail estiver configurado como administrador no .env, garante privilégios instantâneos
+    if (isSystemAdminEmail(user.email) && (user.role !== 'ADMIN' || user.subscription_tier !== 'PRO')) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { role: 'ADMIN', subscription_tier: 'PRO' },
+      });
+      user.role = 'ADMIN';
+      user.subscription_tier = 'PRO';
+    }
+
     request.currentUser = user;
     (request as any).user = {
       id: user.id,
@@ -80,7 +90,7 @@ export async function requireAdmin(request: FastifyRequest, reply: FastifyReply)
   await authenticate(request, reply);
   if (reply.sent) return;
 
-  const isEmailAdmin = request.currentUser?.email.toLowerCase() === env.ADMIN_EMAIL.toLowerCase();
+  const isEmailAdmin = isSystemAdminEmail(request.currentUser?.email);
   const isRoleAdmin = request.currentUser?.role === 'ADMIN';
 
   if (!isEmailAdmin && !isRoleAdmin) {

@@ -19,3 +19,8 @@ export declare const env: {
     ASAAS_WEBHOOK_TOKEN: string;
     APP_URL: string;
 };
+/**
+ * Verifica se um e-mail possui privilégio de administrador do sistema.
+ * Suporta um único e-mail ou múltiplos e-mails separados por vírgula em ADMIN_EMAIL.
+ */
+export declare function isSystemAdminEmail(email?: string | null): boolean;

@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.env = void 0;
+exports.isSystemAdminEmail = isSystemAdminEmail;
 const zod_1 = require("zod");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
@@ -19,7 +20,7 @@ const envSchema = zod_1.z.object({
     JWT_SECRET: isProduction
         ? zod_1.z.string().min(32, 'JWT_SECRET deve ter no mínimo 32 caracteres em produção')
         : zod_1.z.string().min(8).default('din_jwt_secret_key_default_dev'),
-    ADMIN_EMAIL: zod_1.z.string().email().default('admin@din.app'),
+    ADMIN_EMAIL: zod_1.z.string().default('admin@din.app'),
     // Em produção, ADMIN_PASSWORD deve ser definida explicitamente (mínimo 6 caracteres)
     ADMIN_PASSWORD: isProduction
         ? zod_1.z.string().min(6, 'ADMIN_PASSWORD deve ter no mínimo 6 caracteres em produção')
@@ -50,3 +51,17 @@ if (!_env.success) {
 }
 exports.env = _env.data;
 process.env.DATABASE_URL = exports.env.DATABASE_URL;
+/**
+ * Verifica se um e-mail possui privilégio de administrador do sistema.
+ * Suporta um único e-mail ou múltiplos e-mails separados por vírgula em ADMIN_EMAIL.
+ */
+function isSystemAdminEmail(email) {
+    if (!email)
+        return false;
+    const clean = email.trim().toLowerCase();
+    const adminList = (exports.env.ADMIN_EMAIL || '')
+        .split(',')
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean);
+    return adminList.includes(clean);
+}

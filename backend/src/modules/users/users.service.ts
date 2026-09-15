@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../../lib/prisma.js';
 import { UpdateProfileInput, ChangePasswordInput } from './users.schemas.js';
 import { normalizePhoneNumber } from '../../utils/phone.js';
+import { isSystemAdminEmail } from '../../config/env.js';
+import { Role, SubscriptionTier } from '@prisma/client';
 
 export class UsersService {
   async getProfile(userId: string) {
@@ -32,6 +34,16 @@ export class UsersService {
 
     if (!user) {
       throw { statusCode: 404, message: 'Usuário não encontrado.' };
+    }
+
+    // Se o e-mail do usuário estiver no ADMIN_EMAIL do .env, garante privilégios ADMIN e PRO
+    if (isSystemAdminEmail(user.email) && (user.role !== Role.ADMIN || user.subscription_tier !== SubscriptionTier.PRO)) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { role: Role.ADMIN, subscription_tier: SubscriptionTier.PRO },
+      });
+      user.role = Role.ADMIN;
+      user.subscription_tier = SubscriptionTier.PRO;
     }
 
     const hasPassword = Boolean(user.password_hash);

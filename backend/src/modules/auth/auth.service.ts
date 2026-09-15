@@ -5,7 +5,7 @@ import { prisma } from '../../lib/prisma.js';
 import { RegisterInput, LoginInput } from './auth.schemas.js';
 import { normalizePhoneNumber } from '../../utils/phone.js';
 import { SubscriptionTier, Role } from '@prisma/client';
-import { env } from '../../config/env.js';
+import { env, isSystemAdminEmail } from '../../config/env.js';
 
 export class AuthService {
   private googleClient: OAuth2Client;
@@ -36,7 +36,7 @@ export class AuthService {
     }
 
     const password_hash = await bcrypt.hash(data.password, 10);
-    const isAdminEmail = cleanEmail === env.ADMIN_EMAIL.trim().toLowerCase();
+    const isAdminEmail = isSystemAdminEmail(cleanEmail);
 
     const user = await prisma.user.create({
       data: {
@@ -92,7 +92,7 @@ export class AuthService {
 
     // Se o email coincide com o ADMIN_EMAIL do .env mas o role ainda não era ADMIN, atualiza automaticamente
     let currentRole = user.role;
-    if (cleanEmail === env.ADMIN_EMAIL.trim().toLowerCase() && currentRole !== Role.ADMIN) {
+    if (isSystemAdminEmail(cleanEmail) && currentRole !== Role.ADMIN) {
       await prisma.user.update({
         where: { id: user.id },
         data: { role: Role.ADMIN, subscription_tier: SubscriptionTier.PRO },
@@ -166,7 +166,7 @@ export class AuthService {
     const googleId = payload.sub || '';
     const name = payload.name || cleanEmail.split('@')[0];
     const avatarUrl = payload.picture || null;
-    const isAdminEmail = cleanEmail === env.ADMIN_EMAIL.trim().toLowerCase();
+    const isAdminEmail = isSystemAdminEmail(cleanEmail);
 
 
     // Busca usuário existente por google_id ou por email

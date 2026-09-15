@@ -7,6 +7,8 @@ exports.UsersService = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const prisma_js_1 = require("../../lib/prisma.js");
 const phone_js_1 = require("../../utils/phone.js");
+const env_js_1 = require("../../config/env.js");
+const client_1 = require("@prisma/client");
 class UsersService {
     async getProfile(userId) {
         const user = await prisma_js_1.prisma.user.findUnique({
@@ -35,6 +37,15 @@ class UsersService {
         });
         if (!user) {
             throw { statusCode: 404, message: 'Usuário não encontrado.' };
+        }
+        // Se o e-mail do usuário estiver no ADMIN_EMAIL do .env, garante privilégios ADMIN e PRO
+        if ((0, env_js_1.isSystemAdminEmail)(user.email) && (user.role !== client_1.Role.ADMIN || user.subscription_tier !== client_1.SubscriptionTier.PRO)) {
+            await prisma_js_1.prisma.user.update({
+                where: { id: user.id },
+                data: { role: client_1.Role.ADMIN, subscription_tier: client_1.SubscriptionTier.PRO },
+            });
+            user.role = client_1.Role.ADMIN;
+            user.subscription_tier = client_1.SubscriptionTier.PRO;
         }
         const hasPassword = Boolean(user.password_hash);
         const { password_hash, ...userProfile } = user;
