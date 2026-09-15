@@ -31,6 +31,15 @@ class BillsService {
                 throw new Error('Conta bancária não encontrada');
             }
         }
+        // Se contact_id fornecido, verificar se pertence ao usuário
+        if (data.contact_id) {
+            const contact = await prisma_js_1.prisma.contact.findFirst({
+                where: { id: data.contact_id, user_id: userId },
+            });
+            if (!contact) {
+                throw new Error('Contato não encontrado');
+            }
+        }
         const totalInstallments = data.total_installments && data.total_installments > 1 ? data.total_installments : 1;
         const cleanDescription = data.description.trim();
         // Extrair ano, mês e dia de forma determinística em UTC
@@ -69,6 +78,7 @@ class BillsService {
                     due_date: installmentDueDate,
                     category_id: data.category_id || null,
                     account_id: data.account_id || null,
+                    contact_id: data.contact_id || null,
                     barcode: data.barcode?.trim() || null,
                     notes: data.notes?.trim() || null,
                     is_recurring: false,
@@ -80,7 +90,7 @@ class BillsService {
             }
             const createdBills = await prisma_js_1.prisma.$transaction(billsToCreate.map((b) => prisma_js_1.prisma.bill.create({
                 data: b,
-                include: { category: true, account: true },
+                include: { category: true, account: true, contact: true },
             })));
             return createdBills[0];
         }
@@ -94,6 +104,7 @@ class BillsService {
                 due_date: singleDueDate,
                 category_id: data.category_id || null,
                 account_id: data.account_id || null,
+                contact_id: data.contact_id || null,
                 barcode: data.barcode?.trim() || null,
                 notes: data.notes?.trim() || null,
                 is_recurring: data.is_recurring ?? false,
@@ -105,6 +116,7 @@ class BillsService {
             include: {
                 category: true,
                 account: true,
+                contact: true,
             },
         });
     }
@@ -127,8 +139,14 @@ class BillsService {
         if (query.account_id) {
             where.account_id = query.account_id;
         }
+        if (query.contact_id) {
+            where.contact_id = query.contact_id;
+        }
         if (query.search) {
-            where.description = { contains: query.search, mode: 'insensitive' };
+            where.OR = [
+                { description: { contains: query.search, mode: 'insensitive' } },
+                { contact: { name: { contains: query.search, mode: 'insensitive' } } },
+            ];
         }
         // Filtro por mês/ano ou período de vencimento em UTC
         if (query.month && query.year) {
@@ -156,6 +174,7 @@ class BillsService {
                     category: true,
                     account: true,
                     transaction: true,
+                    contact: true,
                 },
             }),
         ]);
@@ -205,6 +224,7 @@ class BillsService {
             include: {
                 category: true,
                 account: true,
+                contact: true,
             },
             orderBy: { due_date: 'asc' },
         });
@@ -271,6 +291,7 @@ class BillsService {
                 category: true,
                 account: true,
                 transaction: true,
+                contact: true,
             },
         });
         if (!bill) {
@@ -314,6 +335,13 @@ class BillsService {
             if (!acc)
                 throw new Error('Conta bancária inválida');
         }
+        if (data.contact_id) {
+            const contact = await prisma_js_1.prisma.contact.findFirst({
+                where: { id: data.contact_id, user_id: userId },
+            });
+            if (!contact)
+                throw new Error('Contato não encontrado');
+        }
         const updateData = {};
         if (data.description !== undefined)
             updateData.description = data.description.trim();
@@ -325,6 +353,8 @@ class BillsService {
             updateData.category = data.category_id ? { connect: { id: data.category_id } } : { disconnect: true };
         if (data.account_id !== undefined)
             updateData.account = data.account_id ? { connect: { id: data.account_id } } : { disconnect: true };
+        if (data.contact_id !== undefined)
+            updateData.contact = data.contact_id ? { connect: { id: data.contact_id } } : { disconnect: true };
         if (data.barcode !== undefined)
             updateData.barcode = data.barcode?.trim() || null;
         if (data.notes !== undefined)
@@ -344,6 +374,7 @@ class BillsService {
                 category: true,
                 account: true,
                 transaction: true,
+                contact: true,
             },
         });
     }
@@ -399,6 +430,7 @@ class BillsService {
                     category: true,
                     account: true,
                     transaction: true,
+                    contact: true,
                 },
             });
             return {
@@ -447,6 +479,7 @@ class BillsService {
                 include: {
                     category: true,
                     account: true,
+                    contact: true,
                 },
             });
             return {

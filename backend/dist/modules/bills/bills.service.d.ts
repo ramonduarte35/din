@@ -26,6 +26,18 @@ export declare class BillsService {
             color: string;
             icon: string;
         } | null;
+        contact: {
+            type: import("@prisma/client").$Enums.ContactType;
+            name: string;
+            id: string;
+            email: string | null;
+            created_at: Date;
+            updated_at: Date;
+            user_id: string;
+            notes: string | null;
+            document: string | null;
+            phone: string | null;
+        } | null;
     } & {
         status: import("@prisma/client").$Enums.BillStatus;
         id: string;
@@ -45,6 +57,7 @@ export declare class BillsService {
         installment_number: number | null;
         total_installments: number | null;
         group_id: string | null;
+        contact_id: string | null;
     }>;
     /**
      * Listar contas a pagar com filtros e paginação
@@ -89,6 +102,18 @@ export declare class BillsService {
                 received_on_number: string | null;
                 raw_message: string | null;
             } | null;
+            contact: {
+                type: import("@prisma/client").$Enums.ContactType;
+                name: string;
+                id: string;
+                email: string | null;
+                created_at: Date;
+                updated_at: Date;
+                user_id: string;
+                notes: string | null;
+                document: string | null;
+                phone: string | null;
+            } | null;
             status: import("@prisma/client").$Enums.BillStatus;
             id: string;
             created_at: Date;
@@ -106,6 +131,7 @@ export declare class BillsService {
             installment_number: number | null;
             total_installments: number | null;
             group_id: string | null;
+            contact_id: string | null;
         }[];
         pagination: {
             page: number;
@@ -176,6 +202,18 @@ export declare class BillsService {
             received_on_number: string | null;
             raw_message: string | null;
         } | null;
+        contact: {
+            type: import("@prisma/client").$Enums.ContactType;
+            name: string;
+            id: string;
+            email: string | null;
+            created_at: Date;
+            updated_at: Date;
+            user_id: string;
+            notes: string | null;
+            document: string | null;
+            phone: string | null;
+        } | null;
         status: import("@prisma/client").$Enums.BillStatus;
         id: string;
         created_at: Date;
@@ -193,6 +231,7 @@ export declare class BillsService {
         installment_number: number | null;
         total_installments: number | null;
         group_id: string | null;
+        contact_id: string | null;
     }>;
     /**
      * Atualizar conta a pagar
@@ -234,6 +273,18 @@ export declare class BillsService {
             received_on_number: string | null;
             raw_message: string | null;
         } | null;
+        contact: {
+            type: import("@prisma/client").$Enums.ContactType;
+            name: string;
+            id: string;
+            email: string | null;
+            created_at: Date;
+            updated_at: Date;
+            user_id: string;
+            notes: string | null;
+            document: string | null;
+            phone: string | null;
+        } | null;
     } & {
         status: import("@prisma/client").$Enums.BillStatus;
         id: string;
@@ -253,6 +304,7 @@ export declare class BillsService {
         installment_number: number | null;
         total_installments: number | null;
         group_id: string | null;
+        contact_id: string | null;
     }>;
     /**
      * Pagar conta: debita da conta bancária escolhida e gera a transação de despesa
@@ -296,6 +348,18 @@ export declare class BillsService {
                 received_on_number: string | null;
                 raw_message: string | null;
             } | null;
+            contact: {
+                type: import("@prisma/client").$Enums.ContactType;
+                name: string;
+                id: string;
+                email: string | null;
+                created_at: Date;
+                updated_at: Date;
+                user_id: string;
+                notes: string | null;
+                document: string | null;
+                phone: string | null;
+            } | null;
             status: import("@prisma/client").$Enums.BillStatus;
             id: string;
             created_at: Date;
@@ -313,6 +377,7 @@ export declare class BillsService {
             installment_number: number | null;
             total_installments: number | null;
             group_id: string | null;
+            contact_id: string | null;
         };
         transaction: {
             amount: number;
@@ -360,6 +425,18 @@ export declare class BillsService {
             color: string;
             icon: string;
         } | null;
+        contact: {
+            type: import("@prisma/client").$Enums.ContactType;
+            name: string;
+            id: string;
+            email: string | null;
+            created_at: Date;
+            updated_at: Date;
+            user_id: string;
+            notes: string | null;
+            document: string | null;
+            phone: string | null;
+        } | null;
         status: import("@prisma/client").$Enums.BillStatus;
         id: string;
         created_at: Date;
@@ -377,6 +454,7 @@ export declare class BillsService {
         installment_number: number | null;
         total_installments: number | null;
         group_id: string | null;
+        contact_id: string | null;
     }>;
     /**
      * Excluir conta a pagar

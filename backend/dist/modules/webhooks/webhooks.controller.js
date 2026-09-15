@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WebhooksController = void 0;
 const webhooks_service_js_1 = require("./webhooks.service.js");
+const subscriptions_service_js_1 = require("../subscriptions/subscriptions.service.js");
+const subscriptions_schemas_js_1 = require("../subscriptions/subscriptions.schemas.js");
+const env_js_1 = require("../../config/env.js");
 const webhooksService = new webhooks_service_js_1.WebhooksService();
 class WebhooksController {
     async handleEvolutionWebhook(request, reply) {
@@ -65,6 +68,34 @@ class WebhooksController {
         catch (error) {
             request.log.error(error);
             return reply.status(200).send({ ok: true });
+        }
+    }
+    // Webhook do Gateway de Pagamentos Asaas (POST /api/v1/webhooks/asaas)
+    async handleAsaasWebhook(request, reply) {
+        try {
+            // 1. Validar token de segurança opcional configurado no painel do Asaas
+            const configuredToken = env_js_1.env.ASAAS_WEBHOOK_TOKEN;
+            const receivedToken = request.headers['asaas-access-token'];
+            if (configuredToken && configuredToken.length > 0 && receivedToken && receivedToken !== configuredToken) {
+                console.warn('⚠️ [Asaas Webhook] Token de autenticação inválido.');
+                return reply.status(401).send({ error: 'Token de webhook inválido' });
+            }
+            // 2. Validação básica com schema Zod
+            const parsed = subscriptions_schemas_js_1.asaasWebhookSchema.safeParse(request.body);
+            if (!parsed.success) {
+                console.warn('⚠️ [Asaas Webhook] Payload inválido recebido:', parsed.error.format());
+                return reply.status(200).send({ status: 'ignored_invalid_format' });
+            }
+            // Resposta imediata 200 para o Asaas
+            reply.status(200).send({ status: 'RECEIVED' });
+            // Processamento assíncrono
+            subscriptions_service_js_1.subscriptionsService.processAsaasWebhook(parsed.data).catch((err) => {
+                console.error('❌ [Asaas Webhook] Erro no processamento assíncrono:', err);
+            });
+        }
+        catch (error) {
+            request.log.error(error, 'Erro ao processar webhook do Asaas');
+            return reply.status(200).send({ status: 'ERROR_RECORDED' });
         }
     }
     // Endpoint para testes e simulação de mensagens de WhatsApp e Telegram diretamente via API

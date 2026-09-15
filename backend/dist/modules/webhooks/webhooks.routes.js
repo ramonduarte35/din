@@ -13,6 +13,8 @@ async function webhooksRoutes(app) {
     app.post('/meta', webhooksController.handleMetaWebhook);
     // Webhook do Telegram Bot (POST /api/v1/webhooks/telegram)
     app.post('/telegram', webhooksController.handleTelegramWebhook);
+    // Webhook do Gateway Asaas (POST /api/v1/webhooks/asaas)
+    app.post('/asaas', webhooksController.handleAsaasWebhook);
     // Endpoint de simulação para desenvolvimento e testes rápidos
     app.post('/simulate', webhooksController.simulateWhatsAppMessage);
 }

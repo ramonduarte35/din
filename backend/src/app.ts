@@ -21,6 +21,8 @@ import { adminWhatsAppRoutes }   from './modules/admin/admin.whatsapp.routes.js'
 import { privacyRoutes }         from './modules/privacy/privacy.routes.js';
 import { contactsRoutes }        from './modules/contacts/contacts.routes.js';
 import { receivablesRoutes }     from './modules/receivables/receivables.routes.js';
+import { subscriptionsRoutes }   from './modules/subscriptions/subscriptions.routes.js';
+import { adminSubscriptionsRoutes } from './modules/admin/admin.subscriptions.routes.js';
 import { serializeRequest, serializeError } from './lib/pii-sanitizer.js';
 
 export function buildApp() {
@@ -128,6 +130,8 @@ export function buildApp() {
       v1.register(privacyRoutes,        { prefix: '/privacy' });
       v1.register(contactsRoutes,       { prefix: '/contacts' });
       v1.register(receivablesRoutes,    { prefix: '/receivables' });
+      v1.register(subscriptionsRoutes,  { prefix: '/subscriptions' });
+      v1.register(adminSubscriptionsRoutes, { prefix: '/admin/subscriptions' });
     },
     { prefix: '/api/v1' }
   );

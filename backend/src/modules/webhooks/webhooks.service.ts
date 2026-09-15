@@ -18,10 +18,12 @@ import {
   BillStatus,
   CategoryType,
   SubscriptionTier,
+  SubscriptionStatus,
   TransactionOrigin,
   TransactionType,
   WhatsAppLogStatus,
 } from '@prisma/client';
+import { env } from '../../config/env.js';
 import { BillsService } from '../bills/bills.service.js';
 import { BudgetsService } from '../budgets/budgets.service.js';
 
@@ -686,26 +688,54 @@ export class WebhooksService {
   ) {
     const senderLogKey = senderIdentifier || (instance.startsWith('telegram:') ? `tele_${user.telegram_id || remoteJid}` : remoteJid);
 
-    // 1. Verificar Plano PRO
-    if (user.subscription_tier !== SubscriptionTier.PRO) {
-      console.log(`🔒 [Financial Pipeline] Usuário "${user.email}" (${user.id}) não possui plano PRO.`);
-      await prisma.whatsAppLog.create({
-        data: {
-          sender_number: senderLogKey,
-          target_instance: instance,
-          message_body: trimmedText,
-          status: WhatsAppLogStatus.PRO_REQUIRED,
-        },
-      });
+    const isTelegramChannel =
+      instance.startsWith('telegram:') ||
+      origin === TransactionOrigin.TELEGRAM_TEXT ||
+      origin === TransactionOrigin.TELEGRAM_AUDIO;
 
-      const channelName = instance.startsWith('telegram:') ? 'Telegram' : 'WhatsApp';
-      const replyMsg =
-        `👋 *Olá, ${user.name}!* ⭐\n\n` +
-        `O registro automático e inteligência artificial via ${channelName} é um recurso exclusivo do *Plano PRO* do Din.\n\n` +
-        `🚀 Acesse seu painel web para fazer o upgrade e ter acesso ilimitado ao seu assistente financeiro no ${channelName}!`;
+    // 1. Verificação de Canal & Plano PRO:
+    // - O Telegram é 100% gratuito para todos os usuários (Free e PRO).
+    // - O WhatsApp é exclusivo para assinantes do Plano PRO ativo.
+    if (!isTelegramChannel) {
+      const now = new Date();
+      const isProExpired =
+        user.subscription_expires_at && new Date(user.subscription_expires_at) < now;
 
-      await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
-      return { status: 'pro_required' };
+      if (user.subscription_tier !== SubscriptionTier.PRO || isProExpired) {
+        console.log(
+          `🔒 [Financial Pipeline] Usuário "${user.email}" (${user.id}) tentou usar WhatsApp sem plano PRO ativo (tier: ${user.subscription_tier}, expirado: ${isProExpired}).`
+        );
+
+        if (isProExpired && user.subscription_tier === SubscriptionTier.PRO) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              subscription_tier: SubscriptionTier.FREE,
+              subscription_status: SubscriptionStatus.EXPIRED,
+            },
+          });
+        }
+
+        await prisma.whatsAppLog.create({
+          data: {
+            sender_number: senderLogKey,
+            target_instance: instance,
+            message_body: trimmedText,
+            status: WhatsAppLogStatus.PRO_REQUIRED,
+          },
+        });
+
+        const appUrl = env.APP_URL || 'http://localhost:8000';
+        const replyMsg =
+          `👋 *Olá, ${user.name}!* ⭐\n\n` +
+          `O assistente financeiro inteligente via *WhatsApp* é um recurso exclusivo do *Plano PRO* do Din.\n\n` +
+          `💡 *Você sabia?* Na sua conta Gratuita, você pode usar à vontade o nosso assistente no *Telegram* sem custo algum!\n\n` +
+          `🚀 Para desbloquear o WhatsApp e navegar 100% livre de anúncios no painel web, faça o upgrade para o Plano PRO acessando seu perfil:\n` +
+          `👉 ${appUrl}/profile`;
+
+        await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
+        return { status: 'pro_required' };
+      }
     }
 
     // 2. Buscar contas bancárias do usuário (com provisionamento automático de conta padrão)

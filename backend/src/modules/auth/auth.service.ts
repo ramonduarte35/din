@@ -44,11 +44,9 @@ export class AuthService {
         email: cleanEmail,
         password_hash,
         phone_number: normalizedPhone,
-        // NOTA DE PRODUTO / ARQUITETURA:
-        // Durante a fase beta/lançamento do Din, todos os novos usuários recebem SubscriptionTier.PRO
-        // para permitir experimentação completa (metas, orçamentos, conciliação e bot WhatsApp).
-        // Quando a monetização for ativada com gateway de pagamento, alterar o default para SubscriptionTier.FREE.
-        subscription_tier: SubscriptionTier.PRO,
+        // Modelo Freemium SaaS: Novos usuários iniciam no plano FREE (Telegram liberado e anúncios web)
+        // O usuário Administrador configurado no .env recebe automaticamente SubscriptionTier.PRO
+        subscription_tier: isAdminEmail ? SubscriptionTier.PRO : SubscriptionTier.FREE,
         role: isAdminEmail ? Role.ADMIN : Role.USER,
       },
       select: {
@@ -210,7 +208,7 @@ export class AuthService {
           google_id: googleId,
           avatar_url: avatarUrl,
           password_hash: null,
-          subscription_tier: SubscriptionTier.PRO,
+          subscription_tier: isAdminEmail ? SubscriptionTier.PRO : SubscriptionTier.FREE,
           role: isAdminEmail ? Role.ADMIN : Role.USER,
         },
       });

@@ -4,6 +4,7 @@ export declare class WebhooksController {
     handleMetaWebhookVerification(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     handleMetaWebhook(request: FastifyRequest, reply: FastifyReply): Promise<undefined>;
     handleTelegramWebhook(request: FastifyRequest, reply: FastifyReply): Promise<undefined>;
+    handleAsaasWebhook(request: FastifyRequest, reply: FastifyReply): Promise<undefined>;
     simulateWhatsAppMessage(request: FastifyRequest<{
         Body: {
             sender: string;

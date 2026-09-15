@@ -37,6 +37,11 @@ const envSchema = zod_1.z.object({
     TELEGRAM_BOT_TOKEN: zod_1.z.string().optional().default(''),
     GOOGLE_CLIENT_ID: zod_1.z.string().optional().default(''),
     GOOGLE_CLIENT_SECRET: zod_1.z.string().optional().default(''),
+    // Gateway Asaas (Monetização SaaS Free vs PRO)
+    ASAAS_API_KEY: zod_1.z.string().optional().default(''),
+    ASAAS_ENVIRONMENT: zod_1.z.enum(['sandbox', 'production']).default('sandbox'),
+    ASAAS_WEBHOOK_TOKEN: zod_1.z.string().optional().default(''),
+    APP_URL: zod_1.z.string().default('http://localhost:8000'),
 });
 const _env = envSchema.safeParse(process.env);
 if (!_env.success) {

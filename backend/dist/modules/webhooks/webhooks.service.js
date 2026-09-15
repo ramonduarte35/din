@@ -12,6 +12,7 @@ const currency_js_1 = require("../../utils/currency.js");
 const date_js_1 = require("../../utils/date.js");
 const webhooks_schemas_js_1 = require("./webhooks.schemas.js");
 const client_1 = require("@prisma/client");
+const env_js_1 = require("../../config/env.js");
 const bills_service_js_1 = require("../bills/bills.service.js");
 const budgets_service_js_1 = require("../budgets/budgets.service.js");
 const billsService = new bills_service_js_1.BillsService();
@@ -572,23 +573,43 @@ class WebhooksService {
      */
     async processUserFinancialMessage(user, instance, remoteJid, trimmedText, origin = client_1.TransactionOrigin.WHATSAPP_TEXT, senderIdentifier) {
         const senderLogKey = senderIdentifier || (instance.startsWith('telegram:') ? `tele_${user.telegram_id || remoteJid}` : remoteJid);
-        // 1. Verificar Plano PRO
-        if (user.subscription_tier !== client_1.SubscriptionTier.PRO) {
-            console.log(`🔒 [Financial Pipeline] Usuário "${user.email}" (${user.id}) não possui plano PRO.`);
-            await prisma_js_1.prisma.whatsAppLog.create({
-                data: {
-                    sender_number: senderLogKey,
-                    target_instance: instance,
-                    message_body: trimmedText,
-                    status: client_1.WhatsAppLogStatus.PRO_REQUIRED,
-                },
-            });
-            const channelName = instance.startsWith('telegram:') ? 'Telegram' : 'WhatsApp';
-            const replyMsg = `👋 *Olá, ${user.name}!* ⭐\n\n` +
-                `O registro automático e inteligência artificial via ${channelName} é um recurso exclusivo do *Plano PRO* do Din.\n\n` +
-                `🚀 Acesse seu painel web para fazer o upgrade e ter acesso ilimitado ao seu assistente financeiro no ${channelName}!`;
-            await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
-            return { status: 'pro_required' };
+        const isTelegramChannel = instance.startsWith('telegram:') ||
+            origin === client_1.TransactionOrigin.TELEGRAM_TEXT ||
+            origin === client_1.TransactionOrigin.TELEGRAM_AUDIO;
+        // 1. Verificação de Canal & Plano PRO:
+        // - O Telegram é 100% gratuito para todos os usuários (Free e PRO).
+        // - O WhatsApp é exclusivo para assinantes do Plano PRO ativo.
+        if (!isTelegramChannel) {
+            const now = new Date();
+            const isProExpired = user.subscription_expires_at && new Date(user.subscription_expires_at) < now;
+            if (user.subscription_tier !== client_1.SubscriptionTier.PRO || isProExpired) {
+                console.log(`🔒 [Financial Pipeline] Usuário "${user.email}" (${user.id}) tentou usar WhatsApp sem plano PRO ativo (tier: ${user.subscription_tier}, expirado: ${isProExpired}).`);
+                if (isProExpired && user.subscription_tier === client_1.SubscriptionTier.PRO) {
+                    await prisma_js_1.prisma.user.update({
+                        where: { id: user.id },
+                        data: {
+                            subscription_tier: client_1.SubscriptionTier.FREE,
+                            subscription_status: client_1.SubscriptionStatus.EXPIRED,
+                        },
+                    });
+                }
+                await prisma_js_1.prisma.whatsAppLog.create({
+                    data: {
+                        sender_number: senderLogKey,
+                        target_instance: instance,
+                        message_body: trimmedText,
+                        status: client_1.WhatsAppLogStatus.PRO_REQUIRED,
+                    },
+                });
+                const appUrl = env_js_1.env.APP_URL || 'http://localhost:8000';
+                const replyMsg = `👋 *Olá, ${user.name}!* ⭐\n\n` +
+                    `O assistente financeiro inteligente via *WhatsApp* é um recurso exclusivo do *Plano PRO* do Din.\n\n` +
+                    `💡 *Você sabia?* Na sua conta Gratuita, você pode usar à vontade o nosso assistente no *Telegram* sem custo algum!\n\n` +
+                    `🚀 Para desbloquear o WhatsApp e navegar 100% livre de anúncios no painel web, faça o upgrade para o Plano PRO acessando seu perfil:\n` +
+                    `👉 ${appUrl}/profile`;
+                await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
+                return { status: 'pro_required' };
+            }
         }
         // 2. Buscar contas bancárias do usuário (com provisionamento automático de conta padrão)
         let userAccounts = await prisma_js_1.prisma.account.findMany({

@@ -5,6 +5,7 @@ export declare const createBillSchema: z.ZodObject<{
     due_date: z.ZodEffects<z.ZodString, string, string>;
     category_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     account_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    contact_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     barcode: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     notes: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     is_recurring: z.ZodOptional<z.ZodBoolean>;
@@ -19,6 +20,7 @@ export declare const createBillSchema: z.ZodObject<{
     barcode?: string | null | undefined;
     notes?: string | null | undefined;
     is_recurring?: boolean | undefined;
+    contact_id?: string | null | undefined;
 }, {
     description: string;
     amount: number;
@@ -29,6 +31,7 @@ export declare const createBillSchema: z.ZodObject<{
     notes?: string | null | undefined;
     is_recurring?: boolean | undefined;
     total_installments?: number | undefined;
+    contact_id?: string | null | undefined;
 }>;
 export declare const updateBillSchema: z.ZodObject<{
     description: z.ZodOptional<z.ZodString>;
@@ -36,6 +39,7 @@ export declare const updateBillSchema: z.ZodObject<{
     due_date: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
     category_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     account_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    contact_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     barcode: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     notes: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     is_recurring: z.ZodOptional<z.ZodBoolean>;
@@ -59,6 +63,7 @@ export declare const updateBillSchema: z.ZodObject<{
     is_recurring?: boolean | undefined;
     installment_number?: number | null | undefined;
     total_installments?: number | null | undefined;
+    contact_id?: string | null | undefined;
 }, {
     status?: "PENDING" | "PAID" | "OVERDUE" | "CANCELLED" | undefined;
     account_id?: string | null | undefined;
@@ -71,6 +76,7 @@ export declare const updateBillSchema: z.ZodObject<{
     is_recurring?: boolean | undefined;
     installment_number?: number | null | undefined;
     total_installments?: number | null | undefined;
+    contact_id?: string | null | undefined;
 }>;
 export declare const payBillSchema: z.ZodObject<{
     account_id: z.ZodString;
@@ -96,6 +102,7 @@ export declare const listBillsQuerySchema: z.ZodObject<{
     end_due_date: z.ZodOptional<z.ZodString>;
     category_id: z.ZodOptional<z.ZodString>;
     account_id: z.ZodOptional<z.ZodString>;
+    contact_id: z.ZodOptional<z.ZodString>;
     search: z.ZodOptional<z.ZodString>;
     month: z.ZodOptional<z.ZodNumber>;
     year: z.ZodOptional<z.ZodNumber>;
@@ -107,6 +114,7 @@ export declare const listBillsQuerySchema: z.ZodObject<{
     search?: string | undefined;
     account_id?: string | undefined;
     category_id?: string | undefined;
+    contact_id?: string | undefined;
     month?: number | undefined;
     year?: number | undefined;
     page?: number | undefined;
@@ -119,6 +127,7 @@ export declare const listBillsQuerySchema: z.ZodObject<{
     search?: string | undefined;
     account_id?: string | undefined;
     category_id?: string | undefined;
+    contact_id?: string | undefined;
     month?: number | undefined;
     year?: number | undefined;
     page?: number | undefined;

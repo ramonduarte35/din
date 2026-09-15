@@ -19,6 +19,7 @@ import {
   X,
   TrendingUp,
   ContactRound,
+  Crown,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePWA } from '../../contexts/PWAContext';
@@ -304,6 +305,50 @@ export function Sidebar({ onCloseMobile, isCollapsed = false, onToggleCollapse }
                   {isCollapsed && (
                     <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-slate-900/95 dark:bg-slate-800 text-slate-100 text-xs font-semibold rounded-lg shadow-xl border border-border whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-50 flex items-center gap-1.5">
                       <span>Canais & Integrações</span>
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-din-primary/20 text-din-primary border border-din-primary/30">
+                        ADMIN
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
+            </NavLink>
+
+            <NavLink
+              to="/admin/subscriptions"
+              onClick={onCloseMobile}
+              className={({ isActive }) =>
+                cn(
+                  'group flex items-center rounded-xl text-xs font-medium transition-all relative',
+                  isCollapsed
+                    ? 'justify-center w-11 h-11 mx-auto min-w-[44px] min-h-[44px]'
+                    : 'justify-between px-3 py-2.5 min-h-[44px]',
+                  isActive
+                    ? 'bg-din-primary/10 text-din-primary font-semibold shadow-sm nav-active-indicator'
+                    : 'text-din-muted hover:text-din-text hover:bg-card-hover'
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <div className={cn('flex items-center', isCollapsed ? 'justify-center' : 'gap-3')}>
+                    <Crown
+                      className={cn(
+                        'transition-colors shrink-0',
+                        isCollapsed ? 'w-5 h-5' : 'w-4 h-4',
+                        isActive ? 'text-din-primary' : 'text-din-muted group-hover:text-din-text'
+                      )}
+                    />
+                    {!isCollapsed && <span>Assinaturas & Planos</span>}
+                  </div>
+                  {!isCollapsed && (
+                    <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-din-primary/20 text-din-primary border border-din-primary/30">
+                      ADMIN
+                    </span>
+                  )}
+                  {isCollapsed && (
+                    <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-slate-900/95 dark:bg-slate-800 text-slate-100 text-xs font-semibold rounded-lg shadow-xl border border-border whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-50 flex items-center gap-1.5">
+                      <span>Assinaturas & Planos</span>
                       <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-din-primary/20 text-din-primary border border-din-primary/30">
                         ADMIN
                       </span>

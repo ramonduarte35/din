@@ -27,8 +27,8 @@ export const AdSenseBanner: React.FC<AdSenseBannerProps> = ({
   const clientId = import.meta.env.VITE_ADSENSE_CLIENT_ID || 'ca-pub-0000000000000000';
   const isProduction = import.meta.env.PROD && !clientId.includes('0000000000000000');
 
-  // Em produção com AdSense ativo, assinantes PRO navegam 100% livres de anúncios
-  if (isProduction && user?.subscription_tier === 'PRO') {
+  // Assinantes PRO navegam 100% livres de anúncios em qualquer ambiente (dev e prod)
+  if (user?.subscription_tier === 'PRO') {
     return null;
   }
 

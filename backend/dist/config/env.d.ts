@@ -14,4 +14,8 @@ export declare const env: {
     TELEGRAM_BOT_TOKEN: string;
     GOOGLE_CLIENT_ID: string;
     GOOGLE_CLIENT_SECRET: string;
+    ASAAS_API_KEY: string;
+    ASAAS_ENVIRONMENT: "production" | "sandbox";
+    ASAAS_WEBHOOK_TOKEN: string;
+    APP_URL: string;
 };

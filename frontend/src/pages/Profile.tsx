@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import {
@@ -6,6 +7,8 @@ import {
   generateTelegramLinkCodeRequest,
   unlinkTelegramAccountRequest,
 } from '../api/auth';
+import { fetchMySubscription, MySubscriptionResponse } from '../api/subscriptions';
+import { SubscriptionModal } from '../components/subscriptions/SubscriptionModal';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
@@ -43,6 +46,23 @@ export function Profile() {
   const { theme, setTheme, themes } = useTheme();
   const { promptInstall, isInstalled, isDismissed, resetDismissed } = usePWA();
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Subscription states
+  const [subscriptionData, setSubscriptionData] = useState<MySubscriptionResponse | null>(null);
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(
+    searchParams.get('upgrade') === 'true'
+  );
+
+  const loadSubscription = () => {
+    fetchMySubscription()
+      .then(setSubscriptionData)
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    loadSubscription();
+  }, [user?.subscription_tier]);
 
   // Profile fields
   const [name, setName] = useState(user?.name || '');
@@ -213,14 +233,37 @@ export function Profile() {
             <h3 className="font-bold text-base text-din-text">{user?.name}</h3>
             <p className="text-xs text-din-muted">{user?.email}</p>
 
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
-              <Badge variant={user?.subscription_tier === 'PRO' ? 'pro' : 'free'} className="text-xs py-1 px-3">
-                {user?.subscription_tier === 'PRO' ? '⭐ Plano PRO Ativo' : 'Plano Gratuito'}
-              </Badge>
-              {user?.google_id && (
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1">
-                  Google Conectado
-                </span>
+            <div className="mt-3 flex flex-col items-center justify-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                <Badge variant={user?.subscription_tier === 'PRO' ? 'pro' : 'free'} className="text-xs py-1 px-3">
+                  {user?.subscription_tier === 'PRO' ? '⭐ Plano PRO Ativo' : 'Plano Gratuito'}
+                </Badge>
+                {user?.google_id && (
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1">
+                    Google Conectado
+                  </span>
+                )}
+              </div>
+
+              {user?.subscription_tier === 'PRO' ? (
+                <div className="mt-1 text-center">
+                  {subscriptionData?.expires_at ? (
+                    <p className="text-[11px] text-din-muted">
+                      Válido até <strong className="text-din-text">{new Date(subscriptionData.expires_at).toLocaleDateString('pt-BR')}</strong>
+                      {subscriptionData.days_remaining !== null && (
+                        <span className="ml-1 text-emerald-400 font-bold">
+                          ({subscriptionData.days_remaining}d restantes)
+                        </span>
+                      )}
+                    </p>
+                  ) : (
+                    <span className="text-[11px] text-violet-400 font-semibold">Acesso Vitalício</span>
+                  )}
+                </div>
+              ) : (
+                <p className="text-[11px] text-din-muted mt-1 text-center">
+                  Telegram Liberado • Com Anúncios
+                </p>
               )}
             </div>
           </div>
@@ -235,9 +278,29 @@ export function Profile() {
               <span className="text-din-text font-medium">Inteligência Artificial gpt-4o-mini</span>
             </div>
             <div className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-din-primary" />
-              <span className="text-din-text font-medium">Integração multi-números WhatsApp</span>
+              <MessageSquare className={`w-4 h-4 ${user?.subscription_tier === 'PRO' ? 'text-din-primary' : 'text-din-muted'}`} />
+              <span className={`font-medium ${user?.subscription_tier === 'PRO' ? 'text-din-text' : 'text-din-muted line-through'}`}>
+                Assistente no WhatsApp Oficial
+              </span>
+              {user?.subscription_tier !== 'PRO' && (
+                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-violet-600/20 text-violet-300">PRO</span>
+              )}
             </div>
+          </div>
+
+          <div className="pt-2 border-t border-border">
+            <Button
+              variant={user?.subscription_tier === 'PRO' ? 'secondary' : 'primary'}
+              onClick={() => setIsSubscriptionModalOpen(true)}
+              className={`w-full min-h-[44px] text-xs font-bold ${
+                user?.subscription_tier !== 'PRO'
+                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white border-none shadow-lg shadow-violet-500/20'
+                  : ''
+              }`}
+            >
+              <Sparkles className="w-4 h-4 mr-1.5" />
+              {user?.subscription_tier === 'PRO' ? 'Gerenciar / Renovar Plano' : 'Fazer Upgrade para o PRO'}
+            </Button>
           </div>
         </Card>
 
@@ -762,6 +825,22 @@ export function Profile() {
           </div>
         </div>
       </Card>
+
+      {/* Modal de Assinatura & Upgrade Asaas */}
+      <SubscriptionModal
+        isOpen={isSubscriptionModalOpen}
+        onClose={() => {
+          setIsSubscriptionModalOpen(false);
+          if (searchParams.get('upgrade')) {
+            searchParams.delete('upgrade');
+            setSearchParams(searchParams, { replace: true });
+          }
+        }}
+        onSuccess={() => {
+          loadSubscription();
+          refreshUser?.();
+        }}
+      />
     </div>
   );
 }

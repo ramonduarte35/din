@@ -23,10 +23,22 @@ const goals_routes_js_1 = require("./modules/goals/goals.routes.js");
 const budgets_routes_js_1 = require("./modules/budgets/budgets.routes.js");
 const webhooks_routes_js_1 = require("./modules/webhooks/webhooks.routes.js");
 const admin_whatsapp_routes_js_1 = require("./modules/admin/admin.whatsapp.routes.js");
+const privacy_routes_js_1 = require("./modules/privacy/privacy.routes.js");
+const contacts_routes_js_1 = require("./modules/contacts/contacts.routes.js");
+const receivables_routes_js_1 = require("./modules/receivables/receivables.routes.js");
+const subscriptions_routes_js_1 = require("./modules/subscriptions/subscriptions.routes.js");
+const admin_subscriptions_routes_js_1 = require("./modules/admin/admin.subscriptions.routes.js");
+const pii_sanitizer_js_1 = require("./lib/pii-sanitizer.js");
 function buildApp() {
     const app = (0, fastify_1.default)({
         logger: {
             level: env_js_1.env.NODE_ENV === 'development' ? 'info' : 'warn',
+            // Serializers LGPD: mascaram PII antes de qualquer escrita em log
+            serializers: {
+                req: pii_sanitizer_js_1.serializeRequest,
+                err: pii_sanitizer_js_1.serializeError,
+                res: (reply) => ({ statusCode: reply.statusCode }),
+            },
         },
     });
     // Plugins globais
@@ -109,6 +121,11 @@ function buildApp() {
         v1.register(transactions_routes_js_1.transactionsRoutes, { prefix: '/transactions' });
         v1.register(webhooks_routes_js_1.webhooksRoutes, { prefix: '/webhooks' });
         v1.register(admin_whatsapp_routes_js_1.adminWhatsAppRoutes, { prefix: '/admin/whatsapp' });
+        v1.register(privacy_routes_js_1.privacyRoutes, { prefix: '/privacy' });
+        v1.register(contacts_routes_js_1.contactsRoutes, { prefix: '/contacts' });
+        v1.register(receivables_routes_js_1.receivablesRoutes, { prefix: '/receivables' });
+        v1.register(subscriptions_routes_js_1.subscriptionsRoutes, { prefix: '/subscriptions' });
+        v1.register(admin_subscriptions_routes_js_1.adminSubscriptionsRoutes, { prefix: '/admin/subscriptions' });
     }, { prefix: '/api/v1' });
     return app;
 }

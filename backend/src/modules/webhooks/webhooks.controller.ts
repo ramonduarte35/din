@@ -1,5 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { WebhooksService } from './webhooks.service.js';
+import { subscriptionsService } from '../subscriptions/subscriptions.service.js';
+import { asaasWebhookSchema } from '../subscriptions/subscriptions.schemas.js';
+import { env } from '../../config/env.js';
 
 const webhooksService = new WebhooksService();
 
@@ -66,6 +69,38 @@ export class WebhooksController {
     } catch (error: any) {
       request.log.error(error);
       return reply.status(200).send({ ok: true });
+    }
+  }
+
+  // Webhook do Gateway de Pagamentos Asaas (POST /api/v1/webhooks/asaas)
+  async handleAsaasWebhook(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      // 1. Validar token de segurança opcional configurado no painel do Asaas
+      const configuredToken = env.ASAAS_WEBHOOK_TOKEN;
+      const receivedToken = request.headers['asaas-access-token'] as string | undefined;
+
+      if (configuredToken && configuredToken.length > 0 && receivedToken && receivedToken !== configuredToken) {
+        console.warn('⚠️ [Asaas Webhook] Token de autenticação inválido.');
+        return reply.status(401).send({ error: 'Token de webhook inválido' });
+      }
+
+      // 2. Validação básica com schema Zod
+      const parsed = asaasWebhookSchema.safeParse(request.body);
+      if (!parsed.success) {
+        console.warn('⚠️ [Asaas Webhook] Payload inválido recebido:', parsed.error.format());
+        return reply.status(200).send({ status: 'ignored_invalid_format' });
+      }
+
+      // Resposta imediata 200 para o Asaas
+      reply.status(200).send({ status: 'RECEIVED' });
+
+      // Processamento assíncrono
+      subscriptionsService.processAsaasWebhook(parsed.data).catch((err) => {
+        console.error('❌ [Asaas Webhook] Erro no processamento assíncrono:', err);
+      });
+    } catch (error: any) {
+      request.log.error(error, 'Erro ao processar webhook do Asaas');
+      return reply.status(200).send({ status: 'ERROR_RECORDED' });
     }
   }
 

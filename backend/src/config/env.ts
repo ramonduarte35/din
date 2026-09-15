@@ -36,6 +36,11 @@ const envSchema = z.object({
   TELEGRAM_BOT_TOKEN: z.string().optional().default(''),
   GOOGLE_CLIENT_ID: z.string().optional().default(''),
   GOOGLE_CLIENT_SECRET: z.string().optional().default(''),
+  // Gateway Asaas (Monetização SaaS Free vs PRO)
+  ASAAS_API_KEY: z.string().optional().default(''),
+  ASAAS_ENVIRONMENT: z.enum(['sandbox', 'production']).default('sandbox'),
+  ASAAS_WEBHOOK_TOKEN: z.string().optional().default(''),
+  APP_URL: z.string().default('http://localhost:8000'),
 });
 
 const _env = envSchema.safeParse(process.env);

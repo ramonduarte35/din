@@ -26,12 +26,13 @@ const Receivables    = lazy(() => import('./pages/Receivables').then((m) => ({ d
 const Contacts       = lazy(() => import('./pages/Contacts').then((m) => ({ default: m.Contacts })));
 const Profile        = lazy(() => import('./pages/Profile').then((m) => ({ default: m.Profile })));
 const Simulator      = lazy(() => import('./pages/Simulator').then((m) => ({ default: m.Simulator })));
-const AdminWhatsApp  = lazy(() => import('./pages/AdminWhatsApp').then((m) => ({ default: m.AdminWhatsApp })));
-const AccessDenied   = lazy(() => import('./pages/AccessDenied').then((m) => ({ default: m.AccessDenied })));
-const PrivacyPolicy  = lazy(() => import('./pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy })));
-const TermsOfUse     = lazy(() => import('./pages/TermsOfUse').then((m) => ({ default: m.TermsOfUse })));
-const PrivacySettings = lazy(() => import('./pages/PrivacySettings').then((m) => ({ default: m.PrivacySettings })));
-const NotFound       = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
+const AdminWhatsApp     = lazy(() => import('./pages/AdminWhatsApp').then((m) => ({ default: m.AdminWhatsApp })));
+const AdminSubscriptions = lazy(() => import('./pages/AdminSubscriptions').then((m) => ({ default: m.AdminSubscriptions })));
+const AccessDenied      = lazy(() => import('./pages/AccessDenied').then((m) => ({ default: m.AccessDenied })));
+const PrivacyPolicy     = lazy(() => import('./pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy })));
+const TermsOfUse        = lazy(() => import('./pages/TermsOfUse').then((m) => ({ default: m.TermsOfUse })));
+const PrivacySettings    = lazy(() => import('./pages/PrivacySettings').then((m) => ({ default: m.PrivacySettings })));
+const NotFound          = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
 
 const ROUTE_TITLES: Record<string, string> = {
   '/': 'Painel Financeiro | MeuDino',
@@ -48,6 +49,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/privacy-settings': 'Privacidade & Dados | MeuDino',
   '/access-denied': 'Acesso Negado | MeuDino',
   '/admin/whatsapp': 'WhatsApp Admin | MeuDino',
+  '/admin/subscriptions': 'Assinaturas & Planos | MeuDino',
   '/login': 'Entrar | MeuDino',
   '/register': 'Criar Conta | MeuDino',
   '/privacy': 'Política de Privacidade | MeuDino',
@@ -226,8 +228,16 @@ export function App() {
                         }
                       />
                       <Route
+                        path="admin/subscriptions"
+                        element={
+                          <AdminRoute>
+                            <AdminSubscriptions />
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
                         path="admin"
-                        element={<Navigate to="/admin/whatsapp" replace />}
+                        element={<Navigate to="/admin/subscriptions" replace />}
                       />
                     </Route>
 
