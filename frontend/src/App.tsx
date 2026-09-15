@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth }         from './contexts/AuthContext';
@@ -125,9 +125,25 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, refreshUser } = useAuth();
+  const [hasAttemptedRefresh, setHasAttemptedRefresh] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  if (isLoading) {
+  useEffect(() => {
+    // Se o usuário está autenticado mas seu cache local ainda consta como não-admin,
+    // sincroniza com o servidor antes de bloquear acesso (caso tenha sido promovido via .env)
+    if (isAuthenticated && user && user.role !== 'ADMIN' && !hasAttemptedRefresh && !isRefreshing) {
+      setIsRefreshing(true);
+      refreshUser()
+        .catch(() => {})
+        .finally(() => {
+          setIsRefreshing(false);
+          setHasAttemptedRefresh(true);
+        });
+    }
+  }, [isAuthenticated, user?.role, hasAttemptedRefresh, isRefreshing, refreshUser]);
+
+  if (isLoading || isRefreshing) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-10 h-10 rounded-full border-4 border-slate-700/40 border-t-emerald-500 animate-spin" />
