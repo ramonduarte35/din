@@ -8,7 +8,6 @@ import {
   Layers,
   Target,
   PieChart,
-  Bot,
   User as UserIcon,
   LogOut,
   Sparkles,
@@ -82,12 +81,6 @@ export function Sidebar({ onCloseMobile, isCollapsed = false, onToggleCollapse }
       to: '/goals',
       label: 'Metas & Cofrinhos',
       icon: Target,
-    },
-    {
-      to: '/simulator',
-      label: 'Simulador de IA',
-      icon: Bot,
-      highlight: true,
     },
     {
       to: '/profile',

@@ -25,7 +25,6 @@ const Bills          = lazy(() => import('./pages/Bills').then((m) => ({ default
 const Receivables    = lazy(() => import('./pages/Receivables').then((m) => ({ default: m.Receivables })));
 const Contacts       = lazy(() => import('./pages/Contacts').then((m) => ({ default: m.Contacts })));
 const Profile        = lazy(() => import('./pages/Profile').then((m) => ({ default: m.Profile })));
-const Simulator      = lazy(() => import('./pages/Simulator').then((m) => ({ default: m.Simulator })));
 const AdminWhatsApp     = lazy(() => import('./pages/AdminWhatsApp').then((m) => ({ default: m.AdminWhatsApp })));
 const AdminSubscriptions = lazy(() => import('./pages/AdminSubscriptions').then((m) => ({ default: m.AdminSubscriptions })));
 const AccessDenied      = lazy(() => import('./pages/AccessDenied').then((m) => ({ default: m.AccessDenied })));
@@ -44,7 +43,6 @@ const ROUTE_TITLES: Record<string, string> = {
   '/categories': 'Categorias | MeuDino',
   '/budgets': 'Orçamentos Mensais | MeuDino',
   '/goals': 'Objetivos & Sonhos | MeuDino',
-  '/simulator': 'Simulador de Gastos | MeuDino',
   '/profile': 'Meu Perfil | MeuDino',
   '/privacy-settings': 'Privacidade & Dados | MeuDino',
   '/access-denied': 'Acesso Negado | MeuDino',
@@ -232,7 +230,7 @@ export function App() {
                       <Route path="categories" element={<Categories />} />
                       <Route path="budgets" element={<Budgets />} />
                       <Route path="goals" element={<Goals />} />
-                      <Route path="simulator" element={<Simulator />} />
+                      <Route path="simulator" element={<Navigate to="/" replace />} />
                       <Route path="profile" element={<Profile />} />
                       <Route path="access-denied" element={<AccessDenied />} />
                       <Route
