@@ -138,6 +138,16 @@ export class SubscriptionsService {
         where: { id: userId },
         data: { asaas_customer_id: asaasCustomerId },
       });
+    } else if (input.cpf_cnpj || input.phone) {
+      // Atualiza CPF/telefone do cliente pré-existente no Asaas
+      await asaasClient
+        .updateCustomer(asaasCustomerId, {
+          cpfCnpj: input.cpf_cnpj || undefined,
+          phone: input.phone || user.phone_number || undefined,
+        })
+        .catch((err) => {
+          console.warn('⚠️ [Subscriptions] Aviso ao atualizar dados do cliente no Asaas:', err.message);
+        });
     }
 
     // 2. Definir valor e vencimento

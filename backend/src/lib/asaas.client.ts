@@ -39,11 +39,12 @@ export class AsaasClient {
   private apiKey: string;
 
   constructor() {
-    this.apiKey = (env.ASAAS_API_KEY || '').trim();
+    // Normaliza eventual escape de $$ vindo do docker-compose para um $ literal
+    this.apiKey = (env.ASAAS_API_KEY || '').trim().replace(/\$\$/g, '$');
     this.baseUrl =
       env.ASAAS_ENVIRONMENT === 'production'
         ? 'https://api.asaas.com/v3'
-        : 'https://sandbox.asaas.com/v3';
+        : 'https://api-sandbox.asaas.com/v3';
   }
 
   private isConfigured(): boolean {
@@ -75,9 +76,18 @@ export class AsaasClient {
       });
 
       if (searchRes.ok) {
-        const searchData = (await searchRes.json()) as { data?: Array<{ id: string }> };
+        const searchData = (await searchRes.json()) as { data?: Array<{ id: string; cpfCnpj?: string }> };
         if (searchData.data && searchData.data.length > 0) {
-          return { id: searchData.data[0].id };
+          const customerId = searchData.data[0].id;
+          if (data.cpfCnpj) {
+            await this.updateCustomer(customerId, {
+              cpfCnpj: data.cpfCnpj,
+              phone: data.phone || data.mobilePhone,
+            }).catch((err) => {
+              console.warn('⚠️ [Asaas Client] Aviso ao atualizar dados do cliente:', err.message);
+            });
+          }
+          return { id: customerId };
         }
       }
 
@@ -103,6 +113,41 @@ export class AsaasClient {
       return { id: createData.id };
     } catch (err: any) {
       console.error('❌ [Asaas Client] Erro em findOrCreateCustomer:', err.message);
+      throw err;
+    }
+  }
+
+  /**
+   * Atualiza dados de um cliente existente no Asaas (ex: CPF/CNPJ ou telefone)
+   */
+  async updateCustomer(customerId: string, data: Partial<AsaasCustomerData>): Promise<{ id: string }> {
+    if (!this.isConfigured() || customerId.startsWith('cus_mock_')) {
+      return { id: customerId };
+    }
+
+    try {
+      const payload: Record<string, any> = {};
+      if (data.name) payload.name = data.name;
+      if (data.email) payload.email = data.email;
+      if (data.cpfCnpj) payload.cpfCnpj = data.cpfCnpj.replace(/\D/g, '');
+      const cleanPhone = (data.mobilePhone || data.phone || '').replace(/\D/g, '');
+      if (cleanPhone) payload.mobilePhone = cleanPhone;
+
+      const response = await fetch(`${this.baseUrl}/customers/${customerId}`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(payload),
+      });
+
+      const resData = (await response.json()) as any;
+      if (!response.ok || !resData.id) {
+        const errorMsg = resData.errors?.map((e: any) => e.description).join(', ') || 'Erro ao atualizar cliente Asaas';
+        throw new Error(`Falha no Asaas: ${errorMsg}`);
+      }
+
+      return { id: resData.id };
+    } catch (err: any) {
+      console.error('❌ [Asaas Client] Erro em updateCustomer:', err.message);
       throw err;
     }
   }
@@ -170,14 +215,11 @@ export class AsaasClient {
   async getPixQrCode(paymentId: string): Promise<AsaasPixQrCodeResponse> {
     if (!this.isConfigured() || paymentId.startsWith('pay_mock_')) {
       const mockPayload = `00020126580014br.gov.bcb.pix0136mock-din-pro-${paymentId}520400005303986540519.905802BR5909DIN_PRO6008BRASILIA62070503***6304ABCD`;
-      // SVG / 1x1 pixel PNG placeholder em base64
-      const mockImage =
-        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
       const expDate = new Date();
       expDate.setHours(expDate.getHours() + 24);
 
       return {
-        encodedImage: mockImage,
+        encodedImage: '', // Não envia imagem verde fake em dev/mock
         payload: mockPayload,
         expirationDate: expDate.toISOString(),
       };

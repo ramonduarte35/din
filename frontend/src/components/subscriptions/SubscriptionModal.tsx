@@ -29,6 +29,22 @@ interface SubscriptionModalProps {
   onSuccess?: () => void;
 }
 
+function formatCpfCnpj(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  if (digits.length <= 11) {
+    return digits
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  }
+  return digits
+    .slice(0, 14)
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1/$2')
+    .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+}
+
 export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   isOpen,
   onClose,
@@ -39,6 +55,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
 
   const [selectedCycle, setSelectedCycle] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY');
   const [selectedMethod, setSelectedMethod] = useState<'PIX' | 'CREDIT_CARD'>('PIX');
+  const [cpfCnpj, setCpfCnpj] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
   const [checkoutData, setCheckoutData] = useState<CheckoutResponse | null>(null);
@@ -49,17 +66,25 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     if (isOpen) {
       setCheckoutData(null);
       setCopiedPix(false);
+      setCpfCnpj('');
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleGenerateCheckout = async () => {
+    const cleanCpf = cpfCnpj.replace(/\D/g, '');
+    if (!cleanCpf || (cleanCpf.length !== 11 && cleanCpf.length !== 14)) {
+      toast.error('Informe um CPF ou CNPJ válido para emissão da cobrança no Asaas.');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const res = await createCheckout({
         plan_cycle: selectedCycle,
         billing_type: selectedMethod === 'PIX' ? 'PIX' : 'UNDEFINED',
+        cpf_cnpj: cleanCpf,
       });
       setCheckoutData(res);
       toast.success(
@@ -283,6 +308,24 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                 </div>
               </div>
 
+              {/* CPF / CNPJ do Pagador (Exigência do BACEN e Asaas para emissão de PIX/Boleto) */}
+              <div>
+                <label className="block text-xs font-bold text-din-text mb-1.5 uppercase tracking-wider">
+                  CPF ou CNPJ do Titular <span className="text-emerald-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="000.000.000-00"
+                  value={cpfCnpj}
+                  onChange={(e) => setCpfCnpj(formatCpfCnpj(e.target.value))}
+                  maxLength={18}
+                  className="w-full bg-card-secondary border border-border focus:border-violet-500 rounded-xl px-3.5 py-2.5 text-sm text-din-text placeholder-din-muted outline-none transition-colors min-h-[44px]"
+                />
+                <p className="text-[11px] text-din-muted mt-1">
+                  Obrigatório conforme normas do Banco Central para emissão do PIX.
+                </p>
+              </div>
+
               <div className="pt-2">
                 <Button
                   variant="primary"
@@ -291,7 +334,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   className="w-full min-h-[48px] text-sm font-bold shadow-lg shadow-violet-500/20 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 border-none"
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
-                  Ir para Pagamento com {selectedMethod === 'PIX' ? 'PIX' : 'Asaas'}
+                  Gerar Pagamento com {selectedMethod === 'PIX' ? 'PIX' : 'Asaas'}
                 </Button>
               </div>
             </>
@@ -311,21 +354,27 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                 </div>
               </div>
 
-              {/* Se tiver QR Code PIX */}
-              {checkoutData.pix_qr_code && (
+              {/* Se tiver dados PIX (QR Code ou Copia e Cola) */}
+              {(checkoutData.pix_qr_code || checkoutData.pix_copy_paste) && (
                 <div className="p-4 rounded-2xl bg-card-secondary/80 border border-emerald-500/30 flex flex-col items-center text-center space-y-3">
                   <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
                     <QrCode className="w-4 h-4" />
                     Escaneie o QR Code PIX
                   </span>
 
-                  <div className="p-3 bg-white rounded-2xl shadow-md inline-block">
-                    <img
-                      src={`data:image/png;base64,${checkoutData.pix_qr_code}`}
-                      alt="QR Code PIX Asaas"
-                      className="w-48 h-48 object-contain"
-                    />
-                  </div>
+                  {checkoutData.pix_qr_code ? (
+                    <div className="p-3 bg-white rounded-2xl shadow-md inline-block">
+                      <img
+                        src={
+                          checkoutData.pix_qr_code.startsWith('data:')
+                            ? checkoutData.pix_qr_code
+                            : `data:image/png;base64,${checkoutData.pix_qr_code}`
+                        }
+                        alt="QR Code PIX Asaas"
+                        className="w-48 h-48 object-contain"
+                      />
+                    </div>
+                  ) : null}
 
                   {checkoutData.pix_copy_paste && (
                     <div className="w-full space-y-2">
