@@ -134,6 +134,25 @@ export class SubscriptionsService {
 
       asaasCustomerId = customer.id;
 
+      // Se outra conta tiver o mesmo id (ex: conta de teste antiga, admin anterior ou re-cadastro),
+      // desvincula da conta anterior para evitar conflito caso a migration ainda não tenha sido aplicada
+      const previousOwner = await prisma.user.findFirst({
+        where: {
+          asaas_customer_id: asaasCustomerId,
+          id: { not: userId },
+        },
+      });
+
+      if (previousOwner) {
+        console.warn(`⚠️ [Subscriptions] Reatribuindo asaas_customer_id (${asaasCustomerId}) do usuário ${previousOwner.id} para o usuário ativo ${userId}`);
+        await prisma.user.update({
+          where: { id: previousOwner.id },
+          data: { asaas_customer_id: null },
+        }).catch((err) => {
+          console.warn('⚠️ [Subscriptions] Aviso ao desvincular asaas_customer_id antigo:', err.message);
+        });
+      }
+
       await prisma.user.update({
         where: { id: userId },
         data: { asaas_customer_id: asaasCustomerId },
@@ -241,8 +260,9 @@ export class SubscriptionsService {
 
     // 2. Se não achou localmente, tentar achar o usuário pelo customer id do Asaas
     if (!targetUserId && payment.customer) {
-      const userByCustomer = await prisma.user.findUnique({
+      const userByCustomer = await prisma.user.findFirst({
         where: { asaas_customer_id: payment.customer },
+        orderBy: { updated_at: 'desc' },
       });
       if (userByCustomer) {
         targetUserId = userByCustomer.id;

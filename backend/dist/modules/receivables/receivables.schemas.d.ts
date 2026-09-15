@@ -1,0 +1,136 @@
+import { z } from 'zod';
+export declare const createReceivableSchema: z.ZodObject<{
+    description: z.ZodString;
+    amount: z.ZodNumber;
+    due_date: z.ZodEffects<z.ZodString, string, string>;
+    contact_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    category_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    account_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    notes: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    is_recurring: z.ZodOptional<z.ZodBoolean>;
+    total_installments: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+}, "strip", z.ZodTypeAny, {
+    description: string;
+    amount: number;
+    due_date: string;
+    total_installments: number;
+    account_id?: string | null | undefined;
+    category_id?: string | null | undefined;
+    notes?: string | null | undefined;
+    is_recurring?: boolean | undefined;
+    contact_id?: string | null | undefined;
+}, {
+    description: string;
+    amount: number;
+    due_date: string;
+    account_id?: string | null | undefined;
+    category_id?: string | null | undefined;
+    notes?: string | null | undefined;
+    is_recurring?: boolean | undefined;
+    total_installments?: number | undefined;
+    contact_id?: string | null | undefined;
+}>;
+export declare const updateReceivableSchema: z.ZodObject<{
+    description: z.ZodOptional<z.ZodString>;
+    amount: z.ZodOptional<z.ZodNumber>;
+    due_date: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
+    contact_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    category_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    account_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    notes: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    is_recurring: z.ZodOptional<z.ZodBoolean>;
+    installment_number: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
+    total_installments: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
+    status: z.ZodOptional<z.ZodNativeEnum<{
+        PENDING: "PENDING";
+        RECEIVED: "RECEIVED";
+        OVERDUE: "OVERDUE";
+        CANCELLED: "CANCELLED";
+    }>>;
+}, "strip", z.ZodTypeAny, {
+    status?: "PENDING" | "OVERDUE" | "CANCELLED" | "RECEIVED" | undefined;
+    account_id?: string | null | undefined;
+    category_id?: string | null | undefined;
+    description?: string | undefined;
+    amount?: number | undefined;
+    due_date?: string | undefined;
+    notes?: string | null | undefined;
+    is_recurring?: boolean | undefined;
+    installment_number?: number | null | undefined;
+    total_installments?: number | null | undefined;
+    contact_id?: string | null | undefined;
+}, {
+    status?: "PENDING" | "OVERDUE" | "CANCELLED" | "RECEIVED" | undefined;
+    account_id?: string | null | undefined;
+    category_id?: string | null | undefined;
+    description?: string | undefined;
+    amount?: number | undefined;
+    due_date?: string | undefined;
+    notes?: string | null | undefined;
+    is_recurring?: boolean | undefined;
+    installment_number?: number | null | undefined;
+    total_installments?: number | null | undefined;
+    contact_id?: string | null | undefined;
+}>;
+export declare const receiveReceivableSchema: z.ZodObject<{
+    account_id: z.ZodString;
+    received_date: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
+    amount: z.ZodOptional<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    account_id: string;
+    amount?: number | undefined;
+    received_date?: string | undefined;
+}, {
+    account_id: string;
+    amount?: number | undefined;
+    received_date?: string | undefined;
+}>;
+export declare const listReceivablesQuerySchema: z.ZodObject<{
+    status: z.ZodOptional<z.ZodNativeEnum<{
+        PENDING: "PENDING";
+        RECEIVED: "RECEIVED";
+        OVERDUE: "OVERDUE";
+        CANCELLED: "CANCELLED";
+    }>>;
+    start_due_date: z.ZodOptional<z.ZodString>;
+    end_due_date: z.ZodOptional<z.ZodString>;
+    contact_id: z.ZodOptional<z.ZodString>;
+    category_id: z.ZodOptional<z.ZodString>;
+    account_id: z.ZodOptional<z.ZodString>;
+    search: z.ZodOptional<z.ZodString>;
+    month: z.ZodOptional<z.ZodNumber>;
+    year: z.ZodOptional<z.ZodNumber>;
+    page: z.ZodOptional<z.ZodNumber>;
+    limit: z.ZodOptional<z.ZodNumber>;
+    _t: z.ZodOptional<z.ZodAny>;
+}, "strip", z.ZodTypeAny, {
+    status?: "PENDING" | "OVERDUE" | "CANCELLED" | "RECEIVED" | undefined;
+    search?: string | undefined;
+    account_id?: string | undefined;
+    category_id?: string | undefined;
+    contact_id?: string | undefined;
+    month?: number | undefined;
+    year?: number | undefined;
+    page?: number | undefined;
+    limit?: number | undefined;
+    start_due_date?: string | undefined;
+    end_due_date?: string | undefined;
+    _t?: any;
+}, {
+    status?: "PENDING" | "OVERDUE" | "CANCELLED" | "RECEIVED" | undefined;
+    search?: string | undefined;
+    account_id?: string | undefined;
+    category_id?: string | undefined;
+    contact_id?: string | undefined;
+    month?: number | undefined;
+    year?: number | undefined;
+    page?: number | undefined;
+    limit?: number | undefined;
+    start_due_date?: string | undefined;
+    end_due_date?: string | undefined;
+    _t?: any;
+}>;
+export type CreateReceivableInput = z.infer<typeof createReceivableSchema>;
+export type UpdateReceivableInput = z.infer<typeof updateReceivableSchema>;
+export type ReceiveReceivableInput = z.infer<typeof receiveReceivableSchema>;
+export type ListReceivablesQueryInput = z.infer<typeof listReceivablesQuerySchema>;

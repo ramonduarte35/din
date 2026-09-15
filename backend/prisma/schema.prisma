@@ -113,7 +113,7 @@ model User {
   subscription_tier       SubscriptionTier   @default(FREE)
   subscription_status     SubscriptionStatus @default(ACTIVE)
   subscription_expires_at DateTime?
-  asaas_customer_id       String?            @unique
+  asaas_customer_id       String?
   asaas_subscription_id   String?
   role                    Role               @default(USER)
   theme                   String             @default("dark")
@@ -133,6 +133,7 @@ model User {
   receivables       Receivable[]
   payments          SubscriptionPayment[]
 
+  @@index([asaas_customer_id])
   @@map("users")
 }
 

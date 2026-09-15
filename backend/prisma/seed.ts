@@ -43,35 +43,40 @@ async function main() {
   }
   console.log(`✅ ${defaultCategories.length} categorias globais sincronizadas com sucesso.`);
 
-  // 2. Administrador do Sistema (Único usuário pré-injetado, originário do .env)
-  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@din.app').trim().toLowerCase();
+  // 2. Administrador(es) do Sistema (originários do .env, suporta lista separada por vírgula)
+  const adminEmails = (process.env.ADMIN_EMAIL || 'admin@din.app')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
   const adminPassword = process.env.ADMIN_PASSWORD || 'din_admin_password_2026';
   const password_hash = await bcrypt.hash(adminPassword, 10);
 
-  const existingAdmin = await prisma.user.findUnique({
-    where: { email: adminEmail },
-  });
+  for (const adminEmail of adminEmails) {
+    const existingAdmin = await prisma.user.findUnique({
+      where: { email: adminEmail },
+    });
 
-  if (!existingAdmin) {
-    await prisma.user.create({
-      data: {
-        name: 'Administrador Din',
-        email: adminEmail,
-        password_hash,
-        role: Role.ADMIN,
-        subscription_tier: SubscriptionTier.PRO,
-      },
-    });
-    console.log(`✅ Usuário Administrador criado com sucesso: ${adminEmail}`);
-  } else {
-    await prisma.user.update({
-      where: { id: existingAdmin.id },
-      data: {
-        role: Role.ADMIN,
-        subscription_tier: SubscriptionTier.PRO,
-      },
-    });
-    console.log(`✅ Administrador existente atualizado: ${adminEmail}`);
+    if (!existingAdmin) {
+      await prisma.user.create({
+        data: {
+          name: 'Administrador Din',
+          email: adminEmail,
+          password_hash,
+          role: Role.ADMIN,
+          subscription_tier: SubscriptionTier.PRO,
+        },
+      });
+      console.log(`✅ Usuário Administrador criado com sucesso: ${adminEmail}`);
+    } else {
+      await prisma.user.update({
+        where: { id: existingAdmin.id },
+        data: {
+          role: Role.ADMIN,
+          subscription_tier: SubscriptionTier.PRO,
+        },
+      });
+      console.log(`✅ Administrador existente atualizado: ${adminEmail}`);
+    }
   }
 
   console.log('✨ Seed finalizado com sucesso! (Nenhum dado fake ou usuário demo injetado).');

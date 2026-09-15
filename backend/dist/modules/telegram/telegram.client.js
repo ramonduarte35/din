@@ -1,0 +1,247 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.telegramClient = exports.TelegramClient = void 0;
+const axios_1 = __importDefault(require("axios"));
+const prisma_js_1 = require("../../lib/prisma.js");
+class TelegramClient {
+    baseUrl = 'https://api.telegram.org';
+    /**
+     * Obtém a configuração de integração salva no banco de dados
+     */
+    async getConfig() {
+        const config = await prisma_js_1.prisma.whatsAppIntegrationConfig.findFirst({
+            orderBy: { created_at: 'desc' },
+        });
+        return config;
+    }
+    /**
+     * Obtém o token configurado (do banco ou passado explicitamente)
+     */
+    async getEffectiveToken(token) {
+        if (token && token.trim()) {
+            return token.trim();
+        }
+        const config = await this.getConfig();
+        if (config?.telegram_bot_token && config.telegram_bot_token.trim()) {
+            return config.telegram_bot_token.trim();
+        }
+        if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_BOT_TOKEN.trim()) {
+            return process.env.TELEGRAM_BOT_TOKEN.trim();
+        }
+        return null;
+    }
+    /**
+     * Testa a validade do token e obtém os dados do bot (getMe)
+     */
+    async getMe(token) {
+        try {
+            const effectiveToken = await this.getEffectiveToken(token);
+            if (!effectiveToken) {
+                return { success: false, error: 'Token do Telegram Bot não informado ou não configurado.' };
+            }
+            const url = `${this.baseUrl}/bot${effectiveToken}/getMe`;
+            const response = await axios_1.default.get(url, { timeout: 10000 });
+            if (response.data?.ok && response.data?.result) {
+                return { success: true, bot: response.data.result };
+            }
+            return { success: false, error: response.data?.description || 'Falha ao validar bot do Telegram.' };
+        }
+        catch (err) {
+            console.error('❌ [Telegram Client] Erro no getMe:', err.response?.data || err.message);
+            return {
+                success: false,
+                error: err.response?.data?.description || err.message || 'Erro ao conectar aos servidores do Telegram.',
+            };
+        }
+    }
+    /**
+     * Obtém as informações do webhook configurado no Telegram (getWebhookInfo)
+     */
+    async getWebhookInfo(token) {
+        try {
+            const effectiveToken = await this.getEffectiveToken(token);
+            if (!effectiveToken) {
+                return { success: false, error: 'Token do Telegram Bot não configurado.' };
+            }
+            const url = `${this.baseUrl}/bot${effectiveToken}/getWebhookInfo`;
+            const response = await axios_1.default.get(url, { timeout: 10000 });
+            if (response.data?.ok && response.data?.result) {
+                return { success: true, webhook: response.data.result };
+            }
+            return { success: false, error: response.data?.description || 'Falha ao buscar webhook do Telegram.' };
+        }
+        catch (err) {
+            console.error('❌ [Telegram Client] Erro no getWebhookInfo:', err.response?.data || err.message);
+            return {
+                success: false,
+                error: err.response?.data?.description || err.message || 'Erro ao buscar status do webhook.',
+            };
+        }
+    }
+    /**
+     * Registra ou atualiza o webhook do Telegram (setWebhook)
+     */
+    async setWebhook(webhookUrl, secretToken, token) {
+        try {
+            const effectiveToken = await this.getEffectiveToken(token);
+            if (!effectiveToken) {
+                return { success: false, message: 'Token não configurado', error: 'Token do Telegram Bot não configurado.' };
+            }
+            const url = `${this.baseUrl}/bot${effectiveToken}/setWebhook`;
+            const payload = {
+                url: webhookUrl,
+                allowed_updates: ['message', 'edited_message', 'callback_query'],
+                drop_pending_updates: false,
+            };
+            if (secretToken) {
+                payload.secret_token = secretToken;
+            }
+            console.log(`📤 [Telegram Client] Configurando Webhook para "${webhookUrl}"...`);
+            const response = await axios_1.default.post(url, payload, {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 15000,
+            });
+            if (response.data?.ok) {
+                console.log(`✅ [Telegram Client] Webhook configurado com sucesso no Telegram:`, response.data);
+                return { success: true, message: response.data.description || 'Webhook configurado com sucesso!' };
+            }
+            return {
+                success: false,
+                message: 'Falha ao configurar webhook',
+                error: response.data?.description || 'Erro desconhecido do Telegram.',
+            };
+        }
+        catch (err) {
+            console.error('❌ [Telegram Client] Erro no setWebhook:', err.response?.data || err.message);
+            return {
+                success: false,
+                message: 'Erro na requisição',
+                error: err.response?.data?.description || err.message || 'Falha ao registrar webhook.',
+            };
+        }
+    }
+    /**
+     * Remove o webhook configurado (deleteWebhook)
+     */
+    async deleteWebhook(token) {
+        try {
+            const effectiveToken = await this.getEffectiveToken(token);
+            if (!effectiveToken) {
+                return { success: false, message: 'Token não configurado', error: 'Token não configurado.' };
+            }
+            const url = `${this.baseUrl}/bot${effectiveToken}/deleteWebhook`;
+            const response = await axios_1.default.post(url, {}, { timeout: 10000 });
+            if (response.data?.ok) {
+                return { success: true, message: 'Webhook removido com sucesso.' };
+            }
+            return { success: false, message: 'Falha ao remover webhook', error: response.data?.description };
+        }
+        catch (err) {
+            return { success: false, message: 'Erro ao remover webhook', error: err.message };
+        }
+    }
+    /**
+     * Envia uma mensagem para o chat do Telegram
+     */
+    async sendMessage(chatId, text, options) {
+        try {
+            const effectiveToken = await this.getEffectiveToken(options?.token);
+            if (!effectiveToken) {
+                console.warn('⚠️ [Telegram Client] Impossível enviar mensagem: Token do Telegram ausente.');
+                return false;
+            }
+            const url = `${this.baseUrl}/bot${effectiveToken}/sendMessage`;
+            const payload = {
+                chat_id: chatId,
+                text,
+            };
+            if (options?.parse_mode) {
+                payload.parse_mode = options.parse_mode;
+            }
+            if (options?.reply_markup) {
+                payload.reply_markup = options.reply_markup;
+            }
+            console.log(`📤 [Telegram Client] Enviando mensagem para ChatID "${chatId}"...`);
+            try {
+                const response = await axios_1.default.post(url, payload, {
+                    headers: { 'Content-Type': 'application/json' },
+                    timeout: 15000,
+                });
+                if (response.data?.ok) {
+                    console.log(`✅ [Telegram Client] Mensagem enviada com sucesso para ${chatId}`);
+                    return true;
+                }
+                return false;
+            }
+            catch (postErr) {
+                const errorDesc = postErr.response?.data?.description || postErr.message;
+                const isParseError = payload.parse_mode &&
+                    (postErr.response?.status === 400 ||
+                        errorDesc?.toLowerCase().includes('entity') ||
+                        errorDesc?.toLowerCase().includes('parse') ||
+                        errorDesc?.toLowerCase().includes('tag'));
+                if (isParseError) {
+                    console.warn(`⚠️ [Telegram Client] Erro de formatação (${errorDesc}). Reenviando como texto simples...`);
+                    delete payload.parse_mode;
+                    const retryRes = await axios_1.default.post(url, payload, {
+                        headers: { 'Content-Type': 'application/json' },
+                        timeout: 15000,
+                    });
+                    if (retryRes.data?.ok) {
+                        console.log(`✅ [Telegram Client] Mensagem de texto simples entregue com sucesso para ${chatId}`);
+                        return true;
+                    }
+                }
+                throw postErr;
+            }
+        }
+        catch (err) {
+            console.error('❌ [Telegram Client] Erro ao enviar mensagem:', err.response?.data || err.message);
+            return false;
+        }
+    }
+    /**
+     * Baixa arquivo de áudio / voz do Telegram para transcrição
+     */
+    async downloadVoiceAudio(fileId, token) {
+        try {
+            const effectiveToken = await this.getEffectiveToken(token);
+            if (!effectiveToken) {
+                console.error('❌ [Telegram Client] Token não configurado para download de mídia.');
+                return null;
+            }
+            // Passo 1: Obter caminho do arquivo via getFile
+            const getFileUrl = `${this.baseUrl}/bot${effectiveToken}/getFile?file_id=${fileId}`;
+            const getFileRes = await axios_1.default.get(getFileUrl, { timeout: 10000 });
+            if (!getFileRes.data?.ok || !getFileRes.data?.result?.file_path) {
+                console.error('❌ [Telegram Client] Não foi possível obter caminho do arquivo de áudio:', getFileRes.data);
+                return null;
+            }
+            const filePath = getFileRes.data.result.file_path;
+            const downloadUrl = `${this.baseUrl}/file/bot${effectiveToken}/${filePath}`;
+            console.log(`📥 [Telegram Client] Baixando arquivo de áudio do Telegram: ${filePath}`);
+            const downloadRes = await axios_1.default.get(downloadUrl, {
+                responseType: 'arraybuffer',
+                timeout: 30000,
+            });
+            const buffer = Buffer.from(downloadRes.data);
+            let mimeType = 'audio/ogg';
+            if (filePath.endsWith('.mp3'))
+                mimeType = 'audio/mp3';
+            else if (filePath.endsWith('.m4a'))
+                mimeType = 'audio/m4a';
+            else if (filePath.endsWith('.wav'))
+                mimeType = 'audio/wav';
+            return { buffer, mimeType };
+        }
+        catch (err) {
+            console.error('❌ [Telegram Client] Erro ao baixar áudio do Telegram:', err.response?.data || err.message);
+            return null;
+        }
+    }
+}
+exports.TelegramClient = TelegramClient;
+exports.telegramClient = new TelegramClient();

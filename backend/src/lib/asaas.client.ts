@@ -68,44 +68,84 @@ export class AsaasClient {
       return { id: `cus_mock_${Buffer.from(data.email).toString('hex').slice(0, 14)}` };
     }
 
-    try {
-      // 1. Tentar buscar por e-mail
-      const searchRes = await fetch(`${this.baseUrl}/customers?email=${encodeURIComponent(data.email)}`, {
-        method: 'GET',
-        headers: this.getHeaders(),
-      });
+    const cleanCpf = data.cpfCnpj?.replace(/\D/g, '') || undefined;
+    const cleanPhone = (data.mobilePhone || data.phone || '').replace(/\D/g, '') || undefined;
 
-      if (searchRes.ok) {
-        const searchData = (await searchRes.json()) as { data?: Array<{ id: string; cpfCnpj?: string }> };
-        if (searchData.data && searchData.data.length > 0) {
-          const customerId = searchData.data[0].id;
-          if (data.cpfCnpj) {
-            await this.updateCustomer(customerId, {
-              cpfCnpj: data.cpfCnpj,
-              phone: data.phone || data.mobilePhone,
-            }).catch((err) => {
-              console.warn('⚠️ [Asaas Client] Aviso ao atualizar dados do cliente:', err.message);
-            });
+    try {
+      let customerId: string | null = null;
+
+      // 1. Tentar buscar por e-mail
+      if (data.email && data.email.trim().length > 0) {
+        const searchRes = await fetch(`${this.baseUrl}/customers?email=${encodeURIComponent(data.email.trim())}`, {
+          method: 'GET',
+          headers: this.getHeaders(),
+        });
+
+        if (searchRes.ok) {
+          const searchData = (await searchRes.json()) as { data?: Array<{ id: string; cpfCnpj?: string }> };
+          if (searchData.data && searchData.data.length > 0) {
+            customerId = searchData.data[0].id;
           }
-          return { id: customerId };
         }
       }
 
-      // 2. Se não existir, criar novo cliente
+      // 1.1 Se não encontrou por e-mail, buscar por CPF/CNPJ (se fornecido)
+      if (!customerId && cleanCpf) {
+        const searchCpfRes = await fetch(`${this.baseUrl}/customers?cpfCnpj=${encodeURIComponent(cleanCpf)}`, {
+          method: 'GET',
+          headers: this.getHeaders(),
+        });
+
+        if (searchCpfRes.ok) {
+          const searchCpfData = (await searchCpfRes.json()) as { data?: Array<{ id: string }> };
+          if (searchCpfData.data && searchCpfData.data.length > 0) {
+            customerId = searchCpfData.data[0].id;
+          }
+        }
+      }
+
+      // Se encontrou cliente existente, atualiza dados se necessário e retorna
+      if (customerId) {
+        if (cleanCpf || cleanPhone) {
+          await this.updateCustomer(customerId, {
+            cpfCnpj: cleanCpf,
+            phone: cleanPhone,
+          }).catch((err) => {
+            console.warn('⚠️ [Asaas Client] Aviso ao atualizar dados do cliente existente:', err.message);
+          });
+        }
+        return { id: customerId };
+      }
+
+      // 2. Se não existir no Asaas, criar novo cliente
       const createRes = await fetch(`${this.baseUrl}/customers`, {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify({
           name: data.name,
           email: data.email,
-          cpfCnpj: data.cpfCnpj?.replace(/\D/g, '') || undefined,
-          mobilePhone: data.mobilePhone?.replace(/\D/g, '') || data.phone?.replace(/\D/g, '') || undefined,
+          cpfCnpj: cleanCpf,
+          mobilePhone: cleanPhone,
         }),
       });
 
       const createData = (await createRes.json()) as { id?: string; errors?: Array<{ description: string }> };
 
       if (!createRes.ok || !createData.id) {
+        // Se a criação falhou por duplicidade de CPF ou e-mail, tenta recuperar o ID via busca
+        if (cleanCpf) {
+          const fallbackRes = await fetch(`${this.baseUrl}/customers?cpfCnpj=${encodeURIComponent(cleanCpf)}`, {
+            method: 'GET',
+            headers: this.getHeaders(),
+          });
+          if (fallbackRes.ok) {
+            const fallbackData = (await fallbackRes.json()) as { data?: Array<{ id: string }> };
+            if (fallbackData.data && fallbackData.data.length > 0) {
+              return { id: fallbackData.data[0].id };
+            }
+          }
+        }
+
         const errorMsg = createData.errors?.map((e) => e.description).join(', ') || 'Erro desconhecido ao criar cliente Asaas';
         throw new Error(`Falha no Asaas: ${errorMsg}`);
       }
