@@ -20,6 +20,26 @@ interface ReceivableModalProps {
 const selectClass =
   'w-full bg-card border border-border rounded-xl px-3.5 py-2.5 text-sm text-din-text focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 min-h-[44px]';
 
+const PRESET_INSTALLMENT_OPTIONS = [
+  { value: 1, label: '1x - Parcela única (Sem parcelar)' },
+  { value: 2, label: '2x - 2 parcelas mensais' },
+  { value: 3, label: '3x - 3 parcelas mensais' },
+  { value: 4, label: '4x - 4 parcelas mensais' },
+  { value: 5, label: '5x - 5 parcelas mensais' },
+  { value: 6, label: '6x - 6 parcelas mensais' },
+  { value: 7, label: '7x - 7 parcelas mensais' },
+  { value: 8, label: '8x - 8 parcelas mensais' },
+  { value: 9, label: '9x - 9 parcelas mensais' },
+  { value: 10, label: '10x - 10 parcelas mensais' },
+  { value: 11, label: '11x - 11 parcelas mensais' },
+  { value: 12, label: '12x - 12 parcelas (1 ano)' },
+  { value: 18, label: '18x - 18 parcelas' },
+  { value: 24, label: '24x - 24 parcelas (2 anos)' },
+  { value: 36, label: '36x - 36 parcelas (3 anos)' },
+  { value: 48, label: '48x - 48 parcelas (4 anos)' },
+  { value: 60, label: '60x - 60 parcelas (5 anos)' },
+];
+
 export const ReceivableModal: React.FC<ReceivableModalProps> = ({ isOpen, onClose, onSuccess, receivable }) => {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -29,6 +49,7 @@ export const ReceivableModal: React.FC<ReceivableModalProps> = ({ isOpen, onClos
   const [accountId, setAccountId] = useState('');
   const [notes, setNotes] = useState('');
   const [totalInstallments, setTotalInstallments] = useState(1);
+  const [isCustomInstallments, setIsCustomInstallments] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -55,6 +76,7 @@ export const ReceivableModal: React.FC<ReceivableModalProps> = ({ isOpen, onClos
         setDescription('');
         setAmount('');
         setTotalInstallments(1);
+        setIsCustomInstallments(false);
         const defaultDate = new Date();
         defaultDate.setDate(defaultDate.getDate() + 5);
         setDueDate(formatDateToISO(defaultDate));
@@ -217,28 +239,108 @@ export const ReceivableModal: React.FC<ReceivableModalProps> = ({ isOpen, onClos
                 <Layers className="w-3.5 h-3.5 text-teal-400" />
                 <span>Parcelamento / Repetição</span>
               </label>
-              {totalInstallments > 1 && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/20">
-                  {totalInstallments} parcelas mensais
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {totalInstallments > 1 && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/20">
+                    {totalInstallments} parcelas mensais
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setIsCustomInstallments(!isCustomInstallments)}
+                  className="text-[11px] font-medium text-teal-400 hover:underline transition-colors"
+                >
+                  {isCustomInstallments ? 'Escolher da lista' : 'Digitar número'}
+                </button>
+              </div>
             </div>
-            <select
-              value={totalInstallments}
-              onChange={(e) => setTotalInstallments(parseInt(e.target.value, 10))}
-              className="w-full bg-background border border-border rounded-xl px-3.5 py-2.5 text-sm text-din-text focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 min-h-[44px]"
-            >
-              <option value={1}>1x - Parcela única</option>
-              <option value={2}>2x - 2 parcelas mensais</option>
-              <option value={3}>3x - 3 parcelas mensais</option>
-              <option value={4}>4x - 4 parcelas mensais</option>
-              <option value={5}>5x - 5 parcelas mensais</option>
-              <option value={6}>6x - 6 parcelas mensais</option>
-              <option value={10}>10x - 10 parcelas mensais</option>
-              <option value={12}>12x - 12 parcelas (1 ano)</option>
-              <option value={24}>24x - 24 parcelas (2 anos)</option>
-              <option value={36}>36x - 36 parcelas (3 anos)</option>
-            </select>
+
+            {isCustomInstallments ? (
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTotalInstallments((prev) => Math.max(1, prev - 1))}
+                    disabled={totalInstallments <= 1}
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-background border border-border text-din-text hover:bg-card active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-lg font-bold transition-all shrink-0"
+                    aria-label="Diminuir parcelas"
+                  >
+                    -
+                  </button>
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      min={1}
+                      max={120}
+                      value={totalInstallments || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '') {
+                          setTotalInstallments(1);
+                          return;
+                        }
+                        const num = parseInt(val, 10);
+                        if (!isNaN(num)) {
+                          setTotalInstallments(Math.max(1, Math.min(120, num)));
+                        }
+                      }}
+                      placeholder="Qtd (1 a 120)"
+                      className="w-full bg-background border border-border rounded-xl px-3.5 py-2.5 text-center text-sm font-semibold text-din-text focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 min-h-[44px]"
+                    />
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-din-muted pointer-events-none hidden sm:inline">
+                      parcelas
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setTotalInstallments((prev) => Math.min(120, prev + 1))}
+                    disabled={totalInstallments >= 120}
+                    className="w-11 h-11 flex items-center justify-center rounded-xl bg-background border border-border text-din-text hover:bg-card active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-lg font-bold transition-all shrink-0"
+                    aria-label="Aumentar parcelas"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsCustomInstallments(false)}
+                    className="px-3 h-11 text-xs font-medium text-din-muted hover:text-din-text bg-background border border-border rounded-xl shrink-0 transition-colors"
+                  >
+                    Ver lista
+                  </button>
+                </div>
+                <p className="text-[11px] text-din-muted">
+                  Digite qualquer quantidade entre 1 e 120 parcelas mensais.
+                </p>
+              </div>
+            ) : (
+              <select
+                value={
+                  PRESET_INSTALLMENT_OPTIONS.some((o) => o.value === totalInstallments)
+                    ? totalInstallments
+                    : 'custom'
+                }
+                onChange={(e) => {
+                  if (e.target.value === 'custom') {
+                    setIsCustomInstallments(true);
+                  } else {
+                    setTotalInstallments(parseInt(e.target.value, 10));
+                  }
+                }}
+                className="w-full bg-background border border-border rounded-xl px-3.5 py-2.5 text-sm text-din-text focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 min-h-[44px]"
+              >
+                {PRESET_INSTALLMENT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+                {!PRESET_INSTALLMENT_OPTIONS.some((o) => o.value === totalInstallments) && (
+                  <option value={totalInstallments}>
+                    {totalInstallments}x - {totalInstallments} parcelas mensais
+                  </option>
+                )}
+                <option value="custom">✏️ Outro número (digitar manualmente)...</option>
+              </select>
+            )}
             {totalInstallments > 1 && (
               <div className="text-[11px] text-din-muted bg-background/80 p-2.5 rounded-xl border border-border/80 flex items-start gap-2">
                 <Calendar className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
