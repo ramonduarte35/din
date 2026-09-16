@@ -155,6 +155,81 @@ class WebhooksService {
      */
     async processTelegramMessage(payload) {
         console.log('📥 [Telegram Webhook] Recebido evento do Telegram:', JSON.stringify(payload, null, 2));
+        const instance = 'telegram:bot';
+        // 0. Tratar Callback Queries (Botões Inline do Telegram)
+        const callbackQuery = payload?.callback_query;
+        if (callbackQuery) {
+            const cbId = callbackQuery.id;
+            const cbData = callbackQuery.data;
+            const cbFromId = String(callbackQuery.from?.id);
+            const cbChatId = String(callbackQuery.message?.chat?.id || cbFromId);
+            await telegram_client_js_1.telegramClient.answerCallbackQuery(cbId);
+            const user = await prisma_js_1.prisma.user.findUnique({
+                where: { telegram_id: cbFromId },
+            });
+            if (!user) {
+                return { status: 'callback_user_not_found' };
+            }
+            if (cbData === 'cancel_pay') {
+                try {
+                    await redis_js_1.redis.del(`pending_pay:${user.id}`);
+                }
+                catch (e) { }
+                await this.sendWhatsAppReply(instance, cbChatId, `🚫 *Operação cancelada.* Nenhuma conta foi alterada.`);
+                return { status: 'callback_pay_cancelled' };
+            }
+            if (cbData.startsWith('pay_bill:')) {
+                const billId = cbData.replace('pay_bill:', '');
+                const bill = await prisma_js_1.prisma.bill.findFirst({
+                    where: { id: billId, user_id: user.id },
+                    include: { category: true, contact: true },
+                });
+                if (!bill) {
+                    await this.sendWhatsAppReply(instance, cbChatId, `⚠️ Conta a pagar não encontrada.`);
+                    return { status: 'callback_bill_not_found' };
+                }
+                if (bill.status === client_1.BillStatus.PAID) {
+                    await this.sendWhatsAppReply(instance, cbChatId, `ℹ️ Esta conta (*${bill.description}*) já foi marcada como paga.`);
+                    return { status: 'callback_bill_already_paid' };
+                }
+                let userAccounts = await prisma_js_1.prisma.account.findMany({
+                    where: { user_id: user.id },
+                    orderBy: [{ is_default: 'desc' }, { created_at: 'asc' }],
+                });
+                const defaultAccount = userAccounts.find((a) => a.is_default) || userAccounts[0];
+                const result = await billsService.payBill(user.id, bill.id, {
+                    account_id: defaultAccount.id,
+                    paid_date: new Date().toISOString(),
+                });
+                try {
+                    await redis_js_1.redis.del(`pending_pay:${user.id}`);
+                }
+                catch (e) { }
+                const accountTxs = await prisma_js_1.prisma.transaction.findMany({
+                    where: { user_id: user.id, account_id: defaultAccount.id },
+                    select: { type: true, amount: true },
+                });
+                let accIncome = 0;
+                let accExpense = 0;
+                for (const t of accountTxs) {
+                    const amt = Number(t.amount);
+                    if (t.type === client_1.TransactionType.INCOME)
+                        accIncome += amt;
+                    else
+                        accExpense += amt;
+                }
+                const updatedAccBalance = Number(defaultAccount.initial_balance) + accIncome - accExpense;
+                const replyMsg = `✅ *Conta Paga com Sucesso!*\n\n` +
+                    `📝 *Conta Liquidada:* ${result.bill.description}${result.bill.contact ? ` (Contato: ${result.bill.contact.name})` : ''}\n` +
+                    `💵 *Valor Pago:* ${(0, currency_js_1.formatBRL)(Number(result.bill.amount))}\n` +
+                    `🏦 *Debitado de:* ${defaultAccount.name}\n` +
+                    `💰 *Novo Saldo no ${defaultAccount.name}:* ${(0, currency_js_1.formatBRL)(updatedAccBalance)}\n` +
+                    `🗓️ *Data do Pagamento:* ${new Date().toLocaleDateString('pt-BR')}\n\n` +
+                    `✨ _Despesa lançada automaticamente no seu extrato e fluxo de caixa!_`;
+                await this.sendWhatsAppReply(instance, cbChatId, replyMsg);
+                return { status: 'callback_bill_paid', bill_id: bill.id };
+            }
+        }
         const updateId = payload?.update_id;
         const message = payload?.message || payload?.edited_message;
         if (!message) {
@@ -182,7 +257,6 @@ class WebhooksService {
         catch (e) {
             // ignore
         }
-        const instance = 'telegram:bot';
         // 1. Tratar Compartilhamento de Contato (Botão "📱 Compartilhar meu contato")
         if (message.contact && message.contact.phone_number) {
             const rawPhone = message.contact.phone_number;
@@ -617,7 +691,84 @@ class WebhooksService {
                 return { status: 'pro_required' };
             }
         }
-        // 2. Buscar contas bancárias do usuário (com provisionamento automático de conta padrão)
+        // 0. Verificar se há uma confirmação / escolha de conta a pagar pendente no Redis
+        try {
+            const pendingPayRaw = await redis_js_1.redis.get(`pending_pay:${user.id}`);
+            if (pendingPayRaw) {
+                const pendingPay = JSON.parse(pendingPayRaw);
+                const lowerText = trimmedText.toLowerCase().trim();
+                // Usuário optou por cancelar
+                if (lowerText === 'cancelar' ||
+                    lowerText === 'cancela' ||
+                    lowerText === 'não' ||
+                    lowerText === 'nao' ||
+                    lowerText === 'sair' ||
+                    lowerText === 'cancel') {
+                    await redis_js_1.redis.del(`pending_pay:${user.id}`);
+                    await this.sendWhatsAppReply(instance, remoteJid, `🚫 *Operação cancelada.* Nenhuma conta foi alterada.`);
+                    return { status: 'pending_pay_cancelled' };
+                }
+                // Usuário respondeu com número (1, 2, 3, 1️⃣, "opção 1", "primeira")
+                let chosenIndex = -1;
+                if (/^(?:opção\s*|opcao\s*|numero\s*|número\s*|nº\s*)?1\b|^1️⃣|^primeir[ao]/i.test(lowerText))
+                    chosenIndex = 0;
+                else if (/^(?:opção\s*|opcao\s*|numero\s*|número\s*|nº\s*)?2\b|^2️⃣|^segund[ao]/i.test(lowerText))
+                    chosenIndex = 1;
+                else if (/^(?:opção\s*|opcao\s*|numero\s*|número\s*|nº\s*)?3\b|^3️⃣|^terceir[ao]/i.test(lowerText))
+                    chosenIndex = 2;
+                else if (/^(?:opção\s*|opcao\s*|numero\s*|número\s*|nº\s*)?4\b|^4️⃣|^quart[ao]/i.test(lowerText))
+                    chosenIndex = 3;
+                else if (/^(?:opção\s*|opcao\s*|numero\s*|número\s*|nº\s*)?5\b|^5️⃣|^quint[ao]/i.test(lowerText))
+                    chosenIndex = 4;
+                else if (/^(?:sim|confirmar|confirma|ok|pode pagar|paguei)$/i.test(lowerText) && pendingPay.bills?.length === 1)
+                    chosenIndex = 0;
+                // Se o usuário digitou o nome da conta diretamente
+                if (chosenIndex === -1 && pendingPay.bills) {
+                    const matchIdx = pendingPay.bills.findIndex((b) => lowerText.includes(b.description.toLowerCase()) || b.description.toLowerCase().includes(lowerText));
+                    if (matchIdx !== -1)
+                        chosenIndex = matchIdx;
+                }
+                if (chosenIndex >= 0 && pendingPay.bills && pendingPay.bills[chosenIndex]) {
+                    const targetBill = pendingPay.bills[chosenIndex];
+                    const targetAccountId = pendingPay.targetAccountId;
+                    const userAccs = await prisma_js_1.prisma.account.findMany({ where: { user_id: user.id } });
+                    const targetAccount = userAccs.find((a) => a.id === targetAccountId) || userAccs[0];
+                    const result = await billsService.payBill(user.id, targetBill.id, {
+                        account_id: targetAccount.id,
+                        paid_date: pendingPay.paidDate || new Date().toISOString(),
+                        amount: targetBill.amount,
+                    });
+                    await redis_js_1.redis.del(`pending_pay:${user.id}`);
+                    const accountTxs = await prisma_js_1.prisma.transaction.findMany({
+                        where: { user_id: user.id, account_id: targetAccount.id },
+                        select: { type: true, amount: true },
+                    });
+                    let accIncome = 0;
+                    let accExpense = 0;
+                    for (const t of accountTxs) {
+                        const amt = Number(t.amount);
+                        if (t.type === client_1.TransactionType.INCOME)
+                            accIncome += amt;
+                        else
+                            accExpense += amt;
+                    }
+                    const updatedAccBalance = Number(targetAccount.initial_balance) + accIncome - accExpense;
+                    const replyMsg = `✅ *Conta Paga com Sucesso!*\n\n` +
+                        `📝 *Conta Liquidada:* ${result.bill.description}${result.bill.contact ? ` (Contato: ${result.bill.contact.name})` : ''}\n` +
+                        `💵 *Valor Pago:* ${(0, currency_js_1.formatBRL)(Number(result.bill.amount))}\n` +
+                        `🏦 *Debitado de:* ${targetAccount.name}\n` +
+                        `💰 *Novo Saldo no ${targetAccount.name}:* ${(0, currency_js_1.formatBRL)(updatedAccBalance)}\n` +
+                        `🗓️ *Data do Pagamento:* ${new Date().toLocaleDateString('pt-BR')}\n\n` +
+                        `✨ _Despesa lançada automaticamente no seu extrato e fluxo de caixa!_`;
+                    await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
+                    return { status: 'pending_bill_paid', bill_id: result.bill.id, transaction_id: result.transaction.id };
+                }
+            }
+        }
+        catch (redisErr) {
+            console.warn('⚠️ [Redis] Erro ao checar pending_pay:', redisErr);
+        }
+        // 2. Buscar contas bancárias, contas a pagar pendentes e contatos do usuário
         let userAccounts = await prisma_js_1.prisma.account.findMany({
             where: { user_id: user.id },
             orderBy: [{ is_default: 'desc' }, { created_at: 'asc' }],
@@ -636,14 +787,26 @@ class WebhooksService {
             });
             userAccounts = [defaultAcc];
         }
-        // 3. Processamento de Linguagem Natural / IA com suporte a múltiplas contas e contas a pagar
+        const pendingBills = await prisma_js_1.prisma.bill.findMany({
+            where: {
+                user_id: user.id,
+                status: client_1.BillStatus.PENDING,
+            },
+            include: { category: true, contact: true },
+            orderBy: { due_date: 'asc' },
+        });
+        const userContacts = await prisma_js_1.prisma.contact.findMany({
+            where: { user_id: user.id },
+            orderBy: { name: 'asc' },
+        });
+        // 3. Processamento de Linguagem Natural / IA com suporte a múltiplas contas, contas a pagar e contatos
         let extraction;
         try {
-            extraction = await this.extractWithAI(trimmedText, userAccounts);
+            extraction = await this.extractWithAI(trimmedText, userAccounts, pendingBills, userContacts);
         }
         catch (aiError) {
             console.error('❌ [Financial Pipeline] Erro no pipeline de IA:', aiError);
-            extraction = this.fallbackLocalParser(trimmedText, userAccounts);
+            extraction = this.fallbackLocalParser(trimmedText, userAccounts, pendingBills, userContacts);
         }
         console.log('🤖 [Financial Pipeline] Resultado da Extração:', JSON.stringify(extraction, null, 2));
         // Salvar Log
@@ -673,7 +836,7 @@ class WebhooksService {
         }
         // Cenário D: Pagamento / Baixa de Conta a Pagar com Débito em Conta Bancária
         if (extraction.intent === 'pay_bill' && extraction.pay_bill_data) {
-            return this.handlePayBill(user, instance, remoteJid, extraction.pay_bill_data, userAccounts);
+            return this.handlePayBill(user, instance, remoteJid, extraction.pay_bill_data, userAccounts, pendingBills);
         }
         // Cenário E: Registro de Transação(ões) com direcionamento para a conta bancária correta
         if (extraction.intent === 'transaction' && extraction.transactions && extraction.transactions.length > 0) {
@@ -683,18 +846,43 @@ class WebhooksService {
         return this.handleUnknownMessage(user, instance, remoteJid, userAccounts);
     }
     /**
-     * Extração com OpenAI (gpt-4o-mini com Structured Outputs via JSON Schema)
+     * Helper para limpar termos de busca de contas a pagar (remove ruídos como "conta de", "boleto do", etc.)
      */
-    async extractWithAI(text, userAccounts) {
+    cleanBillSearchTerm(term) {
+        if (!term)
+            return '';
+        return term
+            .toLowerCase()
+            .replace(/\b(?:conta|contas|boleto|boletos|fatura|faturas|carnê|carne|pagamento|parcela|parcelas|mensalidade|de|do|da|dos|das|o|a|os|as|no|na|nos|nas|com|para|pro|pra|p\/)\b/gi, ' ')
+            .replace(/[^\w\sáéíóúâêîôûãõç]/gi, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+    /**
+     * Extração com OpenAI (gpt-4o-mini com Structured Outputs via JSON Schema e Contexto Rico)
+     */
+    async extractWithAI(text, userAccounts, pendingBills = [], contacts = []) {
         if (!(0, openai_js_1.hasOpenAIConfigured)() || !openai_js_1.openai) {
             console.log('ℹ️ [AI] OpenAI API Key não configurada. Usando parser local inteligente.');
-            return this.fallbackLocalParser(text, userAccounts);
+            return this.fallbackLocalParser(text, userAccounts, pendingBills, contacts);
         }
         const todayISO = new Date().toISOString().split('T')[0];
         const accountsListFormatted = userAccounts.map((a) => `- "${a.name}" (tipo: ${a.type})`).join('\n');
+        const pendingBillsFormatted = pendingBills.length > 0
+            ? pendingBills
+                .map((b) => `- [ID: "${b.id}"] "${b.description}" | Valor: R$ ${Number(b.amount).toFixed(2)} | Vencimento: ${b.due_date ? new Date(b.due_date).toISOString().split('T')[0] : 'N/A'}${b.contact ? ` | Contato Vinculado: "${b.contact.name}"` : ''}`)
+                .join('\n')
+            : 'Nenhuma conta a pagar pendente no momento.';
+        const contactsFormatted = contacts.length > 0
+            ? contacts.map((c) => `- "${c.name}" (tipo: ${c.type})`).join('\n')
+            : 'Nenhum contato cadastrado.';
         const systemPrompt = `Você é o assistente financeiro inteligente do Din. Sua função é extrair com extrema precisão transações financeiras, agendamentos de contas a pagar, liquidações/pagamentos e consultas em português brasileiro.\n\n` +
             `Contas bancárias/carteiras cadastradas pelo usuário:\n` +
             `${accountsListFormatted}\n\n` +
+            `Contas a pagar PENDENTES cadastradas pelo usuário:\n` +
+            `${pendingBillsFormatted}\n\n` +
+            `Contatos cadastrados pelo usuário:\n` +
+            `${contactsFormatted}\n\n` +
             `🚨 REGRAS MANDATÓRIAS DE CONVERSÃO DE VALORES MONETÁRIOS (PADRÃO BRASILEIRO PT-BR):\n` +
             `- No Brasil, o ponto (.) é usado como separador de milhar e a vírgula (,) como separador decimal.\n` +
             `- NUNCA interprete "6.000" como 6 reais! "6.000" significa SEIS MIL REAIS (amount: 6000).\n` +
@@ -728,9 +916,14 @@ class WebhooksService {
             `    - "total_installments": Quantidade total de parcelas como número inteiro (ex: em "5 parcelas", envie 5; em "10x", envie 10). Se for parcela única / sem repetição, envie 1.\n` +
             `    - "suggested_category": Categoria mais compatível (ex: "Assinaturas & Serviços", "Moradia", "Educação", "Transporte", "Saúde", "Outros (Despesas)").\n` +
             `- "query_bills": Quando o usuário pergunta sobre contas a pagar, boletos a vencer, contas do mês ou da semana (ex: "quais contas vencem essa semana?", "o que tenho pra pagar?", "quais boletos pendentes?").\n` +
-            `- "pay_bill": Quando o usuário informa que pagou ou quer dar baixa em uma conta a pagar/boleto (ex: "paguei a conta de luz no Nubank", "pagar conta de internet 90 pelo Banco do Brasil", "dei baixa no boleto do aluguel"). Preencha "pay_bill_data" com search_term (ex: "luz", "internet"), amount (se citado), suggested_account (banco onde foi pago) e paid_date.\n` +
+            `- "pay_bill": Quando o usuário informa que pagou ou quer dar baixa em uma conta a pagar/boleto (ex: "paguei a conta de luz no Nubank", "pagar conta de internet 90 pelo Banco do Brasil", "dei baixa no boleto do aluguel", "paguei a conta de victor").\n` +
+            `  * Regras Críticas de "pay_bill":\n` +
+            `    1. Compare o termo com a lista de Contas a Pagar Pendentes fornecida acima.\n` +
+            `    2. Se corresponder exatamente a uma conta pendente na lista (por descrição ou pelo nome do contato vinculado), preencha "matched_bill_id" com o ID correspondente e "search_term" com o nome da conta.\n` +
+            `    3. Se NÃO houver correspondência exata, preencha "search_term" e "contact_name" com o termo informado pelo usuário (ex: em "paguei a conta de victor", envie search_term: "victor", contact_name: "victor"). NUNCA preencha "matched_bill_id" com uma conta arbitrária!\n` +
+            `    4. Preencha "amount" (se citado), "suggested_account" (banco onde foi pago) e "paid_date".\n` +
             `- "balance_query": Quando o usuário pergunta sobre saldo, extrato, quanto gastou ou quanto tem em uma conta específica ou geral.\n` +
-            `- "transaction": Quando o usuário descreve receitas ou despesas que já foram realizadas de forma imediata.\n` +
+            `- "transaction": Quando o usuário descreve receitas ou despesas avulsas que já foram realizadas de forma imediata (ex: "gastei 50 no mercado", "pix de 50 pro victor", "paguei 40 no almoço").\n` +
             `- "unknown": Mensagens de cumprimento, dúvidas gerais ou sem sentido financeiro.\n\n` +
             `Retorne estritamente um JSON no formato:\n` +
             `{\n` +
@@ -745,7 +938,9 @@ class WebhooksService {
             `    "suggested_category": string\n` +
             `  },\n` +
             `  "pay_bill_data": {\n` +
+            `    "matched_bill_id": string (opcional, ID exato da conta pendente na lista),\n` +
             `    "search_term": string,\n` +
+            `    "contact_name": string (opcional),\n` +
             `    "amount": number,\n` +
             `    "suggested_account": string,\n` +
             `    "paid_date": string (ISO date)\n` +
@@ -814,7 +1009,7 @@ class WebhooksService {
     /**
      * Parser Local Resiliente de Fallback com suporte a regexes avançadas
      */
-    fallbackLocalParser(text, userAccounts) {
+    fallbackLocalParser(text, userAccounts, pendingBills = [], contacts = []) {
         const lower = text.toLowerCase();
         const today = new Date();
         const todayISO = today.toISOString().split('T')[0];
@@ -943,30 +1138,44 @@ class WebhooksService {
                 };
             }
         }
-        // 3. Detectar intenção de pagar conta
+        // 3. Detectar intenção de pagar conta / boleto
         if (lower.includes('paguei a conta') ||
             lower.includes('paguei o boleto') ||
             lower.includes('pagar conta') ||
             lower.includes('pagar boleto') ||
             lower.includes('dei baixa') ||
-            lower.includes('quitei')) {
-            let searchTerm = 'conta';
-            if (lower.includes('luz'))
-                searchTerm = 'luz';
-            else if (lower.includes('água') || lower.includes('agua'))
-                searchTerm = 'agua';
-            else if (lower.includes('internet'))
-                searchTerm = 'internet';
-            else if (lower.includes('aluguel'))
-                searchTerm = 'aluguel';
-            else if (lower.includes('faculdade'))
-                searchTerm = 'faculdade';
+            lower.includes('quitei') ||
+            lower.startsWith('paguei ')) {
+            let searchTerm = this.cleanBillSearchTerm(text
+                .replace(/^(?:paguei\s*a\s*conta\s*(?:de|do|da)?|paguei\s*o\s*boleto\s*(?:de|do|da)?|paguei\s*(?:a|o)?|quitei\s*(?:a|o)?|dei\s*baixa\s*(?:no|na)?)\s*/gi, '')
+                .replace(/(?:no|na|pelo|pela)\s*(?:nubank|itaú|itau|inter|bradesco|banco\s*do\s*brasil|bb|caixa|santander|c6)\b.*/gi, '')
+                .replace(/r\$\s*\d+(?:[.,]\d+)*/gi, '')
+                .replace(/\b\d+(?:[.,]\d+)*\s*(?:reais|conto|pila|mangos)?\b/gi, '')
+                .trim());
+            if (!searchTerm)
+                searchTerm = 'conta';
             const parsedAmount = (0, currency_js_1.extractAmountFromText)(text);
             const amount = parsedAmount > 0 ? parsedAmount : undefined;
+            // Tentar encontrar correspondência em contas pendentes
+            let matchedBillId = undefined;
+            if (pendingBills.length > 0 && searchTerm !== 'conta') {
+                const found = pendingBills.find((b) => {
+                    const descClean = this.cleanBillSearchTerm(b.description);
+                    const contactClean = this.cleanBillSearchTerm(b.contact?.name);
+                    return (descClean.includes(searchTerm) ||
+                        searchTerm.includes(descClean) ||
+                        contactClean.includes(searchTerm) ||
+                        searchTerm.includes(contactClean));
+                });
+                if (found)
+                    matchedBillId = found.id;
+            }
             return {
                 intent: 'pay_bill',
                 pay_bill_data: {
+                    matched_bill_id: matchedBillId,
                     search_term: searchTerm,
+                    contact_name: searchTerm !== 'conta' ? searchTerm : undefined,
                     amount,
                     suggested_account: detectedAccount,
                     paid_date: todayISO,
@@ -1212,36 +1421,24 @@ class WebhooksService {
     /**
      * Trata a liquidação / pagamento de uma conta a pagar debitando da conta bancária
      */
-    async handlePayBill(user, instance, remoteJid, payData, userAccounts) {
+    async handlePayBill(user, instance, remoteJid, payData, userAccounts, pendingBills) {
         try {
-            // 1. Buscar contas pendentes do usuário
-            const pendingBills = await prisma_js_1.prisma.bill.findMany({
-                where: {
-                    user_id: user.id,
-                    status: client_1.BillStatus.PENDING,
-                },
-                include: { category: true },
-                orderBy: { due_date: 'asc' },
-            });
-            if (pendingBills.length === 0) {
+            // 1. Buscar contas pendentes do usuário se não foram fornecidas
+            const activePendingBills = pendingBills && pendingBills.length > 0 && pendingBills[0].contact !== undefined
+                ? pendingBills
+                : await prisma_js_1.prisma.bill.findMany({
+                    where: {
+                        user_id: user.id,
+                        status: client_1.BillStatus.PENDING,
+                    },
+                    include: { category: true, contact: true },
+                    orderBy: { due_date: 'asc' },
+                });
+            if (activePendingBills.length === 0) {
                 await this.sendWhatsAppReply(instance, remoteJid, `ℹ️ *${user.name}*, você não possui nenhuma conta a pagar pendente no sistema para dar baixa.\n\nSe deseja registrar uma nova despesa direta, envie por exemplo: "Gastei 50 no almoço no Nubank".`);
                 return { status: 'no_pending_bills_to_pay' };
             }
-            // 2. Encontrar a conta mais compatível com o termo de busca ou valor
-            let matchedBill = pendingBills[0]; // default: a mais próxima do vencimento
-            if (payData.search_term) {
-                const termLower = payData.search_term.toLowerCase();
-                const found = pendingBills.find((b) => b.description.toLowerCase().includes(termLower) ||
-                    termLower.includes(b.description.toLowerCase()));
-                if (found)
-                    matchedBill = found;
-            }
-            if (payData.amount && !payData.search_term) {
-                const foundByAmount = pendingBills.find((b) => Math.abs(Number(b.amount) - payData.amount) < 0.01);
-                if (foundByAmount)
-                    matchedBill = foundByAmount;
-            }
-            // 3. Identificar Conta Bancária de Débito
+            // 2. Identificar Conta Bancária de Débito
             const defaultAccount = userAccounts.find((a) => a.is_default) || userAccounts[0];
             let targetAccount = defaultAccount;
             if (payData.suggested_account) {
@@ -1260,13 +1457,106 @@ class WebhooksService {
                     }
                 }
             }
-            // 4. Executar liquidação através do BillsService
+            // 3. Encontrar contas correspondentes (busca inteligente e segura)
+            let matchingBills = [];
+            // A) Correspondência direta por ID se a IA já identificou a partir da lista
+            if (payData.matched_bill_id) {
+                const directMatch = activePendingBills.find((b) => b.id === payData.matched_bill_id);
+                if (directMatch)
+                    matchingBills = [directMatch];
+            }
+            // B) Se não encontrou por ID, buscar por termos de busca e nome de contato
+            if (matchingBills.length === 0) {
+                const cleanTerm = this.cleanBillSearchTerm(payData.search_term);
+                const contactTerm = this.cleanBillSearchTerm(payData.contact_name);
+                const searchKeywords = [cleanTerm, contactTerm].filter((t) => Boolean(t) && t !== 'conta' && t !== 'boleto');
+                if (searchKeywords.length > 0) {
+                    matchingBills = activePendingBills.filter((b) => {
+                        const descClean = this.cleanBillSearchTerm(b.description);
+                        const contactClean = this.cleanBillSearchTerm(b.contact?.name);
+                        return searchKeywords.some((term) => descClean.includes(term) ||
+                            term.includes(descClean) ||
+                            (contactClean && (contactClean.includes(term) || term.includes(contactClean))));
+                    });
+                }
+                // C) Se não encontrou por texto, mas o usuário informou um valor específico
+                if (matchingBills.length === 0 && payData.amount && searchKeywords.length === 0) {
+                    matchingBills = activePendingBills.filter((b) => Math.abs(Number(b.amount) - payData.amount) < 0.01);
+                }
+            }
+            // 4. Cenário A: NENHUMA conta encontrada (NUNCA pagar conta errada aleatoriamente!)
+            if (matchingBills.length === 0) {
+                const pendingListPreview = activePendingBills
+                    .slice(0, 5)
+                    .map((b, idx) => `${idx + 1}️⃣ *${b.description}* - ${(0, currency_js_1.formatBRL)(Number(b.amount))} (Venc: ${(0, date_js_1.formatDateBR)(b.due_date)})${b.contact ? ` [${b.contact.name}]` : ''}`)
+                    .join('\n');
+                const searchTermDisplay = payData.search_term || payData.contact_name || 'os dados informados';
+                const replyMsg = `🔍 *Nenhuma conta pendente encontrada para "${searchTermDisplay}".*\n\n` +
+                    `📋 *Suas contas pendentes atuais:*\n${pendingListPreview}\n\n` +
+                    `💡 *Dicas:*\n` +
+                    `• Se deseja liquidar uma das contas acima, envie por exemplo: _"paguei ${activePendingBills[0]?.description || 'Internet'}"_.\n` +
+                    `• Se isso foi uma despesa avulsa e não uma conta cadastrada, envie: _"Gastei ${payData.amount ? (0, currency_js_1.formatBRL)(payData.amount) : '50'} com ${searchTermDisplay} no ${targetAccount.name}"_.`;
+                await this.sendWhatsAppReply(instance, remoteJid, replyMsg);
+                return { status: 'no_matching_bill_found' };
+            }
+            // 5. Cenário B: Múltiplas contas encontradas (Pedir confirmação / escolha ao usuário)
+            if (matchingBills.length > 1) {
+                const cachePayload = {
+                    targetAccountId: targetAccount.id,
+                    paidDate: payData.paid_date || new Date().toISOString(),
+                    amount: payData.amount,
+                    bills: matchingBills.map((b) => ({
+                        id: b.id,
+                        description: b.description,
+                        amount: Number(b.amount),
+                        due_date: b.due_date,
+                        contact: b.contact ? { name: b.contact.name } : null,
+                    })),
+                };
+                // Salvar estado conversacional no Redis por 10 minutos (600s)
+                try {
+                    await redis_js_1.redis.setex(`pending_pay:${user.id}`, 600, JSON.stringify(cachePayload));
+                }
+                catch (e) {
+                    console.warn('⚠️ [Redis] Erro ao salvar pending_pay:', e);
+                }
+                const optionsList = matchingBills
+                    .slice(0, 5)
+                    .map((b, idx) => `${idx + 1}️⃣ *${b.description}* - ${(0, currency_js_1.formatBRL)(Number(b.amount))} (Venc: ${(0, date_js_1.formatDateBR)(b.due_date)})${b.contact ? ` [${b.contact.name}]` : ''}`)
+                    .join('\n');
+                const replyMsg = `🤔 Encontrei mais de uma conta correspondente. *Qual delas você pagou?*\n\n` +
+                    `${optionsList}\n\n` +
+                    `💬 _Responda com o número da opção (ex: *1*, *2*) ou clique em uma das opções abaixo._\n` +
+                    `_Para cancelar, envie *cancelar*._`;
+                let replyMarkup = undefined;
+                if (instance.startsWith('telegram:')) {
+                    replyMarkup = {
+                        inline_keyboard: [
+                            ...matchingBills.slice(0, 5).map((b, idx) => [
+                                {
+                                    text: `${idx + 1}. ${b.description} (${(0, currency_js_1.formatBRL)(Number(b.amount))})`,
+                                    callback_data: `pay_bill:${b.id}`,
+                                },
+                            ]),
+                            [{ text: '❌ Cancelar', callback_data: 'cancel_pay' }],
+                        ],
+                    };
+                }
+                await this.sendWhatsAppReply(instance, remoteJid, replyMsg, { reply_markup: replyMarkup });
+                return { status: 'pending_pay_choice_requested', count: matchingBills.length };
+            }
+            // 6. Cenário C: Exatamente 1 conta encontrada -> Executar Pagamento com Segurança
+            const matchedBill = matchingBills[0];
             const result = await billsService.payBill(user.id, matchedBill.id, {
                 account_id: targetAccount.id,
                 paid_date: payData.paid_date || new Date().toISOString(),
-                amount: payData.amount,
+                amount: payData.amount || Number(matchedBill.amount),
             });
-            // 5. Obter novo saldo da conta debitada
+            try {
+                await redis_js_1.redis.del(`pending_pay:${user.id}`);
+            }
+            catch (e) { }
+            // Obter novo saldo da conta debitada
             const accountTxs = await prisma_js_1.prisma.transaction.findMany({
                 where: { user_id: user.id, account_id: targetAccount.id },
                 select: { type: true, amount: true },
@@ -1282,7 +1572,7 @@ class WebhooksService {
             }
             const updatedAccBalance = Number(targetAccount.initial_balance) + accIncome - accExpense;
             const replyMsg = `✅ *Conta Paga com Sucesso!*\n\n` +
-                `📝 *Conta Liquidada:* ${result.bill.description}\n` +
+                `📝 *Conta Liquidada:* ${result.bill.description}${result.bill.contact ? ` (Contato: ${result.bill.contact.name})` : ''}\n` +
                 `💵 *Valor Pago:* ${(0, currency_js_1.formatBRL)(Number(result.bill.amount))}\n` +
                 `🏦 *Debitado de:* ${targetAccount.name}\n` +
                 `💰 *Novo Saldo no ${targetAccount.name}:* ${(0, currency_js_1.formatBRL)(updatedAccBalance)}\n` +

@@ -47,7 +47,9 @@ export declare const aiExtractedBillSchema: z.ZodObject<{
     suggested_category?: string | undefined;
 }>;
 export declare const aiExtractedPayBillSchema: z.ZodObject<{
+    matched_bill_id: z.ZodOptional<z.ZodString>;
     search_term: z.ZodOptional<z.ZodString>;
+    contact_name: z.ZodOptional<z.ZodString>;
     amount: z.ZodOptional<z.ZodNumber>;
     suggested_account: z.ZodOptional<z.ZodString>;
     paid_date: z.ZodOptional<z.ZodString>;
@@ -55,12 +57,16 @@ export declare const aiExtractedPayBillSchema: z.ZodObject<{
     amount?: number | undefined;
     paid_date?: string | undefined;
     suggested_account?: string | undefined;
+    matched_bill_id?: string | undefined;
     search_term?: string | undefined;
+    contact_name?: string | undefined;
 }, {
     amount?: number | undefined;
     paid_date?: string | undefined;
     suggested_account?: string | undefined;
+    matched_bill_id?: string | undefined;
     search_term?: string | undefined;
+    contact_name?: string | undefined;
 }>;
 export declare const aiExtractionResponseSchema: z.ZodObject<{
     intent: z.ZodEnum<["transaction", "balance_query", "register_bill", "query_bills", "pay_bill", "unknown"]>;
@@ -114,7 +120,9 @@ export declare const aiExtractionResponseSchema: z.ZodObject<{
         suggested_category?: string | undefined;
     }>>;
     pay_bill_data: z.ZodOptional<z.ZodObject<{
+        matched_bill_id: z.ZodOptional<z.ZodString>;
         search_term: z.ZodOptional<z.ZodString>;
+        contact_name: z.ZodOptional<z.ZodString>;
         amount: z.ZodOptional<z.ZodNumber>;
         suggested_account: z.ZodOptional<z.ZodString>;
         paid_date: z.ZodOptional<z.ZodString>;
@@ -122,12 +130,16 @@ export declare const aiExtractionResponseSchema: z.ZodObject<{
         amount?: number | undefined;
         paid_date?: string | undefined;
         suggested_account?: string | undefined;
+        matched_bill_id?: string | undefined;
         search_term?: string | undefined;
+        contact_name?: string | undefined;
     }, {
         amount?: number | undefined;
         paid_date?: string | undefined;
         suggested_account?: string | undefined;
+        matched_bill_id?: string | undefined;
         search_term?: string | undefined;
+        contact_name?: string | undefined;
     }>>;
 }, "strip", z.ZodTypeAny, {
     intent: "transaction" | "unknown" | "balance_query" | "register_bill" | "query_bills" | "pay_bill";
@@ -154,7 +166,9 @@ export declare const aiExtractionResponseSchema: z.ZodObject<{
         amount?: number | undefined;
         paid_date?: string | undefined;
         suggested_account?: string | undefined;
+        matched_bill_id?: string | undefined;
         search_term?: string | undefined;
+        contact_name?: string | undefined;
     } | undefined;
 }, {
     intent: "transaction" | "unknown" | "balance_query" | "register_bill" | "query_bills" | "pay_bill";
@@ -181,7 +195,9 @@ export declare const aiExtractionResponseSchema: z.ZodObject<{
         amount?: number | undefined;
         paid_date?: string | undefined;
         suggested_account?: string | undefined;
+        matched_bill_id?: string | undefined;
         search_term?: string | undefined;
+        contact_name?: string | undefined;
     } | undefined;
 }>;
 export type AIExtractionResponse = z.infer<typeof aiExtractionResponseSchema>;

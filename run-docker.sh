@@ -66,8 +66,10 @@ export PRISMA_HIDE_UPDATE_MESSAGE=true
 export CHECKPOINT_DISABLE=1
 
 if command -v npm &> /dev/null; then
-    npm --prefix backend run build
-    npm --prefix frontend run build
+    echo -e "${CYAN}📦 Instalando dependências e compilando Backend...${NC}"
+    (cd backend && npm install --no-audit --no-fund && npx prisma generate && npm run build)
+    echo -e "${CYAN}📦 Instalando dependências e compilando Frontend...${NC}"
+    (cd frontend && npm install --no-audit --no-fund && npm run build)
     echo -e "${GREEN}✓ Backend e Frontend compilados com sucesso!${NC}"
 else
     echo -e "${YELLOW}⚠️  Aviso: npm não encontrado no ambiente do host. Reutilizando build existente.${NC}"

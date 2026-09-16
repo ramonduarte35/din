@@ -23,7 +23,9 @@ exports.aiExtractedBillSchema = zod_1.z.object({
 });
 // Schema para OpenAI Structured Outputs: Pagamento/Liquidação de Conta
 exports.aiExtractedPayBillSchema = zod_1.z.object({
-    search_term: zod_1.z.string().optional(), // Nome da conta (ex: "luz", "faculdade", "aluguel")
+    matched_bill_id: zod_1.z.string().optional(), // ID exato da conta pendente quando identificada na lista
+    search_term: zod_1.z.string().optional(), // Nome da conta (ex: "luz", "faculdade", "aluguel", "internet", "victor")
+    contact_name: zod_1.z.string().optional(), // Nome do contato relacionado à conta (ex: "Victor")
     amount: zod_1.z.number().positive().optional(),
     suggested_account: zod_1.z.string().optional(), // Banco onde pagou (ex: "Nubank", "Banco do Brasil")
     paid_date: zod_1.z.string().optional(),

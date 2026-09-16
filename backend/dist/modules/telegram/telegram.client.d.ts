@@ -94,5 +94,9 @@ export declare class TelegramClient {
         buffer: Buffer;
         mimeType: string;
     } | null>;
+    /**
+     * Responde a uma requisição de callback do Telegram (inline buttons)
+     */
+    answerCallbackQuery(callbackQueryId: string, text?: string, showAlert?: boolean, token?: string): Promise<boolean>;
 }
 export declare const telegramClient: TelegramClient;

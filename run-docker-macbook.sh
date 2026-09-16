@@ -33,7 +33,7 @@ for arg in "$@"; do
             shift
             ;;
         --rebuild)
-            REBUILD_FLAGS="--build --no-cache"
+            NO_CACHE=true
             shift
             ;;
         --down|--stop)
@@ -184,15 +184,20 @@ export PRISMA_HIDE_UPDATE_MESSAGE=true
 export CHECKPOINT_DISABLE=1
 
 if command -v npm &> /dev/null; then
-    npm --prefix backend run build
-    npm --prefix frontend run build
+    echo -e "${CYAN}📦 Instalando dependências e compilando Backend...${NC}"
+    (cd backend && npm install --no-audit --no-fund && npx prisma generate && npm run build)
+    echo -e "${CYAN}📦 Instalando dependências e compilando Frontend...${NC}"
+    (cd frontend && npm install --no-audit --no-fund && npm run build)
     echo -e "${GREEN}✓ Backend e Frontend compilados com sucesso!${NC}"
 fi
 
 # 8. Construir e inicializar containers
 echo -e "\n${CYAN}📦 Construindo e inicializando containers (Docker Compose)...${NC}"
 docker compose down --remove-orphans
-docker compose up $REBUILD_FLAGS -d
+if [ "$NO_CACHE" = true ]; then
+    docker compose build --no-cache
+fi
+docker compose up --build -d
 
 # 8. Aguardar banco de dados estar pronto
 echo -e "\n${CYAN}⏳ Aguardando banco de dados PostgreSQL inicializar...${NC}"

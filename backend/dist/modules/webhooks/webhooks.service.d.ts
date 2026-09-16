@@ -19,17 +19,36 @@ export declare class WebhooksService {
      */
     processMetaMessage(payload: any): Promise<{
         status: string;
+        bill_id: string;
+        transaction_id: string;
+    } | {
+        status: string;
     }>;
     /**
      * Processamento de eventos e mensagens recebidas do Telegram Bot API (POST /api/v1/webhooks/telegram)
      */
     processTelegramMessage(payload: any): Promise<{
         status: string;
+        bill_id?: undefined;
+        transaction_id?: undefined;
+    } | {
+        status: string;
+        bill_id: string;
+        transaction_id: string;
+    } | {
+        status: string;
+        bill_id: string;
+        userId?: undefined;
     } | {
         status: string;
         userId: string;
+        bill_id?: undefined;
     }>;
     processEvolutionMessage(payload: any): Promise<{
+        status: string;
+        bill_id: string;
+        transaction_id: string;
+    } | {
         status: string;
     }>;
     /**
@@ -37,9 +56,19 @@ export declare class WebhooksService {
      */
     processUserFinancialMessage(user: any, instance: string, remoteJid: string, trimmedText: string, origin?: TransactionOrigin, senderIdentifier?: string): Promise<{
         status: string;
+        bill_id?: undefined;
+        transaction_id?: undefined;
+    } | {
+        status: string;
+        bill_id: string;
+        transaction_id: string;
     }>;
     /**
-     * Extração com OpenAI (gpt-4o-mini com Structured Outputs via JSON Schema)
+     * Helper para limpar termos de busca de contas a pagar (remove ruídos como "conta de", "boleto do", etc.)
+     */
+    private cleanBillSearchTerm;
+    /**
+     * Extração com OpenAI (gpt-4o-mini com Structured Outputs via JSON Schema e Contexto Rico)
      */
     private extractWithAI;
     /**

@@ -2,4 +2,6 @@
 .env
 .env.*
 *.log
-src
+node_modules
+dist
+

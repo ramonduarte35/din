@@ -242,6 +242,31 @@ class TelegramClient {
             return null;
         }
     }
+    /**
+     * Responde a uma requisição de callback do Telegram (inline buttons)
+     */
+    async answerCallbackQuery(callbackQueryId, text, showAlert = false, token) {
+        try {
+            const effectiveToken = await this.getEffectiveToken(token);
+            if (!effectiveToken)
+                return false;
+            const url = `${this.baseUrl}/bot${effectiveToken}/answerCallbackQuery`;
+            const payload = { callback_query_id: callbackQueryId };
+            if (text)
+                payload.text = text;
+            if (showAlert)
+                payload.show_alert = true;
+            await axios_1.default.post(url, payload, {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 10000,
+            });
+            return true;
+        }
+        catch (err) {
+            console.error('❌ [Telegram Client] Erro no answerCallbackQuery:', err.response?.data || err.message);
+            return false;
+        }
+    }
 }
 exports.TelegramClient = TelegramClient;
 exports.telegramClient = new TelegramClient();
