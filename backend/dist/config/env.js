@@ -7,6 +7,20 @@ exports.env = void 0;
 exports.isSystemAdminEmail = isSystemAdminEmail;
 const zod_1 = require("zod");
 const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
+// Tenta carregar .env do diretório atual ou das pastas pai (ex: quando executado a partir de backend/)
+const possibleEnvPaths = [
+    path_1.default.resolve(process.cwd(), '.env'),
+    path_1.default.resolve(process.cwd(), '../.env'),
+    path_1.default.resolve(process.cwd(), '../../.env'),
+];
+for (const envPath of possibleEnvPaths) {
+    if (fs_1.default.existsSync(envPath)) {
+        dotenv_1.default.config({ path: envPath });
+        break;
+    }
+}
 dotenv_1.default.config();
 const defaultDbUrl = process.env.DATABASE_URL ||
     `postgresql://${process.env.POSTGRES_USER || 'postgres'}:${process.env.POSTGRES_PASSWORD || 'postgres'}@localhost:${process.env.POSTGRES_PORT || '5434'}/${process.env.POSTGRES_DB || 'din'}?schema=public`;

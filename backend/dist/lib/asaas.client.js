@@ -257,21 +257,8 @@ class AsaasClient {
      */
     async createPaymentLink(data) {
         if (!this.isConfigured()) {
-            console.log(`ℹ️ [Asaas Mock] API Key não configurada. Simulando Link de Pagamento para: ${data.name}`);
-            const mockId = `link_mock_${Date.now().toString(36)}`;
-            return {
-                id: mockId,
-                name: data.name,
-                value: data.value,
-                active: true,
-                chargeType: data.chargeType || 'RECURRENT',
-                url: `https://sandbox.asaas.com/c/${mockId}`,
-                billingType: data.billingType || 'UNDEFINED',
-                subscriptionCycle: data.subscriptionCycle,
-                description: data.description,
-                dueDateLimitDays: data.dueDateLimitDays,
-                externalReference: data.externalReference,
-            };
+            console.warn(`⚠️ [Asaas Client] ASAAS_API_KEY não configurada no servidor.`);
+            throw new Error('Integração com gateway Asaas não configurada: adicione sua ASAAS_API_KEY no arquivo .env para gerar links de checkout oficiais.');
         }
         try {
             const response = await fetch(`${this.baseUrl}/paymentLinks`, {
