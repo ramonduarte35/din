@@ -6,6 +6,7 @@ import {
   Account,
 } from '../api/accounts';
 import { AccountModal } from '../components/accounts/AccountModal';
+import { ResetDataModal } from '../components/profile/ResetDataModal';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -27,6 +28,7 @@ import {
   Trash2,
   Star,
   RefreshCw,
+  RotateCcw,
   ArrowUpRight,
   ArrowDownRight,
   CheckCircle2,
@@ -46,6 +48,7 @@ export function Accounts() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -132,7 +135,7 @@ export function Accounts() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
           <Button
             variant="secondary"
             size="sm"
@@ -141,6 +144,18 @@ export function Accounts() {
           >
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isLoading ? 'animate-spin' : ''}`} />
             Atualizar
+          </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsResetModalOpen(true)}
+            className="flex-1 sm:flex-initial h-10 min-h-[44px] text-xs text-din-muted hover:text-rose-400 border border-border/80 hover:border-rose-500/30 transition-colors"
+            title="Reiniciar finanças e limpar dados de teste"
+          >
+            <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+            Reiniciar Finanças
           </Button>
 
           <Button
@@ -315,6 +330,13 @@ export function Accounts() {
         }}
         onSuccess={loadAccounts}
         accountToEdit={editingAccount}
+      />
+
+      {/* Modal de Limpeza Seletiva / Reiniciar Finanças */}
+      <ResetDataModal
+        isOpen={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        onSuccess={loadAccounts}
       />
     </div>
   );

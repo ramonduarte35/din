@@ -34,14 +34,14 @@ export declare const logsQuerySchema: z.ZodObject<{
     status: z.ZodOptional<z.ZodEnum<["SUCCESS", "USER_NOT_FOUND", "PRO_REQUIRED", "PARSING_ERROR"]>>;
     sender: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    page: number;
     limit: number;
+    page: number;
     status?: "SUCCESS" | "USER_NOT_FOUND" | "PRO_REQUIRED" | "PARSING_ERROR" | undefined;
     sender?: string | undefined;
 }, {
     status?: "SUCCESS" | "USER_NOT_FOUND" | "PRO_REQUIRED" | "PARSING_ERROR" | undefined;
-    page?: number | undefined;
     limit?: number | undefined;
+    page?: number | undefined;
     sender?: string | undefined;
 }>;
 export declare const updateSystemSettingsSchema: z.ZodObject<{

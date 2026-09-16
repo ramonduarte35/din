@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const checkoutSchema = z.object({
   plan_cycle: z.enum(['MONTHLY', 'YEARLY']).default('MONTHLY'),
-  billing_type: z.enum(['PIX', 'CREDIT_CARD', 'BOLETO', 'UNDEFINED']).default('PIX'),
+  billing_type: z.enum(['PIX', 'CREDIT_CARD', 'BOLETO', 'UNDEFINED']).optional().default('UNDEFINED'),
   cpf_cnpj: z.string().optional(),
   phone: z.string().optional(),
 });
@@ -15,6 +15,8 @@ export const asaasWebhookSchema = z.object({
     id: z.string(),
     customer: z.string().optional(),
     subscription: z.string().optional().nullable(),
+    paymentLink: z.string().optional().nullable(),
+    externalReference: z.string().optional().nullable(),
     value: z.number(),
     netValue: z.number().optional().nullable(),
     billingType: z.string().optional(),

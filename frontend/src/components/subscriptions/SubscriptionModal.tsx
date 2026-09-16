@@ -3,7 +3,6 @@ import {
   Sparkles,
   Check,
   X,
-  QrCode,
   Copy,
   ExternalLink,
   ShieldCheck,
@@ -12,6 +11,8 @@ import {
   Clock,
   Zap,
   RefreshCw,
+  CreditCard,
+  QrCode,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -29,82 +30,86 @@ interface SubscriptionModalProps {
   onSuccess?: () => void;
 }
 
-function formatCpfCnpj(value: string): string {
-  const digits = value.replace(/\D/g, '');
-  if (digits.length <= 11) {
-    return digits
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-  }
-  return digits
-    .slice(0, 14)
-    .replace(/(\d{2})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1/$2')
-    .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
-}
-
 export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
 }) => {
   const toast = useToast();
-  const { user, refreshUser } = useAuth();
+  const { refreshUser } = useAuth();
 
   const [selectedCycle, setSelectedCycle] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY');
-  const [selectedMethod, setSelectedMethod] = useState<'PIX' | 'CREDIT_CARD'>('PIX');
-  const [cpfCnpj, setCpfCnpj] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
   const [checkoutData, setCheckoutData] = useState<CheckoutResponse | null>(null);
-  const [copiedPix, setCopiedPix] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
-  // Reset state when opening
+  // Reset do estado ao abrir o modal
   useEffect(() => {
     if (isOpen) {
       setCheckoutData(null);
-      setCopiedPix(false);
-      setCpfCnpj('');
+      setCopiedLink(false);
     }
   }, [isOpen]);
+
+  // Polling automático suave para detectar ativação após pagamento no Asaas
+  useEffect(() => {
+    if (!isOpen || !checkoutData) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const sub = await fetchMySubscription();
+        if (sub.is_pro) {
+          toast.success('🎉 Parabéns! Seu plano Din PRO foi ativado com sucesso!');
+          if (refreshUser) await refreshUser();
+          if (onSuccess) onSuccess();
+          onClose();
+        }
+      } catch {
+        // Falhas silenciosas no polling de background
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [isOpen, checkoutData, refreshUser, onSuccess, onClose, toast]);
 
   if (!isOpen) return null;
 
   const handleGenerateCheckout = async () => {
-    const cleanCpf = cpfCnpj.replace(/\D/g, '');
-    if (!cleanCpf || (cleanCpf.length !== 11 && cleanCpf.length !== 14)) {
-      toast.error('Informe um CPF ou CNPJ válido para emissão da cobrança no Asaas.');
-      return;
-    }
-
     setIsLoading(true);
     try {
       const res = await createCheckout({
         plan_cycle: selectedCycle,
-        billing_type: selectedMethod === 'PIX' ? 'PIX' : 'UNDEFINED',
-        cpf_cnpj: cleanCpf,
+        billing_type: 'UNDEFINED',
       });
       setCheckoutData(res);
-      toast.success(
-        selectedMethod === 'PIX'
-          ? 'Cobrança PIX gerada com sucesso!'
-          : 'Link de pagamento seguro gerado!'
-      );
+
+      const targetUrl = res.url || res.invoice_url;
+      if (targetUrl) {
+        // Abre o checkout oficial do Asaas em uma nova aba
+        const win = window.open(targetUrl, '_blank');
+        if (!win || win.closed || typeof win.closed === 'undefined') {
+          toast.info('Link do Asaas gerado! Clique em "Abrir Página de Pagamento" para prosseguir.');
+        } else {
+          toast.success('Página de pagamento aberta em nova aba no Asaas!');
+        }
+      } else {
+        toast.success('Fatura gerada com sucesso!');
+      }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || err.message || 'Falha ao gerar cobrança');
+      toast.error(err.response?.data?.error || err.message || 'Falha ao gerar link de pagamento no Asaas');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCopyPix = () => {
-    if (!checkoutData?.pix_copy_paste) return;
-    navigator.clipboard.writeText(checkoutData.pix_copy_paste);
-    setCopiedPix(true);
-    toast.success('Chave Copia e Cola PIX copiada para a área de transferência!');
-    setTimeout(() => setCopiedPix(false), 3000);
+  const handleCopyLink = () => {
+    const targetUrl = checkoutData?.url || checkoutData?.invoice_url;
+    if (!targetUrl) return;
+    navigator.clipboard.writeText(targetUrl);
+    setCopiedLink(true);
+    toast.success('Link do checkout Asaas copiado para a área de transferência!');
+    setTimeout(() => setCopiedLink(false), 3000);
   };
 
   const handleCheckStatus = async () => {
@@ -117,7 +122,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         if (onSuccess) onSuccess();
         onClose();
       } else {
-        toast.info('Pagamento ainda em processamento. Se já realizou o PIX, aguarde alguns instantes.');
+        toast.info('Pagamento ainda em processamento. Se já realizou o PIX ou Cartão, aguarde alguns instantes.');
       }
     } catch {
       toast.error('Erro ao verificar status. Tente novamente em instantes.');
@@ -125,6 +130,10 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
       setIsCheckingPayment(false);
     }
   };
+
+  const currentPrice = selectedCycle === 'YEARLY' ? 'R$ 199,00' : 'R$ 19,90';
+  const currentPeriod = selectedCycle === 'YEARLY' ? '/ano' : '/mês';
+  const checkoutUrl = checkoutData?.url || checkoutData?.invoice_url;
 
   return (
     <div
@@ -135,7 +144,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
         className="relative w-full max-w-lg bg-card border border-border rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header com gradiente sutil */}
+        {/* Header com gradiente */}
         <div className="relative p-5 sm:p-6 pb-4 bg-gradient-to-br from-violet-600/15 via-indigo-600/10 to-transparent border-b border-border/60">
           <button
             type="button"
@@ -227,7 +236,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedCycle('MONTHLY')}
-                    className={`p-3.5 rounded-2xl border text-left transition-all min-h-[44px] flex flex-col justify-between ${
+                    className={`p-3.5 rounded-2xl border text-left transition-all min-h-[44px] flex flex-col justify-between touch-manipulation ${
                       selectedCycle === 'MONTHLY'
                         ? 'bg-violet-600/10 border-violet-500 ring-2 ring-violet-500/30'
                         : 'bg-card-secondary border-border hover:border-violet-500/40'
@@ -249,7 +258,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedCycle('YEARLY')}
-                    className={`p-3.5 rounded-2xl border text-left transition-all min-h-[44px] flex flex-col justify-between relative overflow-hidden ${
+                    className={`p-3.5 rounded-2xl border text-left transition-all min-h-[44px] flex flex-col justify-between relative overflow-hidden touch-manipulation ${
                       selectedCycle === 'YEARLY'
                         ? 'bg-violet-600/10 border-violet-500 ring-2 ring-violet-500/30'
                         : 'bg-card-secondary border-border hover:border-violet-500/40'
@@ -275,55 +284,28 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                 </div>
               </div>
 
-              {/* Forma de Pagamento */}
-              <div>
-                <label className="block text-xs font-bold text-din-text mb-2 uppercase tracking-wider">
-                  Forma de Pagamento (Gateway Asaas)
-                </label>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedMethod('PIX')}
-                    className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all min-h-[44px] ${
-                      selectedMethod === 'PIX'
-                        ? 'bg-emerald-500/15 border-emerald-500 text-emerald-300 ring-2 ring-emerald-500/30'
-                        : 'bg-card-secondary border-border text-din-muted hover:text-din-text'
-                    }`}
-                  >
-                    <QrCode className="w-4 h-4" />
-                    <span>PIX Instantâneo</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedMethod('CREDIT_CARD')}
-                    className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all min-h-[44px] ${
-                      selectedMethod === 'CREDIT_CARD'
-                        ? 'bg-violet-600/15 border-violet-500 text-violet-300 ring-2 ring-violet-500/30'
-                        : 'bg-card-secondary border-border text-din-muted hover:text-din-text'
-                    }`}
-                  >
-                    <span>Cartão / Boleto</span>
-                  </button>
+              {/* Informações sobre Formas de Pagamento Asaas */}
+              <div className="p-3.5 rounded-2xl bg-card-secondary/80 border border-border flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-violet-400" />
+                  <span className="text-xs font-bold text-din-text">Pagamento Seguro via Gateway Asaas</span>
                 </div>
-              </div>
-
-              {/* CPF / CNPJ do Pagador (Exigência do BACEN e Asaas para emissão de PIX/Boleto) */}
-              <div>
-                <label className="block text-xs font-bold text-din-text mb-1.5 uppercase tracking-wider">
-                  CPF ou CNPJ do Titular <span className="text-emerald-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="000.000.000-00"
-                  value={cpfCnpj}
-                  onChange={(e) => setCpfCnpj(formatCpfCnpj(e.target.value))}
-                  maxLength={18}
-                  className="w-full bg-card-secondary border border-border focus:border-violet-500 rounded-xl px-3.5 py-2.5 text-sm text-din-text placeholder-din-muted outline-none transition-colors min-h-[44px]"
-                />
-                <p className="text-[11px] text-din-muted mt-1">
-                  Obrigatório conforme normas do Banco Central para emissão do PIX.
+                <p className="text-[11px] text-din-muted leading-relaxed">
+                  Você será direcionado para o checkout oficial do Asaas com suporte instantâneo a{' '}
+                  <strong className="text-emerald-400 font-semibold">PIX (QR Code dinâmico e Copia e Cola)</strong>,{' '}
+                  <strong className="text-violet-300 font-semibold">Cartão de Crédito</strong> e Boleto.
                 </p>
+                <div className="flex items-center gap-3 pt-1 text-xs text-din-muted font-medium">
+                  <span className="flex items-center gap-1">
+                    <QrCode className="w-3.5 h-3.5 text-emerald-400" /> PIX
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <CreditCard className="w-3.5 h-3.5 text-violet-400" /> Cartão
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-amber-400" /> Boleto
+                  </span>
+                </div>
               </div>
 
               <div className="pt-2">
@@ -331,116 +313,90 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
                   variant="primary"
                   onClick={handleGenerateCheckout}
                   isLoading={isLoading}
-                  className="w-full min-h-[48px] text-sm font-bold shadow-lg shadow-violet-500/20 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 border-none"
+                  className="w-full min-h-[48px] text-sm font-bold shadow-lg shadow-violet-500/20 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 border-none touch-manipulation"
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
-                  Gerar Pagamento com {selectedMethod === 'PIX' ? 'PIX' : 'Asaas'}
+                  Ir para Pagamento no Asaas ({currentPrice}{currentPeriod})
                 </Button>
               </div>
             </>
           ) : (
-            /* Tela com os dados gerados do Asaas */
+            /* Tela após criação da cobrança no Asaas */
             <div className="space-y-4 animate-fade-in">
               <div className="p-4 rounded-2xl bg-card-secondary border border-border text-center space-y-2">
-                <span className="text-xs text-din-muted font-medium">Valor Total a Pagar</span>
+                <span className="text-xs text-din-muted font-medium">Fatura Gerada com Sucesso</span>
                 <p className="text-3xl font-black text-din-text">
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
                     checkoutData.amount
                   )}
                 </p>
                 <div className="flex items-center justify-center gap-1.5 text-xs text-din-muted">
-                  <Clock className="w-3.5 h-3.5" />
+                  <Clock className="w-3.5 h-3.5 text-violet-400" />
                   <span>Vencimento em {checkoutData.due_date}</span>
                 </div>
               </div>
 
-              {/* Se tiver dados PIX (QR Code ou Copia e Cola) */}
-              {(checkoutData.pix_qr_code || checkoutData.pix_copy_paste) && (
-                <div className="p-4 rounded-2xl bg-card-secondary/80 border border-emerald-500/30 flex flex-col items-center text-center space-y-3">
-                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <QrCode className="w-4 h-4" />
-                    Escaneie o QR Code PIX
-                  </span>
-
-                  {checkoutData.pix_qr_code ? (
-                    <div className="p-3 bg-white rounded-2xl shadow-md inline-block">
-                      <img
-                        src={
-                          checkoutData.pix_qr_code.startsWith('data:')
-                            ? checkoutData.pix_qr_code
-                            : `data:image/png;base64,${checkoutData.pix_qr_code}`
-                        }
-                        alt="QR Code PIX Asaas"
-                        className="w-48 h-48 object-contain"
-                      />
-                    </div>
-                  ) : null}
-
-                  {checkoutData.pix_copy_paste && (
-                    <div className="w-full space-y-2">
-                      <p className="text-[11px] text-din-muted">Ou pague com o código Copia e Cola:</p>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          readOnly
-                          value={checkoutData.pix_copy_paste}
-                          className="flex-1 bg-card border border-border rounded-xl px-3 py-2 text-xs font-mono text-din-muted truncate"
-                        />
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={handleCopyPix}
-                          className="min-h-[44px] px-4 shrink-0 font-bold"
-                        >
-                          {copiedPix ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                          <span>{copiedPix ? 'Copiado!' : 'Copiar'}</span>
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Link externo para Fatura Asaas (se for cartão ou boleto) */}
-              {checkoutData.invoice_url && (
-                <div className="p-3 rounded-xl bg-card-secondary border border-border flex flex-col sm:flex-row items-center justify-between gap-3">
-                  <div className="text-center sm:text-left">
-                    <p className="text-xs font-bold text-din-text">Fatura Online Asaas</p>
-                    <p className="text-[11px] text-din-muted">
-                      Pague diretamente no checkout protegido com Cartão ou Boleto.
+              {/* Card de Ação Principal: Link do Asaas */}
+              {checkoutUrl && (
+                <div className="p-4 rounded-2xl bg-card-secondary/90 border border-violet-500/30 space-y-3">
+                  <div className="text-center">
+                    <p className="text-xs font-bold text-din-text">
+                      Página de Pagamento Oficial Asaas
+                    </p>
+                    <p className="text-[11px] text-din-muted mt-1 leading-relaxed">
+                      Conclua seu pagamento com segurança via <strong>PIX</strong>, <strong>Cartão de Crédito</strong> ou <strong>Boleto</strong> diretamente no Asaas.
                     </p>
                   </div>
+
                   <a
-                    href={checkoutData.invoice_url}
+                    href={checkoutUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs transition-all shadow-md min-h-[44px]"
+                    className="w-full min-h-[48px] px-5 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-violet-500/20 flex items-center justify-center gap-2 transition-all touch-manipulation"
                   >
-                    <span>Abrir Fatura</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Abrir Página de Pagamento Asaas</span>
+                    <ExternalLink className="w-4 h-4" />
                   </a>
+
+                  <Button
+                    variant="secondary"
+                    onClick={handleCopyLink}
+                    className="w-full min-h-[44px] text-xs font-bold touch-manipulation"
+                  >
+                    {copiedLink ? (
+                      <Check className="w-4 h-4 text-emerald-400 mr-2" />
+                    ) : (
+                      <Copy className="w-4 h-4 mr-2 text-din-muted" />
+                    )}
+                    <span>{copiedLink ? 'Link do Checkout Copiado!' : 'Copiar Link do Checkout Asaas'}</span>
+                  </Button>
                 </div>
               )}
 
+              {/* Botões de Checagem e Retorno */}
               <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
                 <Button
                   variant="primary"
                   onClick={handleCheckStatus}
                   isLoading={isCheckingPayment}
-                  className="w-full sm:flex-1 min-h-[44px] font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950"
+                  className="w-full sm:flex-1 min-h-[46px] font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20 touch-manipulation"
                 >
-                  <RefreshCw className="w-4 h-4 mr-2" />
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isCheckingPayment ? 'animate-spin' : ''}`} />
                   Já Paguei! Verificar Ativação
                 </Button>
 
                 <Button
                   variant="ghost"
                   onClick={() => setCheckoutData(null)}
-                  className="w-full sm:w-auto min-h-[44px] text-xs text-din-muted"
+                  className="w-full sm:w-auto min-h-[44px] text-xs text-din-muted touch-manipulation"
                 >
-                  Voltar
+                  Alterar Plano
                 </Button>
               </div>
+
+              <p className="text-[11px] text-din-muted text-center leading-relaxed">
+                Assim que o pagamento for compensado pelo gateway Asaas, seu plano Din PRO será ativado de forma 100% automática.
+              </p>
             </div>
           )}
         </div>

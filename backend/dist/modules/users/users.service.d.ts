@@ -1,4 +1,4 @@
-import { UpdateProfileInput, ChangePasswordInput } from './users.schemas.js';
+import { UpdateProfileInput, ChangePasswordInput, ResetUserDataInput } from './users.schemas.js';
 export declare class UsersService {
     getProfile(userId: string): Promise<{
         has_password: boolean;
@@ -45,5 +45,10 @@ export declare class UsersService {
     }>;
     unlinkTelegram(userId: string): Promise<{
         message: string;
+    }>;
+    resetData(userId: string, options: ResetUserDataInput): Promise<{
+        success: boolean;
+        message: string;
+        details: Record<string, number>;
     }>;
 }

@@ -93,6 +93,38 @@ export async function getAuthConfigRequest(): Promise<{ googleClientId: string }
   return data;
 }
 
+export interface ResetUserDataPayload {
+  delete_transactions: boolean;
+  delete_bills: boolean;
+  delete_receivables: boolean;
+  reset_account_balances: boolean;
+  delete_budgets_and_goals?: boolean;
+  delete_categories?: boolean;
+  delete_contacts?: boolean;
+  confirmation: string;
+}
+
+export interface ResetUserDataResponse {
+  success: boolean;
+  message: string;
+  details: {
+    deleted_transactions?: number;
+    deleted_bills?: number;
+    deleted_receivables?: number;
+    reset_accounts?: number;
+    deleted_budgets?: number;
+    deleted_goals?: number;
+    deleted_categories?: number;
+    deleted_contacts?: number;
+  };
+}
+
+export async function resetUserDataRequest(payload: ResetUserDataPayload): Promise<ResetUserDataResponse> {
+  const { data } = await api.post<ResetUserDataResponse>('/users/reset-data', payload);
+  return data;
+}
+
+
 
 
 

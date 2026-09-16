@@ -178,5 +178,128 @@ class UsersService {
             message: 'Conta do Telegram desvinculada com sucesso!',
         };
     }
+    async resetData(userId, options) {
+        const user = await prisma_js_1.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            throw { statusCode: 404, message: 'Usuário não encontrado.' };
+        }
+        const result = {};
+        await prisma_js_1.prisma.$transaction(async (tx) => {
+            // 1. Se delete_transactions for true
+            if (options.delete_transactions) {
+                // Desconectar transações das contas a pagar e receber se estas não forem excluídas
+                await tx.bill.updateMany({
+                    where: { user_id: userId },
+                    data: { transaction_id: null },
+                });
+                await tx.receivable.updateMany({
+                    where: { user_id: userId },
+                    data: { transaction_id: null },
+                });
+                const deletedTx = await tx.transaction.deleteMany({
+                    where: { user_id: userId },
+                });
+                result.deleted_transactions = deletedTx.count;
+            }
+            // 2. Se delete_bills for true
+            if (options.delete_bills) {
+                const deletedBills = await tx.bill.deleteMany({
+                    where: { user_id: userId },
+                });
+                result.deleted_bills = deletedBills.count;
+            }
+            // 3. Se delete_receivables for true
+            if (options.delete_receivables) {
+                const deletedReceivables = await tx.receivable.deleteMany({
+                    where: { user_id: userId },
+                });
+                result.deleted_receivables = deletedReceivables.count;
+            }
+            // 4. Se reset_account_balances for true (mantém as contas, apenas zera initial_balance)
+            if (options.reset_account_balances) {
+                const updatedAccounts = await tx.account.updateMany({
+                    where: { user_id: userId },
+                    data: { initial_balance: 0 },
+                });
+                result.reset_accounts = updatedAccounts.count;
+            }
+            // 5. Se delete_budgets_and_goals for true
+            if (options.delete_budgets_and_goals) {
+                const deletedBudgets = await tx.budget.deleteMany({
+                    where: { user_id: userId },
+                });
+                const deletedGoals = await tx.goal.deleteMany({
+                    where: { user_id: userId },
+                });
+                result.deleted_budgets = deletedBudgets.count;
+                result.deleted_goals = deletedGoals.count;
+            }
+            // 6. Se delete_categories for true (apenas categorias criadas pelo próprio usuário)
+            if (options.delete_categories) {
+                if (!options.delete_transactions) {
+                    await tx.transaction.updateMany({
+                        where: { user_id: userId },
+                        data: { category_id: null },
+                    });
+                }
+                if (!options.delete_bills) {
+                    await tx.bill.updateMany({
+                        where: { user_id: userId },
+                        data: { category_id: null },
+                    });
+                }
+                if (!options.delete_receivables) {
+                    await tx.receivable.updateMany({
+                        where: { user_id: userId },
+                        data: { category_id: null },
+                    });
+                }
+                await tx.budget.deleteMany({
+                    where: { user_id: userId },
+                });
+                const deletedCats = await tx.category.deleteMany({
+                    where: { user_id: userId },
+                });
+                result.deleted_categories = deletedCats.count;
+            }
+            // 7. Se delete_contacts for true
+            if (options.delete_contacts) {
+                if (!options.delete_bills) {
+                    await tx.bill.updateMany({
+                        where: { user_id: userId },
+                        data: { contact_id: null },
+                    });
+                }
+                if (!options.delete_receivables) {
+                    await tx.receivable.updateMany({
+                        where: { user_id: userId },
+                        data: { contact_id: null },
+                    });
+                }
+                const deletedContacts = await tx.contact.deleteMany({
+                    where: { user_id: userId },
+                });
+                result.deleted_contacts = deletedContacts.count;
+            }
+        });
+        // Invalida cache do Redis
+        try {
+            const { redis } = await import('../../lib/redis.js');
+            const keys = await redis.keys(`summary:${userId}:*`);
+            if (keys.length > 0) {
+                await redis.del(...keys);
+            }
+        }
+        catch (e) {
+            // Falha silenciosa do cache
+        }
+        return {
+            success: true,
+            message: 'Limpeza financeira realizada com sucesso.',
+            details: result,
+        };
+    }
 }
 exports.UsersService = UsersService;

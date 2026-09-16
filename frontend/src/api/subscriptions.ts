@@ -40,7 +40,7 @@ export interface MySubscriptionResponse {
 
 export interface CheckoutPayload {
   plan_cycle: 'MONTHLY' | 'YEARLY';
-  billing_type: 'PIX' | 'CREDIT_CARD' | 'BOLETO' | 'UNDEFINED';
+  billing_type?: 'PIX' | 'CREDIT_CARD' | 'BOLETO' | 'UNDEFINED';
   cpf_cnpj?: string;
   phone?: string;
 }
@@ -50,6 +50,7 @@ export interface CheckoutResponse {
   asaas_payment_id: string;
   amount: number;
   due_date: string;
+  url?: string;
   invoice_url?: string;
   bank_slip_url?: string;
   pix_qr_code?: string;

@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { UsersService } from './users.service.js';
-import { updateProfileSchema, changePasswordSchema } from './users.schemas.js';
+import { updateProfileSchema, changePasswordSchema, resetUserDataSchema } from './users.schemas.js';
 import { getUserId } from '../../middleware/auth.middleware.js';
 
 const usersService = new UsersService();
@@ -40,5 +40,13 @@ export class UsersController {
     const result = await usersService.unlinkTelegram(userId);
     return reply.send(result);
   }
+
+  async resetData(request: FastifyRequest, reply: FastifyReply) {
+    const userId = getUserId(request);
+    const body = resetUserDataSchema.parse(request.body);
+    const result = await usersService.resetData(userId, body);
+    return reply.send(result);
+  }
 }
+
 

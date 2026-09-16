@@ -69,8 +69,8 @@ export declare const queryTransactionsSchema: z.ZodObject<{
     limit: z.ZodDefault<z.ZodNumber>;
     search: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    page: number;
     limit: number;
+    page: number;
     type?: "INCOME" | "EXPENSE" | undefined;
     search?: string | undefined;
     account_id?: string | undefined;
@@ -84,10 +84,10 @@ export declare const queryTransactionsSchema: z.ZodObject<{
     account_id?: string | undefined;
     category_id?: string | undefined;
     origin?: "MANUAL" | "WHATSAPP_TEXT" | "WHATSAPP_AUDIO" | "TELEGRAM_TEXT" | "TELEGRAM_AUDIO" | undefined;
+    limit?: number | undefined;
     start_date?: string | undefined;
     end_date?: string | undefined;
     page?: number | undefined;
-    limit?: number | undefined;
 }>;
 export declare const createTransferSchema: z.ZodObject<{
     from_account_id: z.ZodString;

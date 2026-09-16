@@ -1,7 +1,7 @@
 import { z } from 'zod';
 export declare const checkoutSchema: z.ZodObject<{
     plan_cycle: z.ZodDefault<z.ZodEnum<["MONTHLY", "YEARLY"]>>;
-    billing_type: z.ZodDefault<z.ZodEnum<["PIX", "CREDIT_CARD", "BOLETO", "UNDEFINED"]>>;
+    billing_type: z.ZodDefault<z.ZodOptional<z.ZodEnum<["PIX", "CREDIT_CARD", "BOLETO", "UNDEFINED"]>>>;
     cpf_cnpj: z.ZodOptional<z.ZodString>;
     phone: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
@@ -22,6 +22,8 @@ export declare const asaasWebhookSchema: z.ZodObject<{
         id: z.ZodString;
         customer: z.ZodOptional<z.ZodString>;
         subscription: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        paymentLink: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        externalReference: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         value: z.ZodNumber;
         netValue: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         billingType: z.ZodOptional<z.ZodString>;
@@ -36,6 +38,8 @@ export declare const asaasWebhookSchema: z.ZodObject<{
         id: z.ZodString;
         customer: z.ZodOptional<z.ZodString>;
         subscription: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        paymentLink: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        externalReference: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         value: z.ZodNumber;
         netValue: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         billingType: z.ZodOptional<z.ZodString>;
@@ -50,6 +54,8 @@ export declare const asaasWebhookSchema: z.ZodObject<{
         id: z.ZodString;
         customer: z.ZodOptional<z.ZodString>;
         subscription: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        paymentLink: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        externalReference: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         value: z.ZodNumber;
         netValue: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         billingType: z.ZodOptional<z.ZodString>;
@@ -67,6 +73,8 @@ export declare const asaasWebhookSchema: z.ZodObject<{
         id: z.ZodString;
         customer: z.ZodOptional<z.ZodString>;
         subscription: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        paymentLink: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        externalReference: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         value: z.ZodNumber;
         netValue: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         billingType: z.ZodOptional<z.ZodString>;
@@ -81,6 +89,8 @@ export declare const asaasWebhookSchema: z.ZodObject<{
         id: z.ZodString;
         customer: z.ZodOptional<z.ZodString>;
         subscription: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        paymentLink: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        externalReference: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         value: z.ZodNumber;
         netValue: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         billingType: z.ZodOptional<z.ZodString>;
@@ -95,6 +105,8 @@ export declare const asaasWebhookSchema: z.ZodObject<{
         id: z.ZodString;
         customer: z.ZodOptional<z.ZodString>;
         subscription: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        paymentLink: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        externalReference: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         value: z.ZodNumber;
         netValue: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         billingType: z.ZodOptional<z.ZodString>;
@@ -112,6 +124,8 @@ export declare const asaasWebhookSchema: z.ZodObject<{
         id: z.ZodString;
         customer: z.ZodOptional<z.ZodString>;
         subscription: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        paymentLink: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        externalReference: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         value: z.ZodNumber;
         netValue: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         billingType: z.ZodOptional<z.ZodString>;
@@ -126,6 +140,8 @@ export declare const asaasWebhookSchema: z.ZodObject<{
         id: z.ZodString;
         customer: z.ZodOptional<z.ZodString>;
         subscription: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        paymentLink: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        externalReference: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         value: z.ZodNumber;
         netValue: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         billingType: z.ZodOptional<z.ZodString>;
@@ -140,6 +156,8 @@ export declare const asaasWebhookSchema: z.ZodObject<{
         id: z.ZodString;
         customer: z.ZodOptional<z.ZodString>;
         subscription: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        paymentLink: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+        externalReference: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         value: z.ZodNumber;
         netValue: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
         billingType: z.ZodOptional<z.ZodString>;

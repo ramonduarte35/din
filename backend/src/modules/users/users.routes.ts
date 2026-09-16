@@ -10,5 +10,6 @@ export async function usersRoutes(app: FastifyInstance) {
   app.post('/change-password', { preHandler: [authenticate] }, usersController.changePassword);
   app.post('/telegram/link-code', { preHandler: [authenticate] }, usersController.generateTelegramLinkCode);
   app.post('/telegram/unlink', { preHandler: [authenticate] }, usersController.unlinkTelegram);
+  app.post('/reset-data', { preHandler: [authenticate] }, usersController.resetData);
 }
 

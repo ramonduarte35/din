@@ -6,12 +6,11 @@ class AsaasClient {
     baseUrl;
     apiKey;
     constructor() {
+        const rawKey = (env_js_1.env.ASAAS_API_KEY || '').trim();
         // Normaliza eventual escape de $$ vindo do docker-compose para um $ literal
-        this.apiKey = (env_js_1.env.ASAAS_API_KEY || '').trim().replace(/\$\$/g, '$');
-        this.baseUrl =
-            env_js_1.env.ASAAS_ENVIRONMENT === 'production'
-                ? 'https://api.asaas.com/v3'
-                : 'https://api-sandbox.asaas.com/v3';
+        this.apiKey = rawKey.replace(/^\$\$+/, '$').replace(/\$\$/g, '$');
+        const isSandbox = this.apiKey.startsWith('$aact_hmlg_') || env_js_1.env.ASAAS_ENVIRONMENT === 'sandbox';
+        this.baseUrl = isSandbox ? 'https://sandbox.asaas.com/api/v3' : 'https://api.asaas.com/v3';
     }
     isConfigured() {
         return Boolean(this.apiKey && this.apiKey.length > 5);
@@ -250,6 +249,139 @@ class AsaasClient {
         }
         catch (err) {
             console.error('❌ [Asaas Client] Erro em getPayment:', err.message);
+            return null;
+        }
+    }
+    /**
+     * Cria um Link de Pagamento (Checkout Asaas)
+     */
+    async createPaymentLink(data) {
+        if (!this.isConfigured()) {
+            console.log(`ℹ️ [Asaas Mock] API Key não configurada. Simulando Link de Pagamento para: ${data.name}`);
+            const mockId = `link_mock_${Date.now().toString(36)}`;
+            return {
+                id: mockId,
+                name: data.name,
+                value: data.value,
+                active: true,
+                chargeType: data.chargeType || 'RECURRENT',
+                url: `https://sandbox.asaas.com/c/${mockId}`,
+                billingType: data.billingType || 'UNDEFINED',
+                subscriptionCycle: data.subscriptionCycle,
+                description: data.description,
+                dueDateLimitDays: data.dueDateLimitDays,
+                externalReference: data.externalReference,
+            };
+        }
+        try {
+            const response = await fetch(`${this.baseUrl}/paymentLinks`, {
+                method: 'POST',
+                headers: this.getHeaders(),
+                body: JSON.stringify({
+                    name: data.name,
+                    description: data.description || 'Assinatura Din PRO',
+                    billingType: data.billingType || 'UNDEFINED',
+                    chargeType: data.chargeType || 'RECURRENT',
+                    subscriptionCycle: data.subscriptionCycle || 'MONTHLY',
+                    value: data.value,
+                    dueDateLimitDays: data.dueDateLimitDays ?? 3,
+                    externalReference: data.externalReference,
+                    notificationEnabled: data.notificationEnabled ?? true,
+                }),
+            });
+            const resData = (await response.json());
+            if (!response.ok || !resData.url) {
+                const errorMsg = resData.errors?.map((e) => e.description).join(', ') || 'Erro ao criar link de pagamento no Asaas';
+                throw new Error(`Falha no Asaas: ${errorMsg}`);
+            }
+            return resData;
+        }
+        catch (err) {
+            console.error('❌ [Asaas Client] Erro em createPaymentLink:', err.message);
+            throw err;
+        }
+    }
+    /**
+     * Obtém detalhes de um Link de Pagamento no Asaas
+     */
+    async getPaymentLink(paymentLinkId) {
+        if (!this.isConfigured() || paymentLinkId.startsWith('link_mock_')) {
+            return null;
+        }
+        try {
+            const response = await fetch(`${this.baseUrl}/paymentLinks/${paymentLinkId}`, {
+                method: 'GET',
+                headers: this.getHeaders(),
+            });
+            if (!response.ok)
+                return null;
+            return await response.json();
+        }
+        catch (err) {
+            console.error('❌ [Asaas Client] Erro em getPaymentLink:', err.message);
+            return null;
+        }
+    }
+    /**
+     * Exclui um Link de Pagamento no Asaas
+     */
+    async deletePaymentLink(paymentLinkId) {
+        if (!this.isConfigured() || paymentLinkId.startsWith('link_mock_')) {
+            return { deleted: true, id: paymentLinkId };
+        }
+        try {
+            const response = await fetch(`${this.baseUrl}/paymentLinks/${paymentLinkId}`, {
+                method: 'DELETE',
+                headers: this.getHeaders(),
+            });
+            if (!response.ok)
+                return null;
+            return await response.json();
+        }
+        catch (err) {
+            console.error('❌ [Asaas Client] Erro em deletePaymentLink:', err.message);
+            return null;
+        }
+    }
+    /**
+     * Obtém detalhes de uma Assinatura no Asaas
+     */
+    async getSubscription(subscriptionId) {
+        if (!this.isConfigured() || subscriptionId.startsWith('sub_mock_')) {
+            return null;
+        }
+        try {
+            const response = await fetch(`${this.baseUrl}/subscriptions/${subscriptionId}`, {
+                method: 'GET',
+                headers: this.getHeaders(),
+            });
+            if (!response.ok)
+                return null;
+            return await response.json();
+        }
+        catch (err) {
+            console.error('❌ [Asaas Client] Erro em getSubscription:', err.message);
+            return null;
+        }
+    }
+    /**
+     * Cancela uma Assinatura no Asaas
+     */
+    async deleteSubscription(subscriptionId) {
+        if (!this.isConfigured() || subscriptionId.startsWith('sub_mock_')) {
+            return { deleted: true, id: subscriptionId };
+        }
+        try {
+            const response = await fetch(`${this.baseUrl}/subscriptions/${subscriptionId}`, {
+                method: 'DELETE',
+                headers: this.getHeaders(),
+            });
+            if (!response.ok)
+                return null;
+            return await response.json();
+        }
+        catch (err) {
+            console.error('❌ [Asaas Client] Erro em deleteSubscription:', err.message);
             return null;
         }
     }

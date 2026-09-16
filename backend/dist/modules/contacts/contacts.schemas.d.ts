@@ -61,14 +61,14 @@ export declare const listContactsQuerySchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     type?: "PF" | "PJ" | undefined;
     search?: string | undefined;
-    page?: number | undefined;
     limit?: number | undefined;
+    page?: number | undefined;
     _t?: any;
 }, {
     type?: "PF" | "PJ" | undefined;
     search?: string | undefined;
-    page?: number | undefined;
     limit?: number | undefined;
+    page?: number | undefined;
     _t?: any;
 }>;
 export type CreateContactInput = z.infer<typeof createContactSchema>;

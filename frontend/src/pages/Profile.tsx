@@ -9,6 +9,7 @@ import {
 } from '../api/auth';
 import { fetchMySubscription, MySubscriptionResponse } from '../api/subscriptions';
 import { SubscriptionModal } from '../components/subscriptions/SubscriptionModal';
+import { ResetDataModal } from '../components/profile/ResetDataModal';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
@@ -37,6 +38,7 @@ import {
   Smartphone,
   Download,
   RotateCcw,
+  Trash2,
 } from 'lucide-react';
 import { usePWA } from '../contexts/PWAContext';
 import { useToast } from '../contexts/ToastContext';
@@ -53,6 +55,7 @@ export function Profile() {
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(
     searchParams.get('upgrade') === 'true'
   );
+  const [isResetDataModalOpen, setIsResetDataModalOpen] = useState(false);
 
   const loadSubscription = () => {
     fetchMySubscription()
@@ -825,6 +828,43 @@ export function Profile() {
           </div>
         </div>
       </Card>
+
+      {/* Zona de Gerenciamento de Dados: Reiniciar Finanças */}
+      <Card className="bg-card border-rose-500/20 bg-rose-500/5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 shrink-0">
+              <Trash2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-bold text-din-text text-sm">Reiniciar Finanças / Limpar Lançamentos</h4>
+              <p className="text-xs text-din-muted mt-0.5 leading-relaxed max-w-xl">
+                Deseja limpar lançamentos de teste e recomeçar seu controle financeiro do zero? Você pode escolher exatamente o que deseja zerar (extrato, contas a pagar, saldos) mantendo suas contas bancárias e categorias intactas.
+              </p>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsResetDataModalOpen(true)}
+            className="text-xs font-semibold text-rose-400 border border-rose-500/30 hover:bg-rose-500/10 min-h-[44px] shrink-0 px-4 self-start sm:self-auto"
+          >
+            <Trash2 className="w-4 h-4 mr-1.5" />
+            <span>Reiniciar Dados...</span>
+          </Button>
+        </div>
+      </Card>
+
+      {/* Modal de Limpeza Seletiva de Finanças */}
+      <ResetDataModal
+        isOpen={isResetDataModalOpen}
+        onClose={() => setIsResetDataModalOpen(false)}
+        onSuccess={() => {
+          refreshUser?.();
+        }}
+      />
 
       {/* Modal de Assinatura & Upgrade Asaas */}
       <SubscriptionModal

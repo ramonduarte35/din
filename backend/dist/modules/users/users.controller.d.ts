@@ -5,4 +5,5 @@ export declare class UsersController {
     changePassword(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     generateTelegramLinkCode(request: FastifyRequest, reply: FastifyReply): Promise<never>;
     unlinkTelegram(request: FastifyRequest, reply: FastifyReply): Promise<never>;
+    resetData(request: FastifyRequest, reply: FastifyReply): Promise<never>;
 }

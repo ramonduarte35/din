@@ -30,15 +30,15 @@ export declare const queryUsersSubscriptionSchema: z.ZodObject<{
     limit: z.ZodDefault<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     status: "ACTIVE" | "TRIALING" | "PAST_DUE" | "CANCELED" | "EXPIRED" | "ALL";
-    page: number;
     limit: number;
+    page: number;
     tier: "FREE" | "PRO" | "ALL";
     search?: string | undefined;
 }, {
     status?: "ACTIVE" | "TRIALING" | "PAST_DUE" | "CANCELED" | "EXPIRED" | "ALL" | undefined;
     search?: string | undefined;
-    page?: number | undefined;
     limit?: number | undefined;
+    page?: number | undefined;
     tier?: "FREE" | "PRO" | "ALL" | undefined;
 }>;
 export type QueryUsersSubscriptionInput = z.infer<typeof queryUsersSubscriptionSchema>;

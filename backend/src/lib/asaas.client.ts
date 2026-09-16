@@ -34,17 +34,42 @@ export interface AsaasPaymentResponse {
   bankSlipUrl?: string;
 }
 
+export interface AsaasPaymentLinkData {
+  name: string;
+  description?: string;
+  billingType?: 'UNDEFINED' | 'PIX' | 'CREDIT_CARD' | 'BOLETO';
+  chargeType?: 'DETACHED' | 'RECURRENT' | 'INSTALLMENT';
+  subscriptionCycle?: 'MONTHLY' | 'YEARLY' | 'BIWEEKLY' | 'QUARTERLY' | 'SEMIANNUALLY';
+  value: number;
+  dueDateLimitDays?: number;
+  externalReference?: string;
+  notificationEnabled?: boolean;
+}
+
+export interface AsaasPaymentLinkResponse {
+  id: string;
+  name: string;
+  value: number;
+  active: boolean;
+  chargeType: string;
+  url: string;
+  billingType: string;
+  subscriptionCycle?: string;
+  description?: string;
+  dueDateLimitDays?: number;
+  externalReference?: string;
+}
+
 export class AsaasClient {
   private baseUrl: string;
   private apiKey: string;
 
   constructor() {
+    const rawKey = (env.ASAAS_API_KEY || '').trim();
     // Normaliza eventual escape de $$ vindo do docker-compose para um $ literal
-    this.apiKey = (env.ASAAS_API_KEY || '').trim().replace(/\$\$/g, '$');
-    this.baseUrl =
-      env.ASAAS_ENVIRONMENT === 'production'
-        ? 'https://api.asaas.com/v3'
-        : 'https://api-sandbox.asaas.com/v3';
+    this.apiKey = rawKey.replace(/^\$\$+/, '$').replace(/\$\$/g, '$');
+    const isSandbox = this.apiKey.startsWith('$aact_hmlg_') || env.ASAAS_ENVIRONMENT === 'sandbox';
+    this.baseUrl = isSandbox ? 'https://sandbox.asaas.com/api/v3' : 'https://api.asaas.com/v3';
   }
 
   private isConfigured(): boolean {
@@ -307,6 +332,142 @@ export class AsaasClient {
       return (await response.json()) as AsaasPaymentResponse;
     } catch (err: any) {
       console.error('❌ [Asaas Client] Erro em getPayment:', err.message);
+      return null;
+    }
+  }
+
+  /**
+   * Cria um Link de Pagamento (Checkout Asaas)
+   */
+  async createPaymentLink(data: AsaasPaymentLinkData): Promise<AsaasPaymentLinkResponse> {
+    if (!this.isConfigured()) {
+      console.log(`ℹ️ [Asaas Mock] API Key não configurada. Simulando Link de Pagamento para: ${data.name}`);
+      const mockId = `link_mock_${Date.now().toString(36)}`;
+      return {
+        id: mockId,
+        name: data.name,
+        value: data.value,
+        active: true,
+        chargeType: data.chargeType || 'RECURRENT',
+        url: `https://sandbox.asaas.com/c/${mockId}`,
+        billingType: data.billingType || 'UNDEFINED',
+        subscriptionCycle: data.subscriptionCycle,
+        description: data.description,
+        dueDateLimitDays: data.dueDateLimitDays,
+        externalReference: data.externalReference,
+      };
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/paymentLinks`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({
+          name: data.name,
+          description: data.description || 'Assinatura Din PRO',
+          billingType: data.billingType || 'UNDEFINED',
+          chargeType: data.chargeType || 'RECURRENT',
+          subscriptionCycle: data.subscriptionCycle || 'MONTHLY',
+          value: data.value,
+          dueDateLimitDays: data.dueDateLimitDays ?? 3,
+          externalReference: data.externalReference,
+          notificationEnabled: data.notificationEnabled ?? true,
+        }),
+      });
+
+      const resData = (await response.json()) as any;
+      if (!response.ok || !resData.url) {
+        const errorMsg = resData.errors?.map((e: any) => e.description).join(', ') || 'Erro ao criar link de pagamento no Asaas';
+        throw new Error(`Falha no Asaas: ${errorMsg}`);
+      }
+
+      return resData as AsaasPaymentLinkResponse;
+    } catch (err: any) {
+      console.error('❌ [Asaas Client] Erro em createPaymentLink:', err.message);
+      throw err;
+    }
+  }
+
+  /**
+   * Obtém detalhes de um Link de Pagamento no Asaas
+   */
+  async getPaymentLink(paymentLinkId: string): Promise<any> {
+    if (!this.isConfigured() || paymentLinkId.startsWith('link_mock_')) {
+      return null;
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/paymentLinks/${paymentLinkId}`, {
+        method: 'GET',
+        headers: this.getHeaders(),
+      });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (err: any) {
+      console.error('❌ [Asaas Client] Erro em getPaymentLink:', err.message);
+      return null;
+    }
+  }
+
+  /**
+   * Exclui um Link de Pagamento no Asaas
+   */
+  async deletePaymentLink(paymentLinkId: string): Promise<any> {
+    if (!this.isConfigured() || paymentLinkId.startsWith('link_mock_')) {
+      return { deleted: true, id: paymentLinkId };
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/paymentLinks/${paymentLinkId}`, {
+        method: 'DELETE',
+        headers: this.getHeaders(),
+      });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (err: any) {
+      console.error('❌ [Asaas Client] Erro em deletePaymentLink:', err.message);
+      return null;
+    }
+  }
+
+  /**
+   * Obtém detalhes de uma Assinatura no Asaas
+   */
+  async getSubscription(subscriptionId: string): Promise<any> {
+    if (!this.isConfigured() || subscriptionId.startsWith('sub_mock_')) {
+      return null;
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/subscriptions/${subscriptionId}`, {
+        method: 'GET',
+        headers: this.getHeaders(),
+      });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (err: any) {
+      console.error('❌ [Asaas Client] Erro em getSubscription:', err.message);
+      return null;
+    }
+  }
+
+  /**
+   * Cancela uma Assinatura no Asaas
+   */
+  async deleteSubscription(subscriptionId: string): Promise<any> {
+    if (!this.isConfigured() || subscriptionId.startsWith('sub_mock_')) {
+      return { deleted: true, id: subscriptionId };
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/subscriptions/${subscriptionId}`, {
+        method: 'DELETE',
+        headers: this.getHeaders(),
+      });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (err: any) {
+      console.error('❌ [Asaas Client] Erro em deleteSubscription:', err.message);
       return null;
     }
   }

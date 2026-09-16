@@ -117,8 +117,8 @@ export declare const listBillsQuerySchema: z.ZodObject<{
     contact_id?: string | undefined;
     month?: number | undefined;
     year?: number | undefined;
-    page?: number | undefined;
     limit?: number | undefined;
+    page?: number | undefined;
     start_due_date?: string | undefined;
     end_due_date?: string | undefined;
     _t?: any;
@@ -130,8 +130,8 @@ export declare const listBillsQuerySchema: z.ZodObject<{
     contact_id?: string | undefined;
     month?: number | undefined;
     year?: number | undefined;
-    page?: number | undefined;
     limit?: number | undefined;
+    page?: number | undefined;
     start_due_date?: string | undefined;
     end_due_date?: string | undefined;
     _t?: any;

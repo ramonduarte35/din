@@ -36,5 +36,11 @@ class UsersController {
         const result = await usersService.unlinkTelegram(userId);
         return reply.send(result);
     }
+    async resetData(request, reply) {
+        const userId = (0, auth_middleware_js_1.getUserId)(request);
+        const body = users_schemas_js_1.resetUserDataSchema.parse(request.body);
+        const result = await usersService.resetData(userId, body);
+        return reply.send(result);
+    }
 }
 exports.UsersController = UsersController;

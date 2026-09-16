@@ -98,7 +98,7 @@ class SubscriptionsService {
         };
     }
     /**
-     * Inicia o fluxo de checkout e geração de cobrança no Asaas
+     * Inicia o fluxo de checkout e geração de cobrança no Asaas via Payment Links
      */
     async createCheckout(userId, input) {
         const user = await prisma_js_1.prisma.user.findUnique({
@@ -107,109 +107,52 @@ class SubscriptionsService {
         if (!user) {
             throw new Error('Usuário não encontrado');
         }
-        // 1. Obter ou criar cliente no Asaas
-        let asaasCustomerId = user.asaas_customer_id;
-        if (!asaasCustomerId) {
-            const customer = await asaas_client_js_1.asaasClient.findOrCreateCustomer({
-                name: user.name,
-                email: user.email,
-                cpfCnpj: input.cpf_cnpj || undefined,
-                phone: input.phone || user.phone_number || undefined,
-            });
-            asaasCustomerId = customer.id;
-            // Se outra conta tiver o mesmo id (ex: conta de teste antiga, admin anterior ou re-cadastro),
-            // desvincula da conta anterior para evitar conflito caso a migration ainda não tenha sido aplicada
-            const previousOwner = await prisma_js_1.prisma.user.findFirst({
-                where: {
-                    asaas_customer_id: asaasCustomerId,
-                    id: { not: userId },
-                },
-            });
-            if (previousOwner) {
-                console.warn(`⚠️ [Subscriptions] Reatribuindo asaas_customer_id (${asaasCustomerId}) do usuário ${previousOwner.id} para o usuário ativo ${userId}`);
-                await prisma_js_1.prisma.user.update({
-                    where: { id: previousOwner.id },
-                    data: { asaas_customer_id: null },
-                }).catch((err) => {
-                    console.warn('⚠️ [Subscriptions] Aviso ao desvincular asaas_customer_id antigo:', err.message);
-                });
+        // Cancelar assinatura Asaas anterior se existir (como feito no MandacaruZap)
+        if (user.asaas_subscription_id) {
+            try {
+                await asaas_client_js_1.asaasClient.deleteSubscription(user.asaas_subscription_id);
+                console.log(`[Asaas Checkout] Assinatura anterior deletada: ${user.asaas_subscription_id}`);
             }
-            await prisma_js_1.prisma.user.update({
-                where: { id: userId },
-                data: { asaas_customer_id: asaasCustomerId },
-            });
+            catch (err) {
+                console.warn(`[Asaas Checkout] Aviso ao deletar assinatura anterior: ${err.message}`);
+            }
         }
-        else if (input.cpf_cnpj || input.phone) {
-            // Atualiza CPF/telefone do cliente pré-existente no Asaas
-            await asaas_client_js_1.asaasClient
-                .updateCustomer(asaasCustomerId, {
-                cpfCnpj: input.cpf_cnpj || undefined,
-                phone: input.phone || user.phone_number || undefined,
-            })
-                .catch((err) => {
-                console.warn('⚠️ [Subscriptions] Aviso ao atualizar dados do cliente no Asaas:', err.message);
-            });
-        }
-        // 2. Definir valor e vencimento
         const isYearly = input.plan_cycle === 'YEARLY';
         const amount = isYearly ? 199.0 : 19.9;
-        const planName = isYearly ? 'Din PRO Anual' : 'Din PRO Mensal';
-        const dueDateObj = new Date();
-        dueDateObj.setDate(dueDateObj.getDate() + 2); // 2 dias de prazo
-        const dueDateStr = dueDateObj.toISOString().split('T')[0];
-        // 3. Criar cobrança no Asaas
-        const payment = await asaas_client_js_1.asaasClient.createPayment({
-            customerId: asaasCustomerId,
-            billingType: input.billing_type,
+        const cycleName = isYearly ? 'Anual' : 'Mensal';
+        const planName = `Din PRO ${cycleName}`;
+        // Gerar link de pagamento direto no Asaas (Checkout oficial suportando PIX, Cartão e Boleto)
+        const paymentLink = await asaas_client_js_1.asaasClient.createPaymentLink({
+            name: `Assinatura ${planName}`,
+            description: `Acesso ${cycleName.toLowerCase()} ao plano Din PRO com IA, WhatsApp e sem anúncios`,
+            billingType: 'UNDEFINED',
+            chargeType: 'RECURRENT',
+            subscriptionCycle: isYearly ? 'YEARLY' : 'MONTHLY',
             value: amount,
-            dueDate: dueDateStr,
-            description: `Assinatura ${planName} - Usuário: ${user.email}`,
+            dueDateLimitDays: 3,
+            externalReference: `${user.id}:${input.plan_cycle}`,
         });
-        // 4. Se for PIX ou UNDEFINED, gerar QR Code PIX
-        let pixData = {};
-        if (input.billing_type === 'PIX' || input.billing_type === 'UNDEFINED') {
-            try {
-                pixData = await asaas_client_js_1.asaasClient.getPixQrCode(payment.id);
-            }
-            catch (pixErr) {
-                console.warn('⚠️ [Subscriptions] Não foi possível gerar QR Code PIX imediatamente:', pixErr.message);
-            }
-        }
-        // 5. Salvar registro de pagamento no banco de dados local
-        const billingTypeEnum = input.billing_type === 'PIX'
-            ? client_1.PaymentBillingType.PIX
-            : input.billing_type === 'CREDIT_CARD'
-                ? client_1.PaymentBillingType.CREDIT_CARD
-                : input.billing_type === 'BOLETO'
-                    ? client_1.PaymentBillingType.BOLETO
-                    : client_1.PaymentBillingType.UNDEFINED;
+        // Salva registro de pagamento pendente localmente
         const savedPayment = await prisma_js_1.prisma.subscriptionPayment.create({
             data: {
                 user_id: user.id,
-                asaas_payment_id: payment.id,
-                amount: payment.value,
-                net_amount: payment.netValue ?? null,
-                billing_type: billingTypeEnum,
+                asaas_payment_id: paymentLink.id,
+                amount: amount,
+                billing_type: client_1.PaymentBillingType.UNDEFINED,
                 status: client_1.PaymentStatus.PENDING,
-                due_date: new Date(payment.dueDate),
-                invoice_url: payment.invoiceUrl ?? null,
-                bank_slip_url: payment.bankSlipUrl ?? null,
-                pix_qr_code: pixData.encodedImage ?? null,
-                pix_copy_paste: pixData.payload ?? null,
+                due_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+                invoice_url: paymentLink.url,
                 description: planName,
-                raw_payload: payment,
+                raw_payload: paymentLink,
             },
         });
         return {
             payment_id: savedPayment.id,
-            asaas_payment_id: payment.id,
-            amount: payment.value,
-            due_date: payment.dueDate,
-            invoice_url: payment.invoiceUrl,
-            bank_slip_url: payment.bankSlipUrl,
-            pix_qr_code: pixData.encodedImage,
-            pix_copy_paste: pixData.payload,
-            pix_expires_at: pixData.expirationDate,
+            asaas_payment_id: paymentLink.id,
+            amount: amount,
+            due_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            url: paymentLink.url,
+            invoice_url: paymentLink.url,
         };
     }
     /**
@@ -217,17 +160,59 @@ class SubscriptionsService {
      */
     async processAsaasWebhook(payload) {
         const { event, payment } = payload;
-        console.log(`🔔 [Asaas Webhook] Evento recebido: ${event} para cobrança: ${payment.id}`);
+        console.log(`🔔 [Asaas Webhook] Evento recebido: ${event} para cobrança: ${payment?.id}`);
         if (!payment?.id) {
             console.warn('⚠️ [Asaas Webhook] Payload sem ID de pagamento.');
             return { status: 'ignored_missing_id' };
         }
-        // 1. Tentar localizar o pagamento pelo asaas_payment_id
-        let localPayment = await prisma_js_1.prisma.subscriptionPayment.findUnique({
-            where: { asaas_payment_id: payment.id },
-            include: { user: true },
-        });
-        let targetUserId = localPayment?.user_id || null;
+        const paymentLink = payment.paymentLink;
+        const subscriptionId = payment.subscription;
+        let extRef = payment.externalReference || '';
+        // Se externalReference não veio no payment, busca no paymentLink ou na subscription (igual MandacaruZap)
+        if (!extRef && paymentLink) {
+            try {
+                const plDetails = await asaas_client_js_1.asaasClient.getPaymentLink(paymentLink);
+                if (plDetails?.externalReference) {
+                    extRef = plDetails.externalReference;
+                }
+            }
+            catch (err) {
+                console.warn('⚠️ [Asaas Webhook] Falha ao consultar paymentLink:', err.message);
+            }
+        }
+        if (!extRef && subscriptionId) {
+            try {
+                const subDetails = await asaas_client_js_1.asaasClient.getSubscription(subscriptionId);
+                if (subDetails?.externalReference) {
+                    extRef = subDetails.externalReference;
+                }
+            }
+            catch (err) {
+                console.warn('⚠️ [Asaas Webhook] Falha ao consultar subscription:', err.message);
+            }
+        }
+        let targetUserId = null;
+        let planCycle = 'MONTHLY';
+        if (extRef && extRef.includes(':')) {
+            const parts = extRef.split(':');
+            targetUserId = parts[0];
+            planCycle = parts[1] || 'MONTHLY';
+        }
+        // 1. Tentar localizar o pagamento pelo asaas_payment_id (ou paymentLink)
+        if (!targetUserId) {
+            const localPayment = await prisma_js_1.prisma.subscriptionPayment.findFirst({
+                where: {
+                    OR: [
+                        { asaas_payment_id: payment.id },
+                        paymentLink ? { asaas_payment_id: paymentLink } : { id: '__none__' },
+                    ],
+                },
+                select: { user_id: true },
+            });
+            if (localPayment) {
+                targetUserId = localPayment.user_id;
+            }
+        }
         // 2. Se não achou localmente, tentar achar o usuário pelo customer id do Asaas
         if (!targetUserId && payment.customer) {
             const userByCustomer = await prisma_js_1.prisma.user.findFirst({
@@ -248,8 +233,8 @@ class SubscriptionsService {
         const isOverdue = event === 'PAYMENT_OVERDUE';
         const isRefunded = event === 'PAYMENT_REFUNDED' || event === 'PAYMENT_DELETED';
         if (isPaymentSuccess) {
-            // Determina período da assinatura: se valor >= 150 considera Anual (365 dias), caso contrário Mensal (30 dias)
-            const durationDays = payment.value >= 150 ? 365 : 30;
+            // Determina período da assinatura: se cycle YEARLY ou valor >= 150 considera Anual (365 dias), caso contrário Mensal (30 dias)
+            const durationDays = planCycle === 'YEARLY' || payment.value >= 150 ? 365 : 30;
             // Se o usuário já tiver uma data futura válida, estende a partir dela; senão, a partir de agora
             const user = await prisma_js_1.prisma.user.findUnique({ where: { id: targetUserId } });
             const baseDate = user?.subscription_expires_at && user.subscription_expires_at > now
@@ -262,7 +247,8 @@ class SubscriptionsService {
                     subscription_tier: client_1.SubscriptionTier.PRO,
                     subscription_status: client_1.SubscriptionStatus.ACTIVE,
                     subscription_expires_at: baseDate,
-                    asaas_subscription_id: payment.subscription || user?.asaas_subscription_id || null,
+                    asaas_subscription_id: subscriptionId || user?.asaas_subscription_id || null,
+                    asaas_customer_id: payment.customer || user?.asaas_customer_id || null,
                 },
             });
             console.log(`⭐ [Asaas Webhook] Usuário ${targetUserId} promovido a PRO até ${baseDate.toISOString()} (+${durationDays} dias).`);
@@ -299,7 +285,7 @@ class SubscriptionsService {
             create: {
                 user_id: targetUserId,
                 asaas_payment_id: payment.id,
-                asaas_subscription_id: payment.subscription || null,
+                asaas_subscription_id: subscriptionId || null,
                 amount: payment.value,
                 net_amount: payment.netValue ?? null,
                 status: paymentStatusEnum,
@@ -308,7 +294,7 @@ class SubscriptionsService {
                 client_payment_date: payment.clientPaymentDate ? new Date(payment.clientPaymentDate) : null,
                 invoice_url: payment.invoiceUrl || null,
                 bank_slip_url: payment.bankSlipUrl || null,
-                description: payment.description || null,
+                description: payment.description || (planCycle === 'YEARLY' ? 'Din PRO Anual' : 'Din PRO Mensal'),
                 raw_payload: payload,
             },
             update: {

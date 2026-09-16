@@ -56,18 +56,15 @@ export declare class SubscriptionsService {
         }[];
     }>;
     /**
-     * Inicia o fluxo de checkout e geração de cobrança no Asaas
+     * Inicia o fluxo de checkout e geração de cobrança no Asaas via Payment Links
      */
     createCheckout(userId: string, input: CheckoutInput): Promise<{
         payment_id: string;
         asaas_payment_id: string;
         amount: number;
         due_date: string;
-        invoice_url: string | undefined;
-        bank_slip_url: string | undefined;
-        pix_qr_code: string | undefined;
-        pix_copy_paste: string | undefined;
-        pix_expires_at: string | undefined;
+        url: string;
+        invoice_url: string;
     }>;
     /**
      * Processa Webhooks recebidos da API do Asaas

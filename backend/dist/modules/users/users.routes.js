@@ -10,4 +10,5 @@ async function usersRoutes(app) {
     app.post('/change-password', { preHandler: [auth_middleware_js_1.authenticate] }, usersController.changePassword);
     app.post('/telegram/link-code', { preHandler: [auth_middleware_js_1.authenticate] }, usersController.generateTelegramLinkCode);
     app.post('/telegram/unlink', { preHandler: [auth_middleware_js_1.authenticate] }, usersController.unlinkTelegram);
+    app.post('/reset-data', { preHandler: [auth_middleware_js_1.authenticate] }, usersController.resetData);
 }

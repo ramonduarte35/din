@@ -15,3 +15,17 @@ export const changePasswordSchema = z.object({
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 
+export const resetUserDataSchema = z.object({
+  delete_transactions: z.boolean().default(true),
+  delete_bills: z.boolean().default(true),
+  delete_receivables: z.boolean().default(true),
+  reset_account_balances: z.boolean().default(true),
+  delete_budgets_and_goals: z.boolean().default(false),
+  delete_categories: z.boolean().default(false),
+  delete_contacts: z.boolean().default(false),
+  confirmation: z.string().refine((val) => val === 'ZERAR' || val === 'LIMPAR', {
+    message: 'Digite ZERAR ou LIMPAR para confirmar',
+  }),
+});
+
+export type ResetUserDataInput = z.infer<typeof resetUserDataSchema>;
