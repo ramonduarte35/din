@@ -17,7 +17,9 @@ const possibleEnvPaths = [
 ];
 for (const envPath of possibleEnvPaths) {
     if (fs_1.default.existsSync(envPath)) {
-        dotenv_1.default.config({ path: envPath });
+        // override: true garante que se o Docker Compose interpolou com $ e passou string vazia "",
+        // o valor real lido diretamente do arquivo .env no disco seja preservado
+        dotenv_1.default.config({ path: envPath, override: true });
         break;
     }
 }
