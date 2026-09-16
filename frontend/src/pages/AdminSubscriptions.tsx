@@ -18,12 +18,14 @@ import {
   X,
   Check,
   Zap,
+  Tag,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Input } from '../components/ui/Input';
 import { useToast } from '../contexts/ToastContext';
+import { AdminAffiliatesTab } from '../components/admin/AdminAffiliatesTab';
 import {
   fetchAdminSubscriptionsOverview,
   fetchAdminSubscriptionsUsers,
@@ -39,7 +41,7 @@ export function AdminSubscriptions() {
   const [overview, setOverview] = useState<AdminSubscriptionOverview | null>(null);
   const [users, setUsers] = useState<AdminSubscriptionUser[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'users' | 'payments'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'payments' | 'affiliates'>('users');
 
   // Loading states
   const [isLoadingOverview, setIsLoadingOverview] = useState(true);
@@ -293,6 +295,19 @@ export function AdminSubscriptions() {
         >
           <CreditCard className="w-4 h-4" />
           <span>Cobranças Asaas</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('affiliates')}
+          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all min-h-[44px] flex items-center gap-2 ${
+            activeTab === 'affiliates'
+              ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40'
+              : 'text-din-muted hover:text-din-text hover:bg-card'
+          }`}
+        >
+          <Tag className="w-4 h-4" />
+          <span>Banners & Afiliados</span>
         </button>
       </div>
 
@@ -564,6 +579,9 @@ export function AdminSubscriptions() {
           )}
         </div>
       )}
+
+      {/* Aba: Banners de Afiliados & Publicidade */}
+      {activeTab === 'affiliates' && <AdminAffiliatesTab />}
 
       {/* Modal de Gestão Manual do Plano do Usuário */}
       {isManageModalOpen && selectedUser && (

@@ -9,6 +9,7 @@ import { getCategoriesRequest, Category } from '../api/categories';
 import { TransactionFiltersBar } from '../components/transactions/TransactionFilters';
 import { TransactionTable } from '../components/transactions/TransactionTable';
 import { TransactionModal } from '../components/transactions/TransactionModal';
+import { AffiliateBannerCard } from '../components/ads/AffiliateBannerCard';
 import { Button } from '../components/ui/Button';
 import { Plus, Download } from 'lucide-react';
 import { useLayout } from '../components/layout/AppLayout';
@@ -190,6 +191,9 @@ export function Transactions() {
         onChange={setFilters}
         onClear={handleClearFilters}
       />
+
+      {/* Banner de Ofertas de Afiliados (Apenas Usuários FREE) */}
+      <AffiliateBannerCard placement="TRANSACTIONS" className="my-3" />
 
       {/* Tabela de Transações */}
       <TransactionTable

@@ -23,6 +23,7 @@ import { contactsRoutes }        from './modules/contacts/contacts.routes.js';
 import { receivablesRoutes }     from './modules/receivables/receivables.routes.js';
 import { subscriptionsRoutes }   from './modules/subscriptions/subscriptions.routes.js';
 import { adminSubscriptionsRoutes } from './modules/admin/admin.subscriptions.routes.js';
+import { adminAffiliatesRoutes, affiliatesRoutes } from './modules/admin/admin.affiliates.routes.js';
 import { serializeRequest, serializeError } from './lib/pii-sanitizer.js';
 
 export function buildApp() {
@@ -132,6 +133,8 @@ export function buildApp() {
       v1.register(receivablesRoutes,    { prefix: '/receivables' });
       v1.register(subscriptionsRoutes,  { prefix: '/subscriptions' });
       v1.register(adminSubscriptionsRoutes, { prefix: '/admin/subscriptions' });
+      v1.register(adminAffiliatesRoutes, { prefix: '/admin/affiliates' });
+      v1.register(affiliatesRoutes,      { prefix: '/affiliates' });
     },
     { prefix: '/api/v1' }
   );

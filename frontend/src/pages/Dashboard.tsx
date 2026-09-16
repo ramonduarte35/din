@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { SummaryCards } from '../components/dashboard/SummaryCards';
 import { FinancialHealthWidget } from '../components/dashboard/FinancialHealthWidget';
 import { BudgetOverviewCard } from '../components/dashboard/BudgetOverviewCard';
+import { AffiliateBannerCard } from '../components/ads/AffiliateBannerCard';
 import { AccountsWidget } from '../components/dashboard/AccountsWidget';
 import { BillsWidget } from '../components/dashboard/BillsWidget';
 import { CategoryChart } from '../components/dashboard/CategoryChart';
@@ -190,6 +191,9 @@ export function Dashboard() {
 
       {/* 1. Cards de Resumo / KPIs Gerais */}
       <SummaryCards summary={summary} isLoading={isLoading} />
+
+      {/* Banner de Afiliados / Ofertas Parceiras (Exibido apenas para usuários FREE) */}
+      <AffiliateBannerCard placement="DASHBOARD" className="my-2" />
 
       {/* 2. Score de Saúde Financeira com IA & Orçamentos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

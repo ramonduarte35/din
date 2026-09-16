@@ -28,6 +28,7 @@ const contacts_routes_js_1 = require("./modules/contacts/contacts.routes.js");
 const receivables_routes_js_1 = require("./modules/receivables/receivables.routes.js");
 const subscriptions_routes_js_1 = require("./modules/subscriptions/subscriptions.routes.js");
 const admin_subscriptions_routes_js_1 = require("./modules/admin/admin.subscriptions.routes.js");
+const admin_affiliates_routes_js_1 = require("./modules/admin/admin.affiliates.routes.js");
 const pii_sanitizer_js_1 = require("./lib/pii-sanitizer.js");
 function buildApp() {
     const app = (0, fastify_1.default)({
@@ -126,6 +127,8 @@ function buildApp() {
         v1.register(receivables_routes_js_1.receivablesRoutes, { prefix: '/receivables' });
         v1.register(subscriptions_routes_js_1.subscriptionsRoutes, { prefix: '/subscriptions' });
         v1.register(admin_subscriptions_routes_js_1.adminSubscriptionsRoutes, { prefix: '/admin/subscriptions' });
+        v1.register(admin_affiliates_routes_js_1.adminAffiliatesRoutes, { prefix: '/admin/affiliates' });
+        v1.register(admin_affiliates_routes_js_1.affiliatesRoutes, { prefix: '/affiliates' });
     }, { prefix: '/api/v1' });
     return app;
 }

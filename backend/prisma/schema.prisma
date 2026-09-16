@@ -483,3 +483,25 @@ model SubscriptionPayment {
   @@index([created_at])
   @@map("subscription_payments")
 }
+
+model AffiliateBanner {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?  @db.Text
+  image_url     String?  @db.Text
+  badge_text    String?
+  cta_text      String   @default("Saiba Mais")
+  target_url    String   @db.Text
+  placement     String   @default("DASHBOARD") // DASHBOARD, TRANSACTIONS, BILLS, GLOBAL
+  is_active     Boolean  @default(true)
+  views_count   Int      @default(0)
+  clicks_count  Int      @default(0)
+  display_order Int      @default(0)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@index([is_active, placement])
+  @@index([display_order])
+  @@map("affiliate_banners")
+}
+
