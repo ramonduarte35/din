@@ -62,23 +62,22 @@ flowchart LR
 
 ---
 
-## 📈 2. Projeção Financeira & Unit Economics do SaaS
+## 📈 2. Projeção Financeira & Modelo de Negócio (Freemium Híbrido)
 
-### 2.1. Estrutura de Planos Sugerida
-* **Plano Básico Pessoal:** R$ 19,90/mês (ou R$ 197/ano).
-* **Plano Premium Pessoal:** R$ 29,90/mês (ou R$ 279/ano) — Contas ilimitadas, orçamentos e relatórios.
-* **Plano Din PRO / MEI:** R$ 49,90/mês (ou R$ 497/ano) — Contas a pagar/receber, cobranças via WhatsApp e fluxo de caixa.
+### 2.1. Estrutura de Planos
+* **Plano Grátis:** Acesso com limites saudáveis de mensagens + **Banners de anúncios não invasivos** no painel web (AdSense / Programática).
+* **Plano PRO Único:** **R$ 19,90 / mês** (ou R$ 197 / ano) — Mensagens e áudios ilimitados no WhatsApp/Telegram, alertas de vencimento, múltiplas contas, orçamentos e painel 100% sem anúncios.
 
-> **Ticket Médio Estimado:** **R$ 29,00 a R$ 32,00 / usuário ativo / mês**.
+> **Conversão Estimada:** **4% a 7%** da base total de usuários migram para o Plano PRO.
 
-### 2.2. Cenários de Escala e Faturamento (MRR / Lucro)
+### 2.2. Cenários de Escala e Faturamento
 
-| Fase de Crescimento | Assinantes Ativos | Faturamento Mensal (MRR) | Custos Operacionais | Lucro Líquido Estimado |
-| :--- | :---: | :---: | :---: | :---: |
-| **Validação (1º - 3º mês)** | 150 | R$ 4.350 / mês | ~R$ 380 / mês | **R$ 3.970 / mês** |
-| **Tração (6º - 12º mês)** | 600 | R$ 18.000 / mês | ~R$ 1.200 / mês | **R$ 16.800 / mês** |
-| **Consolidação (12º - 24º mês)** | 2.000 | R$ 64.000 / mês | ~R$ 3.800 / mês | **R$ 60.200 / mês** |
-| **Escala Nacional (2 - 3 anos)** | 6.000 | R$ 204.000 / mês | ~R$ 11.500 / mês | **R$ 192.500 / mês** |
+| Base Total de Usuários | Usuários Grátis (Banners) | Assinantes PRO (5% Conv.) | Receita Mensal Total | Custos Estimados | Lucro Líquido Mensal |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| **1.000 usuários** | 950 (~R$ 120/mês) | 50 (R$ 995/mês) | **R$ 1.115 / mês** | ~R$ 180 / mês | **~R$ 935 / mês** |
+| **5.000 usuários** | 4.750 (~R$ 600/mês) | 250 (R$ 4.975/mês) | **R$ 5.575 / mês** | ~R$ 650 / mês | **~R$ 4.925 / mês** |
+| **20.000 usuários** | 19.000 (~R$ 2.400/mês) | 1.000 (R$ 19.900/mês) | **R$ 22.300 / mês** | ~R$ 2.100 / mês | **~R$ 20.200 / mês** |
+| **100.000 usuários** | 95.000 (~R$ 12.000/mês) | 5.000 (R$ 99.500/mês) | **R$ 111.500 / mês** | ~R$ 9.800 / mês | **~R$ 101.700 / mês** |
 
 ---
 
