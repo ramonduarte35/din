@@ -293,41 +293,49 @@ export const Receivables: React.FC = () => {
 
       {/* KPI Cards */}
       {summary && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <CircleDollarSign className="w-4 h-4 text-teal-400" />
-              <span className="text-xs font-medium text-foreground/50">Total Esperado</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+          <Card className="p-4 sm:p-5 flex items-center justify-between shadow-lg bg-card border-border">
+            <div className="min-w-0 flex-1 pr-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-foreground/60 block mb-1">Total Esperado</span>
+              <div className="text-xl sm:text-2xl font-bold font-mono text-foreground whitespace-nowrap">{maskValue(totalExpected, formatCurrencyBRL(totalExpected))}</div>
+              <div className="text-xs text-foreground/50 mt-1">{(summary.total_pending.count + summary.total_overdue.count + summary.total_received.count)} conta(s)</div>
             </div>
-            <div className="text-lg font-bold text-foreground">{maskValue(totalExpected, formatCurrencyBRL(totalExpected))}</div>
-            <div className="text-xs text-foreground/40 mt-0.5">{(summary.total_pending.count + summary.total_overdue.count + summary.total_received.count)} conta(s)</div>
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shrink-0">
+              <CircleDollarSign className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
           </Card>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-4 h-4 text-amber-400" />
-              <span className="text-xs font-medium text-foreground/50">A Receber</span>
+          <Card className="p-4 sm:p-5 flex items-center justify-between shadow-lg bg-card border-border">
+            <div className="min-w-0 flex-1 pr-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-amber-400 block mb-1">A Receber</span>
+              <div className="text-xl sm:text-2xl font-bold font-mono text-amber-400 whitespace-nowrap">{maskValue(pendingAmount, formatCurrencyBRL(pendingAmount))}</div>
+              <div className="text-xs text-foreground/50 mt-1">{summary.total_pending.count} conta(s) pendente(s)</div>
             </div>
-            <div className="text-lg font-bold text-amber-400">{maskValue(pendingAmount, formatCurrencyBRL(pendingAmount))}</div>
-            <div className="text-xs text-foreground/40 mt-0.5">{summary.total_pending.count} conta(s)</div>
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+              <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
           </Card>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-4 h-4 text-red-400" />
-              <span className="text-xs font-medium text-foreground/50">Em Atraso</span>
+          <Card className="p-4 sm:p-5 flex items-center justify-between shadow-lg bg-card border-border">
+            <div className="min-w-0 flex-1 pr-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-red-400 block mb-1">Em Atraso</span>
+              <div className="text-xl sm:text-2xl font-bold font-mono text-red-400 whitespace-nowrap">{maskValue(overdueAmount, formatCurrencyBRL(overdueAmount))}</div>
+              <div className="text-xs text-red-300/70 mt-1">{summary.total_overdue.count} conta(s) atrasada(s)</div>
             </div>
-            <div className="text-lg font-bold text-red-400">{maskValue(overdueAmount, formatCurrencyBRL(overdueAmount))}</div>
-            <div className="text-xs text-foreground/40 mt-0.5">{summary.total_overdue.count} conta(s)</div>
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 shrink-0">
+              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
           </Card>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <CheckCircle2 className="w-4 h-4 text-teal-400" />
-              <span className="text-xs font-medium text-foreground/50">Recebido</span>
+          <Card className="p-4 sm:p-5 flex items-center justify-between shadow-lg bg-card border-border">
+            <div className="min-w-0 flex-1 pr-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-teal-400 block mb-1">Recebido</span>
+              <div className="text-xl sm:text-2xl font-bold font-mono text-teal-400 whitespace-nowrap">{maskValue(receivedAmount, formatCurrencyBRL(receivedAmount))}</div>
+              <div className="text-xs text-foreground/50 mt-1">{summary.total_received.count} conta(s) recebida(s)</div>
             </div>
-            <div className="text-lg font-bold text-teal-400">{maskValue(receivedAmount, formatCurrencyBRL(receivedAmount))}</div>
-            <div className="text-xs text-foreground/40 mt-0.5">{summary.total_received.count} conta(s)</div>
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shrink-0">
+              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
           </Card>
         </div>
       )}

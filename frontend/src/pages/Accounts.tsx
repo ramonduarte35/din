@@ -171,44 +171,59 @@ export function Accounts() {
       </div>
 
       {/* Resumo Geral de Saldos */}
-      <div className="grid grid-cols-3 gap-3 sm:gap-4">
-        <Card className="p-3 sm:p-5 bg-card border-border shadow-lg">
-          <span className="text-[10px] sm:text-xs font-semibold text-din-muted block mb-0.5 sm:mb-1 uppercase tracking-wide">
-            Saldo Total
-          </span>
-          <div className="text-base sm:text-2xl font-black text-din-text font-mono tracking-tight truncate">
-            {maskValue(totalConsolidatedBalance)}
-          </div>
-          <span className="text-[10px] text-emerald-500 font-medium hidden sm:flex items-center gap-1 mt-1">
-            <CheckCircle2 className="w-3 h-3" /> Todas as contas
-          </span>
-        </Card>
-
-        <Card className="p-3 sm:p-5 bg-card border-border shadow-lg">
-          <span className="text-[10px] sm:text-xs font-semibold text-din-muted block mb-0.5 sm:mb-1 uppercase tracking-wide">
-            Contas Ativas
-          </span>
-          <div className="text-base sm:text-2xl font-black text-din-text font-mono tracking-tight">
-            {accounts.length}
-          </div>
-          <span className="text-[10px] text-din-muted hidden sm:block mt-1">
-            Bancos e carteiras
-          </span>
-        </Card>
-
-        <Card className="p-3 sm:p-5 bg-card border-border shadow-lg">
-          <span className="text-[10px] sm:text-xs font-semibold text-din-muted block mb-0.5 sm:mb-1 uppercase tracking-wide">
-            Conta Padrão
-          </span>
-          <div className="text-sm sm:text-lg font-bold text-din-primary tracking-tight flex items-center gap-1 truncate">
-            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 shrink-0" />
-            <span className="truncate text-xs sm:text-sm">
-              {accounts.find((a) => a.is_default)?.name || 'Nenhuma'}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+        <Card className="p-4 sm:p-5 bg-card border-border shadow-lg flex items-center justify-between">
+          <div className="min-w-0 flex-1 pr-2">
+            <span className="text-xs font-semibold text-din-muted block mb-1 uppercase tracking-wide">
+              Saldo Total
+            </span>
+            <div className="text-xl sm:text-2xl font-black text-din-text font-mono tracking-tight whitespace-nowrap">
+              {maskValue(totalConsolidatedBalance)}
+            </div>
+            <span className="text-xs text-emerald-500 font-medium flex items-center gap-1 mt-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> Todas as contas
             </span>
           </div>
-          <span className="text-[10px] text-din-muted hidden sm:block mt-1">
-            WhatsApp padrão
-          </span>
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-din-primary/10 border border-din-primary/20 flex items-center justify-center text-din-primary shrink-0">
+            <Wallet className="w-5 h-5 sm:w-6 sm:h-6" />
+          </div>
+        </Card>
+
+        <Card className="p-4 sm:p-5 bg-card border-border shadow-lg flex items-center justify-between">
+          <div className="min-w-0 flex-1 pr-2">
+            <span className="text-xs font-semibold text-din-muted block mb-1 uppercase tracking-wide">
+              Contas Ativas
+            </span>
+            <div className="text-xl sm:text-2xl font-black text-din-text font-mono tracking-tight">
+              {accounts.length}
+            </div>
+            <span className="text-xs text-din-muted block mt-1">
+              Bancos e carteiras
+            </span>
+          </div>
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-card-secondary border border-border flex items-center justify-center text-din-muted shrink-0">
+            <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />
+          </div>
+        </Card>
+
+        <Card className="p-4 sm:p-5 bg-card border-border shadow-lg flex items-center justify-between">
+          <div className="min-w-0 flex-1 pr-2">
+            <span className="text-xs font-semibold text-din-muted block mb-1 uppercase tracking-wide">
+              Conta Padrão
+            </span>
+            <div className="text-base sm:text-lg font-bold text-din-primary tracking-tight flex items-center gap-1">
+              <Star className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
+              <span className="truncate">
+                {accounts.find((a) => a.is_default)?.name || 'Nenhuma'}
+              </span>
+            </div>
+            <span className="text-xs text-din-muted block mt-1">
+              WhatsApp padrão
+            </span>
+          </div>
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+            <Star className="w-5 h-5 sm:w-6 sm:h-6" />
+          </div>
         </Card>
       </div>
 

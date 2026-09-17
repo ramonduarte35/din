@@ -37,18 +37,22 @@ export function CardSkeleton({ className }: { className?: string }) {
 
 export function SummaryCardsSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 animate-fade-in">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 animate-fade-in">
       {[1, 2, 3, 4].map((i) => (
         <div
           key={i}
-          className="p-5 rounded-2xl bg-card border border-border shadow-lg space-y-3"
+          className="p-4 sm:p-5 rounded-2xl bg-card border border-border shadow-xl space-y-3"
         >
           <div className="flex items-center justify-between">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-10 w-10 rounded-xl" />
+            <div className="space-y-1.5 flex-1 pr-2">
+              <Skeleton className="h-3.5 w-20" />
+              <Skeleton className="h-7 w-32" />
+            </div>
+            <Skeleton className="h-10 w-10 rounded-xl shrink-0" />
           </div>
-          <Skeleton className="h-8 w-36" />
-          <Skeleton className="h-3 w-28" />
+          <div className="pt-2 border-t border-border/60">
+            <Skeleton className="h-3 w-28" />
+          </div>
         </div>
       ))}
     </div>
