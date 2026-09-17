@@ -45,7 +45,7 @@ fi
 echo -e "\n${CYAN}🔄 [1/5] Parando e removendo containers do Docker...${NC}"
 docker compose down -v --remove-orphans 2>/dev/null || true
 
-echo -e "\n${CYAN}🔄 [2/5] Removendo volumes nomeados do Docker associados ao Din...${NC}"
+echo -e "\n${CYAN}🔄 [2/5] Removendo volumes nomeados do Docker associados ao Meu Dino...${NC}"
 VOLUMES=$(docker volume ls -q -f "name=din_" -f "name=contaszap_" 2>/dev/null || true)
 if [ -n "$VOLUMES" ]; then
     echo "$VOLUMES" | xargs -r docker volume rm -f 2>/dev/null || true

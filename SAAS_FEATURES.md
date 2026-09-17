@@ -1,13 +1,13 @@
-# 🚀 Catálogo Oficial de Funcionalidades Din (SaaS)
+# 🚀 Catálogo Oficial de Funcionalidades Meu Dino (SaaS)
 
 > **Documento de Referência para Landing Page & Marketing**  
-> *Este arquivo centraliza o inventário completo de recursos do sistema Din, discriminando a disponibilidade entre a versão **Grátis para Sempre** e a versão **PRO**, com orientações obrigatórias de atualização contínua.*
+> *Este arquivo centraliza o inventário completo de recursos do sistema Meu Dino, discriminando a disponibilidade entre a versão **Grátis para Sempre** e a versão **PRO**, com orientações obrigatórias de atualização contínua.*
 
 ---
 
-## 💎 1. Proposta de Valor do Din
+## 💎 1. Proposta de Valor do Meu Dino
 
-O **Din** é um ecossistema completo e inteligente de gestão financeira pessoal e empresarial, desenvolvido com abordagem **Mobile First**, desenhado para transformar mensagens cotidianas de áudio e texto em controle financeiro rigoroso através de Inteligência Artificial de última geração.
+O **Meu Dino** é um ecossistema completo e inteligente de gestão financeira pessoal e empresarial, desenvolvido com abordagem **Mobile First**, desenhado para transformar mensagens cotidianas de áudio e texto em controle financeiro rigoroso através de Inteligência Artificial de última geração.
 
 ### O Grande Diferencial
 - **Zero Atrito:** Lance suas despesas e receitas apenas enviando um áudio ou texto pelo mensageiro que você já usa no dia a dia.

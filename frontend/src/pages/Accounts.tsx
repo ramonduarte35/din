@@ -171,43 +171,43 @@ export function Accounts() {
       </div>
 
       {/* Resumo Geral de Saldos */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-4 sm:p-5 bg-card border-border shadow-lg">
-          <span className="text-xs font-semibold text-din-muted block mb-1">
-            Saldo Total Consolidado
+      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+        <Card className="p-3 sm:p-5 bg-card border-border shadow-lg">
+          <span className="text-[10px] sm:text-xs font-semibold text-din-muted block mb-0.5 sm:mb-1 uppercase tracking-wide">
+            Saldo Total
           </span>
-          <div className="text-2xl font-black text-din-text font-mono tracking-tight">
+          <div className="text-base sm:text-2xl font-black text-din-text font-mono tracking-tight truncate">
             {maskValue(totalConsolidatedBalance)}
           </div>
-          <span className="text-[11px] text-emerald-500 font-medium flex items-center gap-1 mt-1">
-            <CheckCircle2 className="w-3 h-3" /> Somatório de todas as contas
+          <span className="text-[10px] text-emerald-500 font-medium hidden sm:flex items-center gap-1 mt-1">
+            <CheckCircle2 className="w-3 h-3" /> Todas as contas
           </span>
         </Card>
 
-        <Card className="p-4 sm:p-5 bg-card border-border shadow-lg">
-          <span className="text-xs font-semibold text-din-muted block mb-1">
-            Total de Contas Ativas
+        <Card className="p-3 sm:p-5 bg-card border-border shadow-lg">
+          <span className="text-[10px] sm:text-xs font-semibold text-din-muted block mb-0.5 sm:mb-1 uppercase tracking-wide">
+            Contas Ativas
           </span>
-          <div className="text-2xl font-black text-din-text font-mono tracking-tight">
+          <div className="text-base sm:text-2xl font-black text-din-text font-mono tracking-tight">
             {accounts.length}
           </div>
-          <span className="text-[11px] text-din-muted block mt-1">
-            Bancos, carteiras e investimentos
+          <span className="text-[10px] text-din-muted hidden sm:block mt-1">
+            Bancos e carteiras
           </span>
         </Card>
 
-        <Card className="p-4 sm:p-5 bg-card border-border shadow-lg">
-          <span className="text-xs font-semibold text-din-muted block mb-1">
-            Conta Padrão do WhatsApp
+        <Card className="p-3 sm:p-5 bg-card border-border shadow-lg">
+          <span className="text-[10px] sm:text-xs font-semibold text-din-muted block mb-0.5 sm:mb-1 uppercase tracking-wide">
+            Conta Padrão
           </span>
-          <div className="text-lg font-bold text-din-primary tracking-tight flex items-center gap-1.5 truncate">
-            <Star className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" />
-            <span className="truncate">
+          <div className="text-sm sm:text-lg font-bold text-din-primary tracking-tight flex items-center gap-1 truncate">
+            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 shrink-0" />
+            <span className="truncate text-xs sm:text-sm">
               {accounts.find((a) => a.is_default)?.name || 'Nenhuma'}
             </span>
           </div>
-          <span className="text-[11px] text-din-muted block mt-1">
-            Recebe lançamentos não categorizados
+          <span className="text-[10px] text-din-muted hidden sm:block mt-1">
+            WhatsApp padrão
           </span>
         </Card>
       </div>
@@ -232,30 +232,35 @@ export function Accounts() {
             return (
               <Card
                 key={account.id}
-                className="p-5 border border-border bg-card rounded-3xl shadow-lg hover:border-din-primary/40 transition-all flex flex-col justify-between"
+                className="p-5 border border-border bg-card rounded-3xl shadow-lg hover:border-din-primary/40 transition-all flex flex-col justify-between overflow-hidden"
+                style={{ borderTopColor: `${account.color || '#10b981'}70`, borderTopWidth: '3px' }}
               >
                 <div>
                   {/* Topo do Card: Nome e Tag Padrão */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-3">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3 min-w-0">
                       <div
                         className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold shrink-0 shadow-md"
                         style={{ backgroundColor: account.color || '#10b981' }}
                       >
                         <Landmark className="w-5 h-5" />
                       </div>
-                      <div>
-                        <h4 className="font-bold text-din-text text-base truncate max-w-[150px]">
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-din-text text-base truncate">
                           {account.name}
                         </h4>
                         <span className="text-xs text-din-muted capitalize">
-                          {account.type.toLowerCase()}
+                          {account.type === 'CHECKING' ? 'Conta Corrente'
+                            : account.type === 'SAVINGS' ? 'Poupança'
+                            : account.type === 'INVESTMENT' ? 'Investimentos'
+                            : account.type === 'CREDIT_CARD' ? 'Cartão de Crédito'
+                            : 'Carteira'}
                         </span>
                       </div>
                     </div>
 
                     {account.is_default && (
-                      <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] font-bold flex items-center gap-1 shrink-0">
+                      <span className="px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] font-bold flex items-center gap-1 shrink-0">
                         <Star className="w-3 h-3 fill-amber-400" />
                         Padrão
                       </span>
@@ -263,7 +268,7 @@ export function Accounts() {
                   </div>
 
                   {/* Saldo Atual */}
-                  <div className="p-3.5 rounded-2xl bg-card-secondary border border-border mb-4">
+                  <div className="p-3 rounded-2xl bg-card-secondary border border-border mb-3">
                     <span className="text-[10px] font-bold text-din-muted uppercase tracking-wider block mb-0.5">
                       Saldo Disponível
                     </span>
@@ -278,7 +283,7 @@ export function Accounts() {
                 </div>
 
                 {/* Ações do Card */}
-                <div className="flex items-center justify-between pt-3 border-t border-border">
+                <div className="flex items-center justify-between pt-2.5 border-t border-border">
                   <div>
                     {!account.is_default && (
                       <button
@@ -287,7 +292,8 @@ export function Accounts() {
                         className="text-xs font-semibold text-din-muted hover:text-amber-300 flex items-center gap-1.5 transition-colors min-h-[44px] py-2 px-1 touch-manipulation"
                       >
                         <Star className="w-3.5 h-3.5" />
-                        <span>Definir Padrão</span>
+                        <span className="hidden sm:inline">Definir Padrão</span>
+                        <span className="sm:hidden">Padrão</span>
                       </button>
                     )}
                   </div>

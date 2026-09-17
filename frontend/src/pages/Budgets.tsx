@@ -413,8 +413,9 @@ export function Budgets() {
                   >
                     <div className="space-y-3">
                       {/* Topo do Card da Categoria */}
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        {/* Ícone + Nome + Status */}
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div
                             className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm"
                             style={{ backgroundColor: b.category.color || '#64748b' }}
@@ -425,34 +426,35 @@ export function Budgets() {
                             <h3 className="text-sm sm:text-base font-bold text-din-text truncate">
                               {b.category.name}
                             </h3>
-                            <span className="text-[11px] text-din-muted">
-                              {b.percentage}% do teto utilizado
-                            </span>
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                              <span
+                                className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+                                  isExceeded
+                                    ? 'bg-rose-500/15 text-rose-500 border-rose-500/30'
+                                    : isDanger
+                                    ? 'bg-orange-500/15 text-orange-500 border-orange-500/30'
+                                    : isWarning
+                                    ? 'bg-amber-500/15 text-amber-500 border-amber-500/30'
+                                    : 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30'
+                                }`}
+                              >
+                                {isExceeded
+                                  ? 'Estourado'
+                                  : isDanger
+                                  ? 'No Limite'
+                                  : isWarning
+                                  ? 'Atenção'
+                                  : 'Normal'}
+                              </span>
+                              <span className="text-[11px] text-din-muted">
+                                {b.percentage}% utilizado
+                              </span>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Status Badge */}
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span
-                            className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${
-                              isExceeded
-                                ? 'bg-rose-500/15 text-rose-500 border-rose-500/30'
-                                : isDanger
-                                ? 'bg-orange-500/15 text-orange-500 border-orange-500/30'
-                                : isWarning
-                                ? 'bg-amber-500/15 text-amber-500 border-amber-500/30'
-                                : 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30'
-                            }`}
-                          >
-                            {isExceeded
-                              ? 'Estourado'
-                              : isDanger
-                              ? 'No Limite'
-                              : isWarning
-                              ? 'Atenção'
-                              : 'Normal'}
-                          </span>
-
+                        {/* Botões de Ação (canto superior direito) */}
+                        <div className="flex items-center gap-1 shrink-0">
                           <button
                             type="button"
                             onClick={() => handleOpenEdit(b)}

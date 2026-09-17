@@ -182,7 +182,7 @@ export class EvolutionClient {
         {
           name: instanceName,
           token: instanceName,
-          client_name: 'Din',
+          client_name: 'Meu Dino',
           alwaysOnline: true,
         },
         {

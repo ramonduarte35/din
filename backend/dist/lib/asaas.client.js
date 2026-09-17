@@ -19,7 +19,7 @@ class AsaasClient {
         return {
             'Content-Type': 'application/json',
             'access_token': this.apiKey,
-            'User-Agent': 'Din-Financial-SaaS/1.0',
+            'User-Agent': 'MeuDino-Financial-SaaS/1.0',
         };
     }
     /**
@@ -170,7 +170,7 @@ class AsaasClient {
                     billingType: data.billingType,
                     value: data.value,
                     dueDate: data.dueDate,
-                    description: data.description || 'Assinatura Din PRO',
+                    description: data.description || 'Assinatura Meu Dino PRO',
                     postalService: false,
                 }),
             });
@@ -266,7 +266,7 @@ class AsaasClient {
                 headers: this.getHeaders(),
                 body: JSON.stringify({
                     name: data.name,
-                    description: data.description || 'Assinatura Din PRO',
+                    description: data.description || 'Assinatura Meu Dino PRO',
                     billingType: data.billingType || 'UNDEFINED',
                     chargeType: data.chargeType || 'RECURRENT',
                     subscriptionCycle: data.subscriptionCycle || 'MONTHLY',

@@ -96,12 +96,12 @@ export function RecentTransactionsCard({ transactions, isLoading }: RecentTransa
                   </span>
                   <div className="flex justify-end mt-0.5">
                     {isWhatsApp ? (
-                      <Badge variant="whatsapp" className="text-[9px] py-0 px-1.5 gap-1">
+                      <Badge variant="whatsapp" className="text-[10px] py-0.5 px-1.5 gap-1">
                         <MessageSquare className="w-2.5 h-2.5" />
                         <span>WhatsApp</span>
                       </Badge>
                     ) : (
-                      <Badge variant="manual" className="text-[9px] py-0 px-1.5">
+                      <Badge variant="manual" className="text-[10px] py-0.5 px-1.5">
                         Manual
                       </Badge>
                     )}

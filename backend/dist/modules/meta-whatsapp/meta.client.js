@@ -96,7 +96,7 @@ class MetaCloudApiClient {
             const mediaResponse = await axios_1.default.get(downloadUrl, {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
-                    'User-Agent': 'Din-AI-Finance-WhatsApp-Bot',
+                    'User-Agent': 'MeuDino-AI-Finance-WhatsApp-Bot',
                 },
                 responseType: 'arraybuffer',
                 timeout: 25000,

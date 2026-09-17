@@ -65,7 +65,7 @@ class BillsNotificationService {
     formatNotificationMessage(userName, data) {
         const { overdue, dueToday, upcoming, totalAmount } = data;
         const firstName = userName.split(' ')[0] || 'Usuário';
-        let msg = `🔔 *Din - Lembrete de Contas a Pagar*\n\n`;
+        let msg = `🔔 *Dino - Lembrete de Contas a Pagar*\n\n`;
         msg += `Olá, *${firstName}*! Aqui está o resumo das suas contas pendentes:\n\n`;
         if (overdue.length > 0) {
             msg += `⚠️ *VENCIDAS / EM ATRASO:*\n`;
@@ -91,7 +91,7 @@ class BillsNotificationService {
             msg += `\n`;
         }
         msg += `💰 *Total a pagar:* ${(0, currency_js_1.formatBRL)(totalAmount)}\n\n`;
-        msg += `💡 *Dica:* Quando realizar o pagamento, você pode me avisar diretamente por aqui dizendo _"Paguei a conta de [nome]"_ ou dar baixa pelo painel web do Din.`;
+        msg += `💡 *Dica:* Quando realizar o pagamento, você pode me avisar diretamente por aqui dizendo _"Paguei a conta de [nome]"_ ou dar baixa pelo painel web do Dino.`;
         return msg;
     }
     /**
@@ -264,7 +264,7 @@ class BillsNotificationService {
      * Inicializa o scheduler de verificação periódica de contas (executado em background)
      */
     initScheduledBillNotifier() {
-        console.log('⏰ [Scheduler] Inicializando monitor de notificações de contas a vencer (Din Proactive Notifier)...');
+        console.log('⏰ [Scheduler] Inicializando monitor de notificações de contas a vencer (Dino Proactive Notifier)...');
         // Checar a cada 30 minutos
         const INTERVAL_MS = 30 * 60 * 1000;
         const checkAndDispatch = async () => {

@@ -49,11 +49,11 @@ export function useSyncQueue() {
         await dequeue(op.id);
         syncedCount++;
       } catch (err) {
-        console.error(`[Din Sync] Falha ao sincronizar operação ${op.id}:`, err);
+        console.error(`[Meu Dino Sync] Falha ao sincronizar operação ${op.id}:`, err);
         const discarded = await incrementRetry(op.id);
         if (discarded) {
           discardedCount++;
-          console.warn(`[Din Sync] Operação ${op.id} descartada após ${MAX_QUEUE_RETRIES} tentativas consecutivas sem sucesso.`);
+          console.warn(`[Meu Dino Sync] Operação ${op.id} descartada após ${MAX_QUEUE_RETRIES} tentativas consecutivas sem sucesso.`);
         }
         failedCount++;
       }
@@ -86,7 +86,7 @@ export function useSyncQueue() {
     refreshCount();
 
     const handleOnline = () => {
-      console.log('[Din PWA] Conectividade restaurada — iniciando sync da fila');
+      console.log('[Meu Dino PWA] Conectividade restaurada — iniciando sync da fila');
       syncQueue();
     };
 

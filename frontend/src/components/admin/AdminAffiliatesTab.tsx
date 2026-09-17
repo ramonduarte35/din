@@ -280,7 +280,7 @@ export const AdminAffiliatesTab: React.FC = () => {
           </div>
           <h3 className="text-base font-semibold text-foreground">Nenhum banner encontrado</h3>
           <p className="mt-1 text-xs text-din-muted max-w-sm mx-auto">
-            Cadastre ofertas de parceiros (bancos, cartões, contabilidade) para monetizar os usuários gratuitos do Din.
+            Cadastre ofertas de parceiros (bancos, cartões, contabilidade) para monetizar os usuários gratuitos do Meu Dino.
           </p>
           <Button
             onClick={handleOpenCreateModal}

@@ -1,6 +1,6 @@
-# 🚀 Din — Planejamento de Melhorias Futuras & Estratégia de Escala
+# 🚀 Meu Dino — Planejamento de Melhorias Futuras & Estratégia de Escala
 
-Este documento consolida o planejamento técnico, otimizações de Inteligência Artificial, infraestrutura e projeções de negócio para a evolução do **Din**.
+Este documento consolida o planejamento técnico, otimizações de Inteligência Artificial, infraestrutura e projeções de negócio para a evolução do **Meu Dino**.
 
 ---
 
@@ -19,13 +19,13 @@ Este documento consolida o planejamento técnico, otimizações de Inteligência
 - **Vantagens:**
   - Velocidade quase instantânea (~100ms a 200ms de latência).
   - Custo 10x mais barato que a OpenAI ($0.00004 por segundo de áudio).
-  - 0% de consumo de CPU e RAM na VPS do Din.
+  - 0% de consumo de CPU e RAM na VPS do Meu Dino.
   - API 100% compatível com a biblioteca oficial da OpenAI.
 
 ---
 
 ### 1.3. Opção B: Container Whisper Local (Self-Hosted no Docker)
-Permite zerar o custo de API de áudio executando a transcrição diretamente na VPS onde o Din está hospedado.
+Permite zerar o custo de API de áudio executando a transcrição diretamente na VPS onde o Meu Dino está hospedado.
 
 ```mermaid
 flowchart LR
@@ -84,7 +84,7 @@ flowchart LR
 ## 💡 3. Funcionalidades Planejadas para Próximas Versões
 
 1. **Visão Computacional para Comprovantes e Notas Fiscais (OCR via GPT-4o Vision):**
-   - Permitir que o usuário fotografe um cupom de supermercado ou comprovante PIX no WhatsApp/Telegram e o Din extraia valor, itens e forma de pagamento automaticamente.
+   - Permitir que o usuário fotografe um cupom de supermercado ou comprovante PIX no WhatsApp/Telegram e o Meu Dino extraia valor, itens e forma de pagamento automaticamente.
 2. **Relatórios Semanais Proativos em PDF no WhatsApp:**
    - Todo domingo à noite ou segunda pela manhã, envio automático de um resumo financeiro da semana com gráficos e saldo consolidado.
 3. **Alertas Inteligentes de Teto de Gastos (Budgets):**

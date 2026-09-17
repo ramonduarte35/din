@@ -1,6 +1,6 @@
-# 💰 Din — Sistema Inteligente de Gestão Financeira Pessoal (Web & WhatsApp com IA via Evolution Go)
+# 💰 Meu Dino — Sistema Inteligente de Gestão Financeira Pessoal (Web & WhatsApp com IA via Evolution Go)
 
-![Din Banner](https://img.shields.io/badge/Din-Finance%20IA-10b981?style=for-the-badge&logo=whatsapp&logoColor=white)
+![Meu Dino Banner](https://img.shields.io/badge/Meu%20Dino-Finance%20IA-10b981?style=for-the-badge&logo=whatsapp&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-Fastify%20%2B%20TypeScript-339933?style=for-the-badge&logo=node.js&logoColor=white)
 ![React](https://img.shields.io/badge/React-Vite%20%2B%20TailwindCSS-61DAFB?style=for-the-badge&logo=react&logoColor=black)
@@ -10,7 +10,7 @@
 
 ## 📖 1. Visão Geral
 
-O **Din** é uma plataforma inteligente e completa de controle financeiro pessoal que integra dois canais de alta performance:
+O **Meu Dino** é uma plataforma inteligente e completa de controle financeiro pessoal que integra dois canais de alta performance:
 
 1. **Painel Web (Dashboard):** Gestão manual completa, KPIs em tempo real (saldo geral, receitas e despesas do mês), gráficos dinâmicos de categorias e comparativo mensal histórico (últimos 6 meses), extrato filtrável e paginado, listagem das linhas oficiais do WhatsApp do sistema e simulador interativo de IA.
 2. **Bot Inteligente via WhatsApp (Módulo PRO):** Registro automático e em linguagem natural de receitas e despesas por mensagens de texto e áudio via WhatsApp, alimentado pela **OpenAI (`gpt-4o-mini`)** e intermediado pelo **Evolution Go**.
@@ -126,7 +126,7 @@ Para parear seu WhatsApp corporativo/oficial com as instâncias do Evolution Go:
 Para desenvolvedores e testes sem necessidade de escanear QR Code imediatamente, o painel web inclui a página **"Simulador WhatsApp"** (`/simulator`):
 
 - Permite enviar mensagens simulando o webhook do Evolution Go em tempo real.
-- Exibe a resposta formatada do bot do Din e o payload JSON extraído pela OpenAI.
+- Exibe a resposta formatada do bot do Dino e o payload JSON extraído pela OpenAI.
 - Testa frases brasileiras como:
   - *"Lanchei e gastei 20 conto"*
   - *"Recebi 1600 de salario"*
@@ -178,5 +178,5 @@ Caso você precise apagar todos os dados após uma implantação de testes, migr
 ---
 
 ## 🛡️ 9. Licença e Autoria
-Desenvolvido para o ecossistema **Din — Inteligência Financeira**.
+Desenvolvido para o ecossistema **Meu Dino — Inteligência Financeira**.
 

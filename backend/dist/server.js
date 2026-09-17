@@ -52,7 +52,7 @@ async function bootstrap() {
         const signals = ['SIGINT', 'SIGTERM'];
         for (const signal of signals) {
             process.on(signal, async () => {
-                console.log(`\n🛑 Recebido ${signal}. Encerrando Din API com segurança...`);
+                console.log(`\n🛑 Recebido ${signal}. Encerrando Meu Dino API com segurança...`);
                 await app.close();
                 await prisma_js_1.prisma.$disconnect();
                 redis_js_1.redis.disconnect();

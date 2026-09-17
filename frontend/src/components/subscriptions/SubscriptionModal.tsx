@@ -60,7 +60,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
       try {
         const sub = await fetchMySubscription();
         if (sub.is_pro) {
-          toast.success('🎉 Parabéns! Seu plano Din PRO foi ativado com sucesso!');
+          toast.success('🎉 Parabéns! Seu plano Meu Dino PRO foi ativado com sucesso!');
           if (refreshUser) await refreshUser();
           if (onSuccess) onSuccess();
           onClose();
@@ -117,7 +117,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
     try {
       const sub = await fetchMySubscription();
       if (sub.is_pro) {
-        toast.success('🎉 Parabéns! Seu plano Din PRO já está ativo!');
+        toast.success('🎉 Parabéns! Seu plano Meu Dino PRO já está ativo!');
         if (refreshUser) await refreshUser();
         if (onSuccess) onSuccess();
         onClose();
@@ -160,7 +160,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
               <Sparkles className="w-5 h-5" />
             </span>
             <Badge variant="pro" className="text-xs px-2.5 py-0.5 font-bold">
-              Din PRO
+              Meu Dino PRO
             </Badge>
           </div>
 
@@ -395,7 +395,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
               </div>
 
               <p className="text-[11px] text-din-muted text-center leading-relaxed">
-                Assim que o pagamento for compensado pelo gateway Asaas, seu plano Din PRO será ativado de forma 100% automática.
+                Assim que o pagamento for compensado pelo gateway Asaas, seu plano Meu Dino PRO será ativado de forma 100% automática.
               </p>
             </div>
           )}

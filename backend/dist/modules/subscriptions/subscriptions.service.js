@@ -12,7 +12,7 @@ class SubscriptionsService {
         return [
             {
                 id: 'pro_monthly',
-                name: 'Din PRO Mensal',
+                name: 'Meu Dino PRO Mensal',
                 cycle: 'MONTHLY',
                 price: 19.9,
                 period: '/mês',
@@ -29,7 +29,7 @@ class SubscriptionsService {
             },
             {
                 id: 'pro_yearly',
-                name: 'Din PRO Anual',
+                name: 'Meu Dino PRO Anual',
                 cycle: 'YEARLY',
                 price: 199.0,
                 period: '/ano',
@@ -120,11 +120,11 @@ class SubscriptionsService {
         const isYearly = input.plan_cycle === 'YEARLY';
         const amount = isYearly ? 199.0 : 19.9;
         const cycleName = isYearly ? 'Anual' : 'Mensal';
-        const planName = `Din PRO ${cycleName}`;
+        const planName = `Meu Dino PRO ${cycleName}`;
         // Gerar link de pagamento direto no Asaas (Checkout oficial suportando PIX, Cartão e Boleto)
         const paymentLink = await asaas_client_js_1.asaasClient.createPaymentLink({
             name: `Assinatura ${planName}`,
-            description: `Acesso ${cycleName.toLowerCase()} ao plano Din PRO com IA, WhatsApp e sem anúncios`,
+            description: `Acesso ${cycleName.toLowerCase()} ao plano Meu Dino PRO com IA, WhatsApp e sem anúncios`,
             billingType: 'UNDEFINED',
             chargeType: 'RECURRENT',
             subscriptionCycle: isYearly ? 'YEARLY' : 'MONTHLY',
@@ -294,7 +294,7 @@ class SubscriptionsService {
                 client_payment_date: payment.clientPaymentDate ? new Date(payment.clientPaymentDate) : null,
                 invoice_url: payment.invoiceUrl || null,
                 bank_slip_url: payment.bankSlipUrl || null,
-                description: payment.description || (planCycle === 'YEARLY' ? 'Din PRO Anual' : 'Din PRO Mensal'),
+                description: payment.description || (planCycle === 'YEARLY' ? 'Meu Dino PRO Anual' : 'Meu Dino PRO Mensal'),
                 raw_payload: payload,
             },
             update: {

@@ -1682,7 +1682,7 @@ export function AdminWhatsApp() {
             </h4>
             <ol className="space-y-2 text-xs text-din-muted list-decimal list-inside leading-relaxed">
               <li>Abra o Telegram e inicie uma conversa com <strong className="text-din-text">@BotFather</strong>.</li>
-              <li>Envie o comando <code className="text-sky-400">/newbot</code>, escolha um nome (ex: <em>Din Assistente Financeiro</em>) e um username que termine com 'bot' (ex: <em>DinFinanceBot</em>).</li>
+              <li>Envie o comando <code className="text-sky-400">/newbot</code>, escolha um nome (ex: <em>Meu Dino Assistente Financeiro</em>) e um username que termine com 'bot' (ex: <em>MeuDinoFinanceBot</em>).</li>
               <li>Copie a chave <strong>HTTP API Token</strong> fornecida pelo BotFather e cole no campo acima.</li>
               <li>Clique em <strong>Salvar Credenciais</strong> e depois em <strong>Registrar Webhook no Telegram</strong>.</li>
               <li>Pronto! O bot responderá instantaneamente mensagens de texto e áudio para usuários cadastrados.</li>

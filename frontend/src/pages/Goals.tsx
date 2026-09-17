@@ -144,60 +144,60 @@ export function Goals() {
       </div>
 
       {/* Cards de Métricas Gerais */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Guardado */}
-        <Card className="p-4 border-border bg-card shadow-lg flex items-center justify-between">
-          <div>
-            <span className="text-xs text-din-muted font-semibold uppercase">Total Acumulado</span>
-            <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-400 mt-1">
+        <Card className="p-3.5 sm:p-4 border-border bg-card shadow-lg flex items-center justify-between">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs text-din-muted font-semibold uppercase">Total Acumulado</span>
+            <p className="text-lg sm:text-2xl font-bold font-mono text-emerald-400 mt-0.5 sm:mt-1 truncate">
               {maskValue(totalSaved)}
             </p>
-            <p className="text-[11px] text-din-muted mt-0.5">Guardado em todas as metas</p>
+            <p className="text-[10px] text-din-muted mt-0.5 hidden sm:block">Guardado em todas as metas</p>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-md">
-            <PiggyBank className="w-5 h-5" />
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-md shrink-0 ml-1">
+            <PiggyBank className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </Card>
 
         {/* Meta Geral */}
-        <Card className="p-4 border-border bg-card shadow-lg flex items-center justify-between">
-          <div>
-            <span className="text-xs text-din-muted font-semibold uppercase">Objetivo Total</span>
-            <p className="text-xl sm:text-2xl font-bold font-mono text-din-text mt-1">
+        <Card className="p-3.5 sm:p-4 border-border bg-card shadow-lg flex items-center justify-between">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs text-din-muted font-semibold uppercase">Objetivo Total</span>
+            <p className="text-lg sm:text-2xl font-bold font-mono text-din-text mt-0.5 sm:mt-1 truncate">
               {maskValue(totalTarget)}
             </p>
-            <p className="text-[11px] text-din-muted mt-0.5">Soma de todos os alvos</p>
+            <p className="text-[10px] text-din-muted mt-0.5 hidden sm:block">Soma de todos os alvos</p>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-md">
-            <Target className="w-5 h-5" />
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-md shrink-0 ml-1">
+            <Target className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </Card>
 
         {/* Progresso Médio */}
-        <Card className="p-4 border-border bg-card shadow-lg flex items-center justify-between">
-          <div>
-            <span className="text-xs text-din-muted font-semibold uppercase">Progresso Global</span>
-            <p className="text-xl sm:text-2xl font-bold font-mono text-teal-400 mt-1">
+        <Card className="p-3.5 sm:p-4 border-border bg-card shadow-lg flex items-center justify-between">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs text-din-muted font-semibold uppercase">Progresso</span>
+            <p className="text-lg sm:text-2xl font-bold font-mono text-teal-400 mt-0.5 sm:mt-1">
               {overallProgress}%
             </p>
-            <p className="text-[11px] text-din-muted mt-0.5">Média de conclusão</p>
+            <p className="text-[10px] text-din-muted mt-0.5 hidden sm:block">Média de conclusão</p>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400 shadow-md">
-            <TrendingUp className="w-5 h-5" />
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400 shadow-md shrink-0 ml-1">
+            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </Card>
 
         {/* Concluídas */}
-        <Card className="p-4 border-border bg-card shadow-lg flex items-center justify-between">
-          <div>
-            <span className="text-xs text-din-muted font-semibold uppercase">Metas Atingidas</span>
-            <p className="text-xl sm:text-2xl font-bold font-mono text-amber-400 mt-1">
-              {completedCount} de {goals.length}
+        <Card className="p-3.5 sm:p-4 border-border bg-card shadow-lg flex items-center justify-between">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs text-din-muted font-semibold uppercase">Atingidas</span>
+            <p className="text-lg sm:text-2xl font-bold font-mono text-amber-400 mt-0.5 sm:mt-1">
+              {completedCount}/{goals.length}
             </p>
-            <p className="text-[11px] text-din-muted mt-0.5">{completedCount === 1 ? 'meta conquistada' : 'metas conquistadas'}</p>
+            <p className="text-[10px] text-din-muted mt-0.5 hidden sm:block">{completedCount === 1 ? 'meta conquistada' : 'metas conquistadas'}</p>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-md">
-            <Trophy className="w-5 h-5" />
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-md shrink-0 ml-1">
+            <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </Card>
       </div>
@@ -272,6 +272,7 @@ export function Goals() {
                     ? 'bg-emerald-950/20 border-emerald-500/40 shadow-emerald-500/5'
                     : 'bg-card border-border hover:border-din-primary/40'
                 }`}
+                style={!isFinished ? { borderTopColor: `${goal.color || '#10b981'}60`, borderTopWidth: '3px' } : {}}
               >
                 {/* Glow decorativo */}
                 <div
@@ -379,8 +380,9 @@ export function Goals() {
                     variant={isFinished ? 'secondary' : 'emerald'}
                     className="w-full min-h-[44px] font-bold flex items-center justify-center space-x-1.5 shadow-md shadow-emerald-500/10"
                   >
-                    <Plus className="w-4 h-4" />
-                    <span>Guardar Dinheiro (Aporte)</span>
+                    <Plus className="w-4 h-4 shrink-0" />
+                    <span className="hidden sm:inline">Guardar Dinheiro (Aporte)</span>
+                    <span className="sm:hidden">Fazer Aporte</span>
                   </Button>
                 </div>
               </Card>

@@ -108,12 +108,12 @@ export const BillsWidget: React.FC = () => {
                   key={bill.id}
                   className="p-3 bg-card-secondary hover:bg-card-hover border border-border rounded-2xl flex items-center justify-between transition-all duration-200 shadow-sm"
                 >
-                  <div className="min-w-0 pr-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-semibold text-xs sm:text-sm text-din-text truncate max-w-[140px] sm:max-w-[200px]">
+                  <div className="min-w-0 pr-2 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="font-semibold text-xs sm:text-sm text-din-text truncate flex-1 min-w-0">
                         {toTitleCasePTBR(bill.description)}
                       </span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-md border ${badgeColor}`}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md border shrink-0 ${badgeColor}`}>
                         {badgeText}
                       </span>
                     </div>

@@ -37,7 +37,7 @@ for arg in "$@"; do
             shift
             ;;
         --down|--stop)
-            echo -e "${YELLOW}🛑 Parando todos os serviços do Din...${NC}"
+            echo -e "${YELLOW}🛑 Parando todos os serviços do Meu Dino...${NC}"
             docker compose down
             echo -e "${GREEN}✓ Containers encerrados com sucesso.${NC}"
             exit 0
@@ -49,7 +49,7 @@ for arg in "$@"; do
             echo "  --no-open     Não abre o navegador automaticamente ao concluir"
             echo "  --logs, -l    Acompanha os logs em tempo real logo após a inicialização"
             echo "  --rebuild     Reconstrói as imagens do Docker sem usar cache"
-            echo "  --down        Para e remove os containers do sistema Din"
+            echo "  --down        Para e remove os containers do sistema Meu Dino"
             echo "  --help, -h    Exibe este menu de ajuda"
             exit 0
             ;;

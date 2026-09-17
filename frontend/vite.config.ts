@@ -78,7 +78,7 @@ export default defineConfig({
             icons: [{ src: 'icon-192x192.png', sizes: '192x192' }],
           },
         ],
-        // Protocolo de compartilhamento — usuário pode compartilhar texto para o Din registrar
+        // Protocolo de compartilhamento — usuário pode compartilhar texto para o Meu Dino registrar
         share_target: {
           action: '/simulator',
           method: 'GET',

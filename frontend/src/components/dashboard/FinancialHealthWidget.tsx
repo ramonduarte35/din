@@ -122,15 +122,15 @@ export function FinancialHealthWidget({ summary, isLoading }: FinancialHealthWid
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center gap-1 text-xs text-din-muted">
+        <div className="flex items-center gap-1 text-xs text-din-muted opacity-70">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
           <span>Análise IA MeuDino</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-        {/* Anel de Score Radial SVG (4 cols) */}
-        <div className="md:col-span-4 flex items-center justify-center sm:justify-start gap-4 p-2">
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 sm:gap-5 items-center">
+        {/* Anel de Score Radial SVG + Taxa Poupança (4 cols) */}
+        <div className="sm:col-span-4 flex items-center justify-start gap-4 p-2">
           <div className="relative flex items-center justify-center shrink-0">
             <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 96 96">
               {/* Fundo do círculo */}
@@ -179,7 +179,7 @@ export function FinancialHealthWidget({ summary, isLoading }: FinancialHealthWid
         </div>
 
         {/* 3 Pilares com Barras (5 cols) */}
-        <div className="md:col-span-5 space-y-2.5 text-xs">
+        <div className="sm:col-span-5 space-y-2.5 text-xs">
           {/* Pilar 1 */}
           <div>
             <div className="flex justify-between text-din-muted font-medium mb-1">
@@ -223,8 +223,8 @@ export function FinancialHealthWidget({ summary, isLoading }: FinancialHealthWid
           </div>
         </div>
 
-        {/* Dica da IA (3 cols) */}
-        <div className="md:col-span-3 p-3.5 rounded-2xl bg-card-secondary/70 border border-border/80 space-y-1.5">
+        {/* Dica da IA (sempre visível: full width no mobile, 3 cols no sm+) */}
+        <div className="sm:col-span-3 p-3 sm:p-3.5 rounded-2xl bg-card-secondary/70 border border-border/80 space-y-1.5">
           <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
             <Sparkles className="w-3.5 h-3.5 shrink-0" />
             <span>Dica do Dino</span>

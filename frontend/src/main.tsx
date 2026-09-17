@@ -14,7 +14,7 @@ if (typeof window !== 'undefined' && 'caches' in window) {
         cacheName.includes('din-api')
       ) {
         caches.delete(cacheName).then(() => {
-          console.log(`[Din PWA] Cache obsoleto da API purgado com sucesso: ${cacheName}`);
+          console.log(`[Meu Dino PWA] Cache obsoleto da API purgado com sucesso: ${cacheName}`);
         });
       }
     });
@@ -26,10 +26,10 @@ if (typeof window !== 'undefined' && 'caches' in window) {
 registerSW({
   immediate: true,
   onNeedRefresh() {
-    console.log('[Din PWA] Nova versão disponível. Recarregando...');
+    console.log('[Meu Dino PWA] Nova versão disponível. Recarregando...');
   },
   onOfflineReady() {
-    console.log('[Din PWA] App pronto para uso offline!');
+    console.log('[Meu Dino PWA] App pronto para uso offline!');
   },
 });
 

@@ -104,7 +104,7 @@ echo -e "\n${CYAN}🧹 Limpando camadas de build e imagens antigas...${NC}"
 docker image prune -f
 
 # 11. Status dos containers
-echo -e "\n${CYAN}📊 Status dos Containers Din:${NC}"
+echo -e "\n${CYAN}📊 Status dos Containers Meu Dino:${NC}"
 docker compose ps
 
 # 12. Finalização e URLs de Acesso

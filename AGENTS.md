@@ -1,4 +1,4 @@
-# 🧠 Memória e Regras do Projeto Din
+# 🧠 Memória e Regras do Projeto Meu Dino
 
 Este arquivo contém as diretrizes mandatórias de desenvolvimento para este repositório.
 
@@ -41,6 +41,6 @@ Este arquivo contém as diretrizes mandatórias de desenvolvimento para este rep
 ---
 
 ## 🚫 5. Nunca Verificar nem Inspecionar Pastas node_modules
-- **É terminantemente proibido ler, listar, auditar, buscar (`grep`), inspecionar ou verificar qualquer conteúdo dentro de diretórios `node_modules` no projeto Din (seja na raiz, em `frontend/node_modules` ou em `backend/node_modules`).**
+- **É terminantemente proibido ler, listar, auditar, buscar (`grep`), inspecionar ou verificar qualquer conteúdo dentro de diretórios `node_modules` no projeto Meu Dino (seja na raiz, em `frontend/node_modules` ou em `backend/node_modules`).**
 - Todas as operações de busca e auditoria de código/segurança devem focar estritamente no código fonte proprietário da aplicação (`src/`, `prisma/`, configurações na raiz, etc.).
 

@@ -145,7 +145,7 @@ class EvolutionClient {
             const response = await axios_1.default.post(url, {
                 name: instanceName,
                 token: instanceName,
-                client_name: 'Din',
+                client_name: 'Meu Dino',
                 alwaysOnline: true,
             }, {
                 headers: this.getHeaders(),

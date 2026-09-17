@@ -70,8 +70,8 @@ function buildApp() {
     app.register(swagger_1.default, {
         openapi: {
             info: {
-                title: 'Din API',
-                description: 'Documentação da API do Sistema Din de Gestão Financeira Inteligente',
+                title: 'Meu Dino API',
+                description: 'Documentação da API do Sistema Meu Dino de Gestão Financeira Inteligente',
                 version: '1.0.0',
             },
             components: {
@@ -98,7 +98,7 @@ function buildApp() {
     app.get('/health', async () => {
         return {
             status: 'ok',
-            service: 'Din Financial Backend API',
+            service: 'Meu Dino Financial Backend API',
             timestamp: new Date().toISOString(),
             uptime: process.uptime(),
         };

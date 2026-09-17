@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Inicializando banco de dados do Din...');
+  console.log('🌱 Inicializando banco de dados do Meu Dino...');
 
   // 1. Categorias Globais Padrão (user_id: null)
   const defaultCategories = [
@@ -59,7 +59,7 @@ async function main() {
     if (!existingAdmin) {
       await prisma.user.create({
         data: {
-          name: 'Administrador Din',
+          name: 'Administrador Meu Dino',
           email: adminEmail,
           password_hash,
           role: Role.ADMIN,

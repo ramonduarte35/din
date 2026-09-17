@@ -410,54 +410,54 @@ export const Bills: React.FC = () => {
       </Card>
 
       {/* Cards de Métricas / KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-3 gap-3 sm:gap-4">
         {/* Total a Pagar / Pendente */}
-        <Card className="p-4 sm:p-5 border-border bg-card flex items-center justify-between shadow-lg">
-          <div>
-            <span className="text-xs text-din-muted font-semibold uppercase tracking-wider">A Pagar no Mês</span>
-            <p className="text-xl sm:text-2xl font-bold font-mono text-amber-500 mt-1">
+        <Card className="p-3 sm:p-5 border-border bg-card flex flex-col sm:flex-row sm:items-center sm:justify-between shadow-lg gap-1.5 sm:gap-0">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs text-din-muted font-semibold uppercase tracking-wider block">A Pagar</span>
+            <p className="text-base sm:text-2xl font-bold font-mono text-amber-500 mt-0.5 sm:mt-1 truncate">
               {maskValue(summary?.total_pending?.amount || 0)}
             </p>
-            <p className="text-xs text-din-muted mt-0.5">
+            <p className="text-[10px] sm:text-xs text-din-muted mt-0.5 hidden sm:block">
               {summary?.total_pending?.count || 0} {summary?.total_pending?.count === 1 ? 'conta pendente' : 'contas pendentes'}
             </p>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-md">
-            <Clock className="w-5 h-5" />
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-md shrink-0">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </Card>
 
         {/* Total Atrasado / Vencido */}
-        <Card className={`p-4 sm:p-5 border flex items-center justify-between shadow-lg ${
+        <Card className={`p-3 sm:p-5 border flex flex-col sm:flex-row sm:items-center sm:justify-between shadow-lg gap-1.5 sm:gap-0 ${
           (summary?.total_overdue?.count || 0) > 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-card border-border'
         }`}>
-          <div>
-            <span className="text-xs text-red-400 font-semibold uppercase tracking-wider">Contas Vencidas</span>
-            <p className="text-xl sm:text-2xl font-bold font-mono text-red-400 mt-1">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs text-red-400 font-semibold uppercase tracking-wider block">Vencidas</span>
+            <p className="text-base sm:text-2xl font-bold font-mono text-red-400 mt-0.5 sm:mt-1 truncate">
               {maskValue(summary?.total_overdue?.amount || 0)}
             </p>
-            <p className="text-xs text-red-300/70 mt-0.5">
+            <p className="text-[10px] sm:text-xs text-red-300/70 mt-0.5 hidden sm:block">
               {summary?.total_overdue?.count || 0} {summary?.total_overdue?.count === 1 ? 'conta atrasada' : 'contas atrasadas'}
             </p>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400 shadow-md">
-            <AlertTriangle className="w-5 h-5" />
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400 shadow-md shrink-0">
+            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </Card>
 
         {/* Total Pago */}
-        <Card className="p-4 sm:p-5 border-border bg-card flex items-center justify-between shadow-lg">
-          <div>
-            <span className="text-xs text-din-muted font-semibold uppercase tracking-wider">Total Pago no Mês</span>
-            <p className="text-xl sm:text-2xl font-bold font-mono text-emerald-500 mt-1">
+        <Card className="p-3 sm:p-5 border-border bg-card flex flex-col sm:flex-row sm:items-center sm:justify-between shadow-lg gap-1.5 sm:gap-0">
+          <div className="min-w-0">
+            <span className="text-[10px] sm:text-xs text-din-muted font-semibold uppercase tracking-wider block">Pago</span>
+            <p className="text-base sm:text-2xl font-bold font-mono text-emerald-500 mt-0.5 sm:mt-1 truncate">
               {maskValue(summary?.total_paid?.amount || 0)}
             </p>
-            <p className="text-xs text-din-muted mt-0.5">
+            <p className="text-[10px] sm:text-xs text-din-muted mt-0.5 hidden sm:block">
               {summary?.total_paid?.count || 0} {summary?.total_paid?.count === 1 ? 'conta liquidada' : 'contas liquidadas'}
             </p>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shadow-md">
-            <CheckCircle2 className="w-5 h-5" />
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shadow-md shrink-0">
+            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </Card>
       </div>
@@ -657,13 +657,19 @@ export const Bills: React.FC = () => {
             return (
               <Card
                 key={bill.id}
-                className={`p-4 border transition-all rounded-3xl shadow-lg ${
+                className={`p-4 border transition-all rounded-3xl shadow-lg overflow-hidden ${ 
                   isOverdue
                     ? 'border-red-500/40 bg-red-500/10'
                     : isPaid
                     ? 'border-border bg-card/60 opacity-80'
+                    : isDueToday
+                    ? 'border-amber-500/40 bg-amber-500/5'
                     : 'border-border bg-card hover:border-din-primary/40'
                 }`}
+                style={{
+                  borderLeftColor: isOverdue ? '#ef4444' : isPaid ? undefined : isDueToday ? '#f59e0b' : diffDays === 1 ? '#f59e0b60' : undefined,
+                  borderLeftWidth: (isOverdue || isDueToday || diffDays === 1) && !isPaid ? '3px' : undefined,
+                }}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   {/* Informações da Conta */}

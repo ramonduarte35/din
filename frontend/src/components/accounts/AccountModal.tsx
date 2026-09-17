@@ -32,7 +32,7 @@ const COLOR_PRESETS = [
   { name: 'Nubank (Roxo)', color: '#8b5cf6' },
   { name: 'Banco do Brasil (Amarelo)', color: '#facc15' },
   { name: 'Itaú (Laranja)', color: '#f97316' },
-  { name: 'Inter (Verde Din)', color: '#10b981' },
+  { name: 'Inter (Verde Dino)', color: '#10b981' },
   { name: 'Bradesco / Santander (Vermelho)', color: '#ef4444' },
   { name: 'Caixa (Azul)', color: '#0284c7' },
   { name: 'C6 / Preto', color: '#334155' },

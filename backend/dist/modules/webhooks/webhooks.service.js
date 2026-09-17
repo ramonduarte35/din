@@ -284,7 +284,7 @@ class WebhooksService {
                     },
                 });
                 const replyMsg = `🎉 *Parabéns, ${user.name}! Conta vinculada com sucesso!* 💎\n\n` +
-                    `Agora seu Telegram está conectado diretamente ao seu Din.\n\n` +
+                    `Agora seu Telegram está conectado diretamente ao Dino.\n\n` +
                     `Você já pode enviar mensagens de texto ou áudios como:\n` +
                     `• "Gastei 45 no almoço no Nubank"\n` +
                     `• "Recebi 4000 de salário no Itaú"\n` +
@@ -298,7 +298,7 @@ class WebhooksService {
             }
             else {
                 const replyMsg = `⚠️ *Conta não encontrada!*\n\n` +
-                    `Não encontramos nenhum usuário cadastrado no Din com o telefone *${(0, phone_js_1.formatPhoneNumberDisplay)(normalizedPhone)}*.\n\n` +
+                    `Não encontramos nenhum usuário cadastrado no Dino com o telefone *${(0, phone_js_1.formatPhoneNumberDisplay)(normalizedPhone)}*.\n\n` +
                     `👉 Acesse o painel web para criar sua conta ou cadastrar seu número de telefone em seu perfil.`;
                 await this.sendWhatsAppReply(instance, chatId, replyMsg, {
                     reply_markup: { remove_keyboard: true },
@@ -369,7 +369,7 @@ class WebhooksService {
                         }
                         catch (e) { }
                         const replyMsg = `🎉 *Conta vinculada com sucesso, ${user.name}!* 💎\n\n` +
-                            `Seu Telegram agora está conectado à sua conta do Din.\n\n` +
+                            `Seu Telegram agora está conectado à sua conta do Dino.\n\n` +
                             `Você já pode começar a registrar gastos, receitas e agendamentos enviando textos ou áudios aqui no chat!`;
                         await this.sendWhatsAppReply(instance, chatId, replyMsg, {
                             reply_markup: { remove_keyboard: true },
@@ -384,7 +384,7 @@ class WebhooksService {
             });
             if (existingUser) {
                 const replyMsg = `👋 *Olá, ${existingUser.name}!* 💎\n\n` +
-                    `Sou o seu assistente financeiro inteligente do Din no Telegram.\n\n` +
+                    `Sou o Dino, seu assistente financeiro inteligente no Telegram.\n\n` +
                     `Você pode me enviar a qualquer momento mensagens de texto ou áudios como:\n` +
                     `• "Gastei 50 no almoço no Nubank"\n` +
                     `• "Recebi 3500 de salário no Itaú"\n` +
@@ -397,10 +397,10 @@ class WebhooksService {
                 return { status: 'start_acknowledged_linked_user' };
             }
             // Se NÃO estiver vinculado, enviar mensagem de convite com botão de compartilhamento
-            const replyMsg = `👋 *Olá, ${fromName}! Bem-vindo ao Din no Telegram!* 💎\n\n` +
-                `Para começar a registrar suas finanças automaticamente com Inteligência Artificial, precisamos conectar este chat à sua conta do Din.\n\n` +
+            const replyMsg = `👋 *Olá, ${fromName}! Bem-vindo ao Dino no Telegram!* 💎\n\n` +
+                `Para começar a registrar suas finanças automaticamente com Inteligência Artificial, precisamos conectar este chat à sua conta do Dino.\n\n` +
                 `Escolha uma das opções abaixo:\n` +
-                `1️⃣ Clique no botão abaixo para *Compartilhar seu contato* (caso use o mesmo número de telefone cadastrado no Din)\n` +
+                `1️⃣ Clique no botão abaixo para *Compartilhar seu contato* (caso use o mesmo número de telefone cadastrado no Dino)\n` +
                 `2️⃣ Ou acesse seu *Perfil no painel web*, gere um código de vinculação e envie aqui no formato:\n` +
                 `\`/vincular CÓDIGO\``;
             await this.sendWhatsAppReply(instance, chatId, replyMsg, {
@@ -431,7 +431,7 @@ class WebhooksService {
                 console.log(`⏭️ [Telegram Webhook] Ignorando usuário não vinculado: regra ativa.`);
                 return { status: 'unregistered_ignored' };
             }
-            const replyMsg = `👋 *Olá! Não identificamos uma conta do Din vinculada a este Telegram.*\n\n` +
+            const replyMsg = `👋 *Olá! Não identificamos uma conta do Dino vinculada a este Telegram.*\n\n` +
                 `Para vincular sua conta, compartilhe seu contato pelo botão abaixo ou acesse seu painel web em *Perfil > Conectar ao Telegram*.`;
             await this.sendWhatsAppReply(instance, chatId, replyMsg, {
                 reply_markup: {
@@ -519,7 +519,7 @@ class WebhooksService {
             data?.id ||
             `msg_${Date.now()}`;
         // REQUISITO ESTRITO DE SEGURANÇA E PRIVACIDADE:
-        // O webhook deve ler APENAS mensagens diretas individuais enviadas para o número do Din.
+        // O webhook deve ler APENAS mensagens diretas individuais enviadas para o número do Dino.
         // Ignorar sumariamente mensagens de grupos, canais, status, transmissões (@g.us, @broadcast, @newsletter)
         // ou mensagens com múltiplos participantes/menções coletivas.
         const isGroupFlag = data?.isGroup === true ||
@@ -635,7 +635,7 @@ class WebhooksService {
                 console.log(`⏭️ [Webhook] Ignorando resposta para ${normalizedSender}: regra 'Responder apenas a números cadastrados' está ATIVADA.`);
                 return { status: 'unregistered_ignored' };
             }
-            const replyMsg = `👋 *Olá! Seja bem-vindo ao Din.*\n\n` +
+            const replyMsg = `👋 *Olá! Seja bem-vindo ao Dino.*\n\n` +
                 `Não encontramos nenhuma conta vinculada ao seu número de WhatsApp (${(0, phone_js_1.formatPhoneNumberDisplay)(normalizedSender)}).\n\n` +
                 `Para começar a gerenciar suas finanças com IA diretamente por aqui:\n` +
                 `1️⃣ Acesse a plataforma web: http://localhost:8000\n` +
@@ -683,7 +683,7 @@ class WebhooksService {
                 });
                 const appUrl = env_js_1.env.APP_URL || 'http://localhost:8000';
                 const replyMsg = `👋 *Olá, ${user.name}!* ⭐\n\n` +
-                    `O assistente financeiro inteligente via *WhatsApp* é um recurso exclusivo do *Plano PRO* do Din.\n\n` +
+                    `O assistente financeiro inteligente via *WhatsApp* é um recurso exclusivo do *Plano PRO* do Dino.\n\n` +
                     `💡 *Você sabia?* Na sua conta Gratuita, você pode usar à vontade o nosso assistente no *Telegram* sem custo algum!\n\n` +
                     `🚀 Para desbloquear o WhatsApp e navegar 100% livre de anúncios no painel web, faça o upgrade para o Plano PRO acessando seu perfil:\n` +
                     `👉 ${appUrl}/profile`;
@@ -876,7 +876,7 @@ class WebhooksService {
         const contactsFormatted = contacts.length > 0
             ? contacts.map((c) => `- "${c.name}" (tipo: ${c.type})`).join('\n')
             : 'Nenhum contato cadastrado.';
-        const systemPrompt = `Você é o assistente financeiro inteligente do Din. Sua função é extrair com extrema precisão transações financeiras, agendamentos de contas a pagar, liquidações/pagamentos e consultas em português brasileiro.\n\n` +
+        const systemPrompt = `Você é o Dino, assistente financeiro inteligente. Sua função é extrair com extrema precisão transações financeiras, agendamentos de contas a pagar, liquidações/pagamentos e consultas em português brasileiro.\n\n` +
             `Contas bancárias/carteiras cadastradas pelo usuário:\n` +
             `${accountsListFormatted}\n\n` +
             `Contas a pagar PENDENTES cadastradas pelo usuário:\n` +
@@ -1396,7 +1396,7 @@ class WebhooksService {
                         `   💵 ${(0, currency_js_1.formatBRL)(bill.amount)} | 🗓️ Vence em ${formattedDate} (${diffDays} dias)`);
                 }
             }
-            let msg = `📑 *Suas Contas a Pagar — Din*\n\n`;
+            let msg = `📑 *Suas Contas a Pagar — Dino*\n\n`;
             if (overdueList.length > 0) {
                 msg += `🚨 *ATENÇÃO: Contas Vencidas (${overdueList.length})*\n`;
                 msg += overdueList.join('\n\n') + '\n\n';
@@ -1696,7 +1696,7 @@ class WebhooksService {
         const accountsBreakdown = userAccounts
             .map((acc) => `  • *${acc.name}:* ${(0, currency_js_1.formatBRL)(accountBalances[acc.id] || 0)}`)
             .join('\n');
-        const replyMsg = `📊 *Resumo Financeiro — Din*\n` +
+        const replyMsg = `📊 *Resumo Financeiro — Dino*\n` +
             `Olá, *${user.name}*! Aqui está o seu balanço geral:\n\n` +
             `💰 *Saldo Total (Todas as Contas):* ${(0, currency_js_1.formatBRL)(totalCurrentBalance)}\n\n` +
             `🏦 *Saldos por Conta Bancária:*\n` +
@@ -1817,8 +1817,8 @@ class WebhooksService {
                 budgetAlertText);
         }
         const title = transactions.length > 1
-            ? `✅ *${transactions.length} transações registradas com sucesso no Din!*`
-            : `✅ *Registrado com sucesso no Din!*`;
+            ? `✅ *${transactions.length} transações registradas com sucesso no Dino!*`
+            : `✅ *Registrado com sucesso no Dino!*`;
         const replyMsg = `${title}\n\n` +
             registeredItems.join('\n\n─────────────\n\n') +
             `\n\n💡 _Dica: Digite "qual meu saldo?" para ver o balanço de todas as suas contas._`;
@@ -1829,7 +1829,7 @@ class WebhooksService {
      * Responde com guia de uso amigável
      */
     async handleUnknownMessage(user, instance, remoteJid, userAccounts) {
-        const replyMsg = `🤖 *Assistente Financeiro Din*\n` +
+        const replyMsg = `🤖 *Assistente Financeiro Dino*\n` +
             `Olá, *${user.name}*! Como posso te ajudar hoje?\n\n` +
             `*Gastos e Ganhos por Conta Bancária:*\n` +
             `• 💵 *"Recebi 4 mil de salário no Banco do Brasil"*\n` +

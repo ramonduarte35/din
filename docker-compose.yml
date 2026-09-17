@@ -46,7 +46,7 @@ services:
     environment:
       SERVER_PORT: 4000
       SERVER_URL: "http://localhost:${PORT_EVOLUTION:-4000}"
-      CLIENT_NAME: "Din"
+      CLIENT_NAME: "Meu Dino"
       GLOBAL_API_KEY: ${EVOLUTION_GLOBAL_API_KEY:-din_evolution_global_key_2026}
       AUTHENTICATION_API_KEY: ${EVOLUTION_GLOBAL_API_KEY:-din_evolution_global_key_2026}
       AUTHENTICATION_TYPE: "apikey"

@@ -399,9 +399,13 @@ export const Receivables: React.FC = () => {
             return (
               <Card
                 key={r.id}
-                className={`p-4 transition-all duration-200 group ${
-                  isOverdue ? 'border-red-500/20 hover:border-red-500/40' : 'hover:border-teal-500/20'
+                className={`p-4 transition-all duration-200 group overflow-hidden ${
+                  isOverdue ? 'border-red-500/20 hover:border-red-500/40' : isReceived ? 'border-teal-500/20' : 'hover:border-teal-500/20'
                 }`}
+                style={{
+                  borderLeftColor: isOverdue ? '#ef444480' : isReceived ? '#14b8a680' : effectiveStatus === 'PENDING' ? '#f59e0b50' : undefined,
+                  borderLeftWidth: '3px',
+                }}
               >
                 <div className="flex items-start gap-3">
                   {/* Status dot */}

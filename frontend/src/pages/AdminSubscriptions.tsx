@@ -221,7 +221,7 @@ export function AdminSubscriptions() {
           <p className="text-2xl font-black text-din-text">
             {isLoadingOverview ? '...' : overview?.total_users || 0}
           </p>
-          <span className="text-[10px] text-din-muted">Cadastros no Din</span>
+          <span className="text-[10px] text-din-muted">Cadastros no Meu Dino</span>
         </Card>
 
         <Card className="p-4 bg-gradient-to-br from-violet-600/10 to-transparent border-violet-500/30">
