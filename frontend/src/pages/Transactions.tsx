@@ -27,6 +27,8 @@ export function Transactions() {
   const [filters, setFilters] = useState<TransactionFilters>({
     page: 1,
     limit: 15,
+    sort_by: 'date',
+    sort_order: 'desc',
   });
 
   const [pagination, setPagination] = useState({
@@ -80,7 +82,13 @@ export function Transactions() {
     setFilters({
       page: 1,
       limit: 15,
+      sort_by: 'date',
+      sort_order: 'desc',
     });
+  };
+
+  const handleSort = (field: 'date' | 'amount' | 'type' | 'description', order: 'asc' | 'desc') => {
+    setFilters((prev) => ({ ...prev, page: 1, sort_by: field, sort_order: order }));
   };
 
   const handleDelete = async (id: string) => {
@@ -204,6 +212,9 @@ export function Transactions() {
         onEdit={(tx) => setEditingTransaction(tx)}
         onDelete={handleDelete}
         onNewTransaction={openNewTransactionModal}
+        sortBy={filters.sort_by}
+        sortOrder={filters.sort_order}
+        onSort={handleSort}
       />
 
       {/* Modal de Edição */}

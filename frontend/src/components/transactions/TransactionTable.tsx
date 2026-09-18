@@ -17,7 +17,13 @@ import {
   ChevronRight,
   ReceiptText,
   Landmark,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
+
+type SortField = 'date' | 'amount' | 'type' | 'description';
+type SortOrder = 'asc' | 'desc';
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -32,7 +38,28 @@ interface TransactionTableProps {
   onEdit: (tx: Transaction) => void;
   onDelete: (id: string) => void;
   onNewTransaction?: () => void;
+  sortBy?: SortField;
+  sortOrder?: SortOrder;
+  onSort?: (field: SortField, order: SortOrder) => void;
 }
+
+function SortIcon({ field, active, order }: { field: SortField; active: boolean; order: SortOrder }) {
+  if (!active) return <ArrowUpDown className="w-3 h-3 ml-1 opacity-30 inline-block" />;
+  return order === 'asc'
+    ? <ArrowUp className="w-3 h-3 ml-1 text-emerald-400 inline-block" />
+    : <ArrowDown className="w-3 h-3 ml-1 text-emerald-400 inline-block" />;
+}
+
+const SORT_OPTIONS: { label: string; field: SortField; order: SortOrder }[] = [
+  { label: 'Data (mais recente)', field: 'date', order: 'desc' },
+  { label: 'Data (mais antiga)', field: 'date', order: 'asc' },
+  { label: 'Valor (maior)', field: 'amount', order: 'desc' },
+  { label: 'Valor (menor)', field: 'amount', order: 'asc' },
+  { label: 'Tipo (receita primeiro)', field: 'type', order: 'asc' },
+  { label: 'Tipo (despesa primeiro)', field: 'type', order: 'desc' },
+  { label: 'Descrição (A→Z)', field: 'description', order: 'asc' },
+  { label: 'Descrição (Z→A)', field: 'description', order: 'desc' },
+];
 
 export function TransactionTable({
   transactions,
@@ -42,8 +69,25 @@ export function TransactionTable({
   onEdit,
   onDelete,
   onNewTransaction,
+  sortBy = 'date',
+  sortOrder = 'desc',
+  onSort,
 }: TransactionTableProps) {
   const { maskValue } = usePrivacy();
+
+  const handleHeaderClick = (field: SortField) => {
+    if (!onSort) return;
+    const newOrder: SortOrder =
+      sortBy === field ? (sortOrder === 'desc' ? 'asc' : 'desc') : 'desc';
+    onSort(field, newOrder);
+  };
+
+  const handleMobileSort = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const [field, order] = e.target.value.split(':') as [SortField, SortOrder];
+    onSort?.(field, order);
+  };
+
+  const currentMobileValue = `${sortBy}:${sortOrder}`;
 
   if (isLoading) {
     return <TableSkeleton rows={6} />;
@@ -62,19 +106,50 @@ export function TransactionTable({
     );
   }
 
+  const Th = ({ field, label, align = 'left' }: { field: SortField; label: string; align?: 'left' | 'right' }) => (
+    <th
+      className={`py-4 px-4 cursor-pointer select-none hover:text-din-text transition-colors ${align === 'right' ? 'text-right' : ''}`}
+      onClick={() => handleHeaderClick(field)}
+    >
+      {label}
+      <SortIcon field={field} active={sortBy === field} order={sortOrder} />
+    </th>
+  );
+
   return (
     <div className="space-y-4 animate-fade-in">
+
+      {/* Seletor de Ordenação — Mobile Only */}
+      {onSort && (
+        <div className="md:hidden">
+          <div className="relative">
+            <select
+              value={currentMobileValue}
+              onChange={handleMobileSort}
+              className="w-full appearance-none bg-card border border-border text-din-text text-xs font-medium rounded-2xl px-3 py-2.5 pr-8 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={`${opt.field}:${opt.order}`} value={`${opt.field}:${opt.order}`}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <ArrowUpDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-din-muted" />
+          </div>
+        </div>
+      )}
+
       {/* Visualização em Tabela (Desktop / Tablet) */}
       <div className="hidden md:block overflow-x-auto rounded-3xl border border-border bg-card backdrop-blur-md shadow-xl">
         <table className="w-full text-left text-xs">
           <thead className="bg-card-secondary text-din-muted font-bold uppercase tracking-wider border-b border-border">
             <tr>
-              <th className="py-4 px-4">Tipo & Data</th>
-              <th className="py-4 px-4">Descrição</th>
+              <Th field="date" label="Tipo & Data" />
+              <Th field="description" label="Descrição" />
               <th className="py-4 px-4">Conta Bancária</th>
               <th className="py-4 px-4">Categoria</th>
-              <th className="py-4 px-4">Origem</th>
-              <th className="py-4 px-4 text-right">Valor</th>
+              <Th field="type" label="Origem" />
+              <Th field="amount" label="Valor" align="right" />
               <th className="py-4 px-4 text-center">Ações</th>
             </tr>
           </thead>
@@ -87,7 +162,6 @@ export function TransactionTable({
               return (
                 <React.Fragment key={tx.id}>
                   <tr className="hover:bg-card-hover transition-colors group">
-                    {/* Tipo & Data */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="flex items-center gap-2.5">
                         <div
@@ -108,7 +182,6 @@ export function TransactionTable({
                       </div>
                     </td>
 
-                    {/* Descrição */}
                     <td className="py-3.5 px-4">
                       <span className="font-bold text-din-text block group-hover:text-din-primary transition-colors">
                         {tx.description}
@@ -121,7 +194,6 @@ export function TransactionTable({
                       )}
                     </td>
 
-                    {/* Conta Bancária */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       {tx.account ? (
                         <span
@@ -140,7 +212,6 @@ export function TransactionTable({
                       )}
                     </td>
 
-                    {/* Categoria */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       {tx.category ? (
                         <span
@@ -162,7 +233,6 @@ export function TransactionTable({
                       )}
                     </td>
 
-                    {/* Origem */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       {isWhatsApp ? (
                         <Badge variant="whatsapp" className="text-[10px] py-0.5 px-2">
@@ -175,7 +245,6 @@ export function TransactionTable({
                       )}
                     </td>
 
-                    {/* Valor */}
                     <td className="py-3.5 px-4 text-right whitespace-nowrap">
                       <span
                         className={`text-sm font-bold font-mono tracking-tight ${
@@ -187,7 +256,6 @@ export function TransactionTable({
                       </span>
                     </td>
 
-                    {/* Ações */}
                     <td className="py-3.5 px-4 text-center whitespace-nowrap">
                       <div className="flex items-center justify-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                         <button
@@ -231,9 +299,7 @@ export function TransactionTable({
 
           return (
             <React.Fragment key={tx.id}>
-              <div
-                className="p-4 rounded-3xl bg-card border border-border shadow-lg space-y-3"
-              >
+              <div className="p-4 rounded-3xl bg-card border border-border shadow-lg space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
                     <div
@@ -337,12 +403,10 @@ export function TransactionTable({
         })}
       </div>
 
-      {/* Banner de rodapé da listagem quando há poucas transações para intercalar */}
       {transactions.length > 0 && transactions.length < 4 && (
         <AdSenseBanner format="horizontal" className="my-2" />
       )}
 
-      {/* Paginação */}
       {pagination.totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2 pt-2 text-xs text-din-muted">
           <p>

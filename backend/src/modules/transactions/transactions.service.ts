@@ -94,6 +94,16 @@ export class TransactionsService {
       }
     }
 
+    // Ordenação dinâmica: sort_by define o campo, sort_order define a direção
+    const sortField = query.sort_by ?? 'date';
+    const sortDir = (query.sort_order ?? 'desc') as 'asc' | 'desc';
+
+    // Para campos textuais/enum, usa date como critério secundário de desempate
+    const orderBy: any =
+      sortField === 'date' || sortField === 'amount'
+        ? { [sortField]: sortDir }
+        : [{ [sortField]: sortDir }, { date: 'desc' }];
+
     const [total, transactions] = await Promise.all([
       prisma.transaction.count({ where }),
       prisma.transaction.findMany({
@@ -118,7 +128,7 @@ export class TransactionsService {
             },
           },
         },
-        orderBy: { date: 'desc' },
+        orderBy,
         skip,
         take: limit,
       }),

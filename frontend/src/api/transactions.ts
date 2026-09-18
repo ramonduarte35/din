@@ -80,6 +80,8 @@ export interface TransactionFilters {
   search?: string;
   page?: number;
   limit?: number;
+  sort_by?: 'date' | 'amount' | 'type' | 'description';
+  sort_order?: 'asc' | 'desc';
 }
 
 export interface SummaryFilters {
