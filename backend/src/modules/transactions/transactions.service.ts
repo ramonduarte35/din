@@ -8,6 +8,30 @@ import {
 } from './transactions.schemas.js';
 import { TransactionOrigin, TransactionType, Prisma, AccountType } from '@prisma/client';
 
+/**
+ * Converte uma data enviada pelo frontend para um DateTime com horário.
+ * - Se nenhuma data for informada: usa o momento atual (data + hora).
+ * - Se a data vier no formato YYYY-MM-DD (apenas data, sem horário): preserva
+ *   a data informada pelo usuário mas injeta a hora atual, evitando que todas
+ *   as transações do mesmo dia fiquem com 00:00:00 e percam a ordem de registro.
+ * - Se já vier com horário (ISO completo): mantém como está.
+ */
+function parseTransactionDate(dateInput: string | Date | undefined | null): Date {
+  if (!dateInput) return new Date();
+
+  if (typeof dateInput === 'string') {
+    // Formato puro YYYY-MM-DD (sem horário) — injeta hora atual
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+      const now = new Date();
+      const [year, month, day] = dateInput.split('-').map(Number);
+      // Constrói no horário local do servidor mantendo a data escolhida pelo usuário
+      return new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+    }
+  }
+
+  return new Date(dateInput);
+}
+
 export class TransactionsService {
   private async invalidateUserCache(userId: string) {
     try {
@@ -185,7 +209,7 @@ export class TransactionsService {
         type: data.type,
         account_id: targetAccountId,
         category_id: data.category_id || null,
-        date: data.date ? new Date(data.date) : new Date(),
+        date: parseTransactionDate(data.date),
         origin: TransactionOrigin.MANUAL,
       },
       include: {
@@ -219,7 +243,7 @@ export class TransactionsService {
       throw { statusCode: 404, message: 'Conta de destino não encontrada.' };
     }
 
-    const txDate = data.date ? new Date(data.date) : new Date();
+    const txDate = parseTransactionDate(data.date);
     const baseDesc = data.description?.trim() || `Transferência: ${fromAccount.name} ➔ ${toAccount.name}`;
 
     const [expenseTx, incomeTx] = await prisma.$transaction([
@@ -294,7 +318,7 @@ export class TransactionsService {
         ...(data.type && { type: data.type }),
         ...(data.account_id !== undefined && { account_id: data.account_id }),
         ...(data.category_id !== undefined && { category_id: data.category_id }),
-        ...(data.date && { date: new Date(data.date) }),
+        ...(data.date && { date: parseTransactionDate(data.date) }),
       },
       include: {
         category: true,
