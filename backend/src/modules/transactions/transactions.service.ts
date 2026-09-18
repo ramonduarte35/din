@@ -94,15 +94,18 @@ export class TransactionsService {
       }
     }
 
-    // Ordenação dinâmica: sort_by define o campo, sort_order define a direção
+    // Ordenação dinâmica: sort_by define o campo, sort_order define a direção.
+    // IMPORTANTE: transações manuais armazenam apenas a data (sem horário), então
+    // created_at é usado como desempate para manter a ordem de registro dentro do mesmo dia.
     const sortField = query.sort_by ?? 'date';
     const sortDir = (query.sort_order ?? 'desc') as 'asc' | 'desc';
 
-    // Para campos textuais/enum, usa date como critério secundário de desempate
     const orderBy: any =
-      sortField === 'date' || sortField === 'amount'
-        ? { [sortField]: sortDir }
-        : [{ [sortField]: sortDir }, { date: 'desc' }];
+      sortField === 'date'
+        ? [{ date: sortDir }, { created_at: sortDir }]         // data + hora de registro
+        : sortField === 'amount'
+          ? [{ amount: sortDir }, { date: 'desc' }, { created_at: 'desc' }]
+          : [{ [sortField]: sortDir }, { date: 'desc' }, { created_at: 'desc' }];
 
     const [total, transactions] = await Promise.all([
       prisma.transaction.count({ where }),
