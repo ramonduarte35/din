@@ -54,7 +54,7 @@ export const CategoryChart = React.memo(function CategoryChart({ data, isLoading
   };
 
   return (
-    <Card className="flex flex-col h-[380px] bg-card border-border">
+    <Card className="flex flex-col bg-card border-border">
       <div className="flex items-center justify-between pb-3 border-b border-border">
         <div>
           <h3 className="text-sm font-bold text-din-text tracking-tight">Despesas por Categoria</h3>
@@ -62,9 +62,9 @@ export const CategoryChart = React.memo(function CategoryChart({ data, isLoading
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col md:flex-row items-center justify-between gap-4 mt-2">
-        {/* Gráfico Donut */}
-        <div className="w-full md:w-1/2 h-[180px] md:h-[230px]">
+      <div className="flex flex-col md:flex-row items-center gap-4 mt-3">
+        {/* Gráfico Donut — menor no mobile para sobrar espaço para a legenda */}
+        <div className="w-full md:w-1/2 h-[160px] md:h-[220px] flex-shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Tooltip content={<CustomTooltip />} />
@@ -74,8 +74,8 @@ export const CategoryChart = React.memo(function CategoryChart({ data, isLoading
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                innerRadius={55}
-                outerRadius={80}
+                innerRadius={48}
+                outerRadius={70}
                 paddingAngle={4}
               >
                 {data.map((entry, index) => (
@@ -91,8 +91,8 @@ export const CategoryChart = React.memo(function CategoryChart({ data, isLoading
           </ResponsiveContainer>
         </div>
 
-        {/* Legenda Customizada com barras de progresso */}
-        <div className="w-full md:w-1/2 max-h-[220px] overflow-y-auto pr-1 space-y-2.5">
+        {/* Legenda — scroll apenas no desktop se houver muitas categorias */}
+        <div className="w-full md:w-1/2 md:max-h-[220px] md:overflow-y-auto pr-1 space-y-2.5 pb-1">
           {data.slice(0, 5).map((cat) => (
             <div key={cat.name} className="space-y-1">
               <div className="flex items-center justify-between text-xs">
@@ -100,7 +100,7 @@ export const CategoryChart = React.memo(function CategoryChart({ data, isLoading
                   <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
                   {cat.name}
                 </span>
-                <span className="text-din-text font-bold font-mono">{maskValue(cat.amount)}</span>
+                <span className="text-din-text font-bold font-mono ml-2 flex-shrink-0">{maskValue(cat.amount)}</span>
               </div>
               <div className="w-full h-1.5 bg-card-secondary rounded-full overflow-hidden">
                 <div
