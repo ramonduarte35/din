@@ -47,7 +47,8 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
       });
     }
 
-    // Se o e-mail estiver configurado como administrador no .env, garante privilégios instantâneos
+    // Se o e-mail estiver configurado como administrador no .env, garante privilégios instantâneos.
+    // O UPDATE só ocorre se os dados no banco estiverem de fato desatualizados (evita write a cada request).
     if (isSystemAdminEmail(user.email) && (user.role !== 'ADMIN' || user.subscription_tier !== 'PRO')) {
       await prisma.user.update({
         where: { id: user.id },

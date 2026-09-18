@@ -756,7 +756,7 @@ export class WebhooksService {
         `👋 *Olá! Seja bem-vindo ao Dino.*\n\n` +
         `Não encontramos nenhuma conta vinculada ao seu número de WhatsApp (${formatPhoneNumberDisplay(normalizedSender)}).\n\n` +
         `Para começar a gerenciar suas finanças com IA diretamente por aqui:\n` +
-        `1️⃣ Acesse a plataforma web: http://localhost:8000\n` +
+        `1️⃣ Acesse a plataforma web: ${env.APP_URL}\n` +
         `2️⃣ Crie sua conta ou faça login\n` +
         `3️⃣ No seu *Perfil*, adicione e confirme seu número de WhatsApp: *${formatPhoneNumberDisplay(normalizedSender)}*\n\n` +
         `Assim que cadastrado, você poderá registrar gastos e receitas enviando mensagens de texto ou áudio! 🚀`;

@@ -346,7 +346,7 @@ export class TransactionsService {
     const [
       currentMonthTransactions,
       prevMonthTransactions,
-      allUserTransactions,
+      historicalAggregate,
       userAccounts,
       recentTransactions,
       sixMonthsRaw,
@@ -361,10 +361,11 @@ export class TransactionsService {
         where: { user_id: userId, date: { gte: startOfPrevMonth, lte: endOfPrevMonth } },
         select: { type: true, amount: true },
       }),
-      // 3. Todas as transações históricas (tipo e valor) para saldo total
-      prisma.transaction.findMany({
+      // 3. Agregação histórica via groupBy — evita carregar todas as transações na memória
+      prisma.transaction.groupBy({
+        by: ['type'],
         where: { user_id: userId },
-        select: { type: true, amount: true },
+        _sum: { amount: true },
       }),
       // 4. Contas bancárias (saldo inicial)
       prisma.account.findMany({ where: { user_id: userId } }),
@@ -419,12 +420,12 @@ export class TransactionsService {
       else prevExpense += amount;
     }
 
-    // ─── Saldo Total Histórico ──────────────────────────────────────────────
+    // ─── Saldo Total Histórico (via agregação no banco — sem carregar registros na RAM) ─
     let totalHistoricalBalance = 0;
     for (const acc of userAccounts) totalHistoricalBalance += Number(acc.initial_balance);
-    for (const t of allUserTransactions) {
-      const amount = Number(t.amount);
-      if (t.type === TransactionType.INCOME) totalHistoricalBalance += amount;
+    for (const agg of historicalAggregate) {
+      const amount = Number(agg._sum.amount || 0);
+      if (agg.type === TransactionType.INCOME) totalHistoricalBalance += amount;
       else totalHistoricalBalance -= amount;
     }
 
@@ -486,7 +487,11 @@ export class TransactionsService {
     };
 
     try {
-      await redis.set(cacheKey, JSON.stringify(result), 'EX', 45);
+      // Meses passados: dados imutáveis — cache de 1 hora. Mês atual: 45s (pode mudar)
+      const nowForTTL = new Date();
+      const isCurrentMonth = year === nowForTTL.getFullYear() && month === nowForTTL.getMonth();
+      const cacheTTL = isCurrentMonth ? 45 : 3600;
+      await redis.set(cacheKey, JSON.stringify(result), 'EX', cacheTTL);
     } catch (e) {
       // Falha silenciosa do cache
     }

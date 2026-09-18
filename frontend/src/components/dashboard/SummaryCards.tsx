@@ -10,7 +10,7 @@ interface SummaryCardsProps {
   isLoading: boolean;
 }
 
-export function SummaryCards({ summary, isLoading }: SummaryCardsProps) {
+export const SummaryCards = React.memo(function SummaryCards({ summary, isLoading }: SummaryCardsProps) {
   const { maskValue } = usePrivacy();
 
   if (isLoading || !summary) {
@@ -130,4 +130,4 @@ export function SummaryCards({ summary, isLoading }: SummaryCardsProps) {
       </Card>
     </div>
   );
-}
+});

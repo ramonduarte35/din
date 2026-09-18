@@ -251,38 +251,39 @@ export class BudgetsService {
       };
     }
 
-    const createdOrUpdated = [];
-
-    for (const pb of prevBudgets) {
-      const budget = await prisma.budget.upsert({
-        where: {
-          user_id_category_id_month_year: {
+    // Rodar todos os upserts em paralelo (antes eram sequenciais)
+    const createdOrUpdated = await Promise.all(
+      prevBudgets.map(async (pb) => {
+        const budget = await prisma.budget.upsert({
+          where: {
+            user_id_category_id_month_year: {
+              user_id: userId,
+              category_id: pb.category_id,
+              month: targetMonth,
+              year: targetYear,
+            },
+          },
+          update: {
+            amount: pb.amount,
+          },
+          create: {
             user_id: userId,
             category_id: pb.category_id,
+            amount: pb.amount,
             month: targetMonth,
             year: targetYear,
           },
-        },
-        update: {
-          amount: pb.amount,
-        },
-        create: {
-          user_id: userId,
-          category_id: pb.category_id,
-          amount: pb.amount,
-          month: targetMonth,
-          year: targetYear,
-        },
-        include: {
-          category: true,
-        },
-      });
+          include: {
+            category: true,
+          },
+        });
 
-      createdOrUpdated.push({
-        ...budget,
-        amount: Number(budget.amount),
-      });
-    }
+        return {
+          ...budget,
+          amount: Number(budget.amount),
+        };
+      })
+    );
 
     return {
       copied_count: createdOrUpdated.length,

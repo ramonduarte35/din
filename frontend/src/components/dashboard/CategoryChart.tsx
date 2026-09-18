@@ -11,7 +11,7 @@ interface CategoryChartProps {
   isLoading: boolean;
 }
 
-export function CategoryChart({ data, isLoading }: CategoryChartProps) {
+export const CategoryChart = React.memo(function CategoryChart({ data, isLoading }: CategoryChartProps) {
   const { maskValue } = usePrivacy();
 
   if (isLoading) {
@@ -114,4 +114,4 @@ export function CategoryChart({ data, isLoading }: CategoryChartProps) {
       </div>
     </Card>
   );
-}
+});

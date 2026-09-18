@@ -10,7 +10,7 @@ interface FinancialHealthWidgetProps {
   isLoading: boolean;
 }
 
-export function FinancialHealthWidget({ summary, isLoading }: FinancialHealthWidgetProps) {
+export const FinancialHealthWidget = React.memo(function FinancialHealthWidget({ summary, isLoading }: FinancialHealthWidgetProps) {
   const { maskValue } = usePrivacy();
 
   if (isLoading || !summary) {
@@ -236,4 +236,4 @@ export function FinancialHealthWidget({ summary, isLoading }: FinancialHealthWid
       </div>
     </Card>
   );
-}
+});

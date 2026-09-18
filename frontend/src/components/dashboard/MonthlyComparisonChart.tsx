@@ -19,7 +19,7 @@ interface MonthlyComparisonChartProps {
   isLoading: boolean;
 }
 
-export function MonthlyComparisonChart({ data, isLoading }: MonthlyComparisonChartProps) {
+export const MonthlyComparisonChart = React.memo(function MonthlyComparisonChart({ data, isLoading }: MonthlyComparisonChartProps) {
   const { maskValue, isPrivate } = usePrivacy();
 
   if (isLoading) {
@@ -118,4 +118,4 @@ export function MonthlyComparisonChart({ data, isLoading }: MonthlyComparisonCha
       </div>
     </Card>
   );
-}
+});
